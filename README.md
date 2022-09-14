@@ -1,0 +1,1 @@
+# dbt_synth_data

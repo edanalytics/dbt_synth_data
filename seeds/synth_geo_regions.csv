@@ -1,0 +1,72 @@
+country,name,postal_code_from,postal_code_to
+United States of America,AL,35004,36925
+United States of America,AK,99501,99950
+United States of America,AZ,85001,86556
+United States of America,AR,71601,72959
+United States of America,CA,90001,96162
+United States of America,CO,80001,81658
+United States of America,CT,06001,06928
+United States of America,DE,19701,19980
+United States of America,FL,32003,34997
+United States of America,GA,30002,39901
+United States of America,HI,96701,96898
+United States of America,ID,83201,83877
+United States of America,IL,60001,62999
+United States of America,IN,46001,47997
+United States of America,IA,50001,52809
+United States of America,KS,66002,67954
+United States of America,KY,40003,42788
+United States of America,LA,70001,71497
+United States of America,ME,03901,04992
+United States of America,MD,20588,21930
+United States of America,MA,01001,05544
+United States of America,MI,48001,49971
+United States of America,MN,55001,56763
+United States of America,MS,38601,39776
+United States of America,MO,63001,65899
+United States of America,MT,59001,59937
+United States of America,NE,68001,69367
+United States of America,NV,88901,89883
+United States of America,NH,03031,03897
+United States of America,NJ,07001,08989
+United States of America,NM,87001,88439
+United States of America,NY,00501,14925
+United States of America,NC,27006,28909
+United States of America,ND,58001,58856
+United States of America,OH,43001,45999
+United States of America,OK,73001,74966
+United States of America,OR,97001,97920
+United States of America,PA,15001,19640
+United States of America,RI,02801,02940
+United States of America,SC,29001,29945
+United States of America,SD,57001,57799
+United States of America,TN,37010,38589
+United States of America,TX,73301,88595
+United States of America,UT,84001,84791
+United States of America,VT,05001,05907
+United States of America,VA,20101,24658
+United States of America,WA,98001,99403
+United States of America,WV,24701,26886
+United States of America,WI,53001,54990
+United States of America,WY,82001,83414
+Australia,NSW,2619,2899
+Australia,ACT,2600,2618
+Australia,VIC,3000,3999
+Australia,QLD,4000,4999
+Australia,SA,5000,5799
+Australia,WA,6000,6797
+Australia,TAS,7000,7799
+Australia,NT,0800,0899
+Canada,Alberta,,
+Canada,British Columbia,,
+Canada,Manitoba,,
+Canada,New Brunswick,,
+Canada,Newfoundland and Labrador,,
+Canada,Northwest Territories,,
+Canada,Nova Scotia,,
+Canada,Nunavut,,
+Canada,Ontario,,
+Canada,Prince Edward Island,,
+Canada,Quebec,,
+Canada,Saskatchewan,,
+Canada,Yukon,,

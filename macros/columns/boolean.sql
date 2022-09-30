@@ -6,8 +6,11 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_boolean(randseed, name, pct_true) %}
-    {# NOT YET IMPLEMENTED #}
+{% macro postgres__column_boolean(randseed, name, pct_true) %}
+    CASE 
+        WHEN RANDOM() < {{pct_true}} THEN TRUE
+        ELSE FALSE
+    END AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_boolean(randseed, name, pct_true) %}

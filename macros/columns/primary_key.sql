@@ -6,8 +6,8 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_primary_key(name) %}
-    {# NOT YET IMPLEMENTED #}
+{% macro postgres__column_primary_key(name) %}
+    MD5( RANDOM()::varchar ) AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_primary_key(name) %}

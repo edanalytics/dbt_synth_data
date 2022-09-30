@@ -6,8 +6,10 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_expression(name, expression) %}
-    {# NOT YET IMPLEMENTED #}
+{% macro postgres__column_expression(name, expression) %}
+    {{ dbt_synth.add_post_hook(expression_update(name, expression)) or "" }}
+    
+    ''::varchar AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_expression(name, expression) %}

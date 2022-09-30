@@ -6,8 +6,10 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_phone_number(name) %}
-    {# NOT YET IMPLEMENTED #}
+{% macro postgres__column_phone_number(name) %}
+    '(' || LPAD((floor(RANDOM() * 899 + 100)::int)::varchar, 3, '0')
+    || ') ' || LPAD((floor(RANDOM() * 998 + 1)::int)::varchar, 3, '0')
+    || '-' || LPAD((floor(RANDOM() * 998 + 1)::int)::varchar, 4, '0') as {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_phone_number(name) %}

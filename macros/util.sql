@@ -16,9 +16,11 @@
 
 {%- macro get_post_hooks() -%}
     {% set posthooks %}
+    {% if builtins.get("posthooks") %}
     {% for posthook in builtins.get("posthooks") %}
         {{ posthook }};
     {% endfor %}
+    {% endif %}
     {% endset %}
     {{ return(posthooks) }}
 {%- endmacro %}

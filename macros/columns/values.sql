@@ -6,8 +6,12 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_values(randseed, name, values, distribution) %}
-    {# NOT YET IMPLEMENTED #}
+{% macro postgres__column_values(randseed, name, values, distribution) %}
+    CASE floor(RANDOM() * {{values|length}} + 1)
+        {% for i in range(0, values|length) %}
+        WHEN {{i+1}} THEN '{{values[i]}}'
+        {% endfor %}
+    END AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_values(randseed, name, values, distribution) %}

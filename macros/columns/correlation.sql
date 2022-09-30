@@ -6,13 +6,67 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgresql__column_correlation(data, column) %}
-    {# NOT YET IMPLEMENTED #}
+
+
+{% macro postgres__column_correlation(data, column) %}
+    {{ dbt_synth.add_post_hook(postgres__correlation_column_update(data, column)) or "" }}
+    {{ dbt_synth.add_post_hook(postgres__correlation_column_cleanup(column)) or "" }}
+    
+    RANDOM() as {{column}}_rand,
+    {% if data.columns[column][0] is string %} ''::varchar
+    {% elif data.columns[column][0] is integer %}0::int
+    {% elif data.columns[column][0] is float %}0::float
+    {% else %}NULL
+    {% endif %} AS {{column}}
 {% endmacro %}
 
+{% macro postgres__correlation_column_update(data, column) %}
+    {%- set hypercube_dimension = data.columns|length -%}
+    {%- set hypercube_shape = [] -%}
+    {%- set ns = namespace(column_index=0) -%}
+    {%- set ns2 = namespace(counter=0) -%}
+    {%- for col, vals in data.columns.items() -%}
+        {% if col==column %}{% set ns.column_index = ns2.counter %}{% endif %}
+        {%- do hypercube_shape.append(vals|length) -%}
+        {%- set ns2.counter = ns2.counter + 1 -%}
+    {% endfor %}
+    update {{this}} set {{column}}=(
+    CASE
+    {% set iterator = hypercube_iterator(hypercube_shape) %}
+    {% set ns_from = namespace(threshhold=0.0) %}
+    {% set ns_to = namespace(threshhold=0.0) %}
+    {% for indices_string in iterator %}
+        {%- set indices = indices_string.split('.') -%}
+        {%- set this_probability = hypercube_value_at_indices(data.probabilities, indices) -%}
+        {%- if this_probability > 0 -%}
+        {%- set value = data.columns[column][(indices[ns.column_index]|int)] %}
+        {%- set ns_to.threshhold = ns_from.threshhold + this_probability -%}
+        WHEN
+            {% if not loop.first %}
+            {{column}}_rand >= {{ ns_from.threshhold }}
+            {%- endif %}
+            {% if not loop.first and not loop.last %}
+            AND 
+            {%- endif %}
+            {%- if not loop.last %}
+            {{column}}_rand < {{ ns_to.threshhold }}
+            {%- endif %}
+        THEN {% if value is string %}'{{value}}'{% else %}{{value}}{% endif %}
+        {% set ns_from.threshhold = ns_to.threshhold -%}
+        {% endif -%}
+    {% endfor %}
+    END)
+{% endmacro %}
+
+{% macro postgres__correlation_column_cleanup(column) %}
+alter table {{ this }} drop column {{column}}_rand
+{% endmacro %}
+
+
+
 {% macro snowflake__column_correlation(data, column) %}
-    {{ dbt_synth.add_post_hook(correlation_column_update(data, column)) or "" }}
-    {{ dbt_synth.add_post_hook(correlation_column_cleanup(column)) or "" }}
+    {{ dbt_synth.add_post_hook(snowflake__correlation_column_update(data, column)) or "" }}
+    {{ dbt_synth.add_post_hook(snowflake__correlation_column_cleanup(column)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{data.randseed}})) as {{column}}_rand,
     {% if data.columns[column][0] is string %} ''::varchar
@@ -22,7 +76,7 @@
     {% endif %} AS {{column}}
 {% endmacro%}
 
-{% macro correlation_column_update(data, column) %}
+{% macro snowflake__correlation_column_update(data, column) %}
     {%- set hypercube_dimension = data.columns|length -%}
     {%- set hypercube_shape = [] -%}
     {%- set ns = namespace(column_index=0) -%}
@@ -60,7 +114,7 @@
     END)
 {% endmacro %}
 
-{% macro correlation_column_cleanup(column) %}
+{% macro snowflake__correlation_column_cleanup(column) %}
 alter table {{ this }} drop column {{column}}_rand
 {% endmacro %}
 

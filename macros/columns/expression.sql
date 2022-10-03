@@ -1,23 +1,23 @@
-{% macro column_expression(name, expression) -%}
-    {{ return(adapter.dispatch('column_expression')(name, expression)) }}
+{% macro column_expression(name, expression, type='varchar') -%}
+    {{ return(adapter.dispatch('column_expression')(name, expression, type)) }}
 {%- endmacro %}
 
-{% macro default__column_expression(name, expression) -%}
+{% macro default__column_expression(name, expression, type='varchar') -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgres__column_expression(name, expression) %}
+{% macro postgres__column_expression(name, expression, type='varchar') %}
     {{ dbt_synth.add_post_hook(expression_update(name, expression)) or "" }}
     
-    ''::varchar AS {{name}}
+    NULL::{{type}} AS {{name}}
 {% endmacro %}
 
-{% macro snowflake__column_expression(name, expression) %}
+{% macro snowflake__column_expression(name, expression, type='varchar') %}
     {{ dbt_synth.add_post_hook(expression_update(name, expression)) or "" }}
     
-    ''::varchar AS {{name}}
+    NULL::{{type}} AS {{name}}
 {% endmacro%}
 
 {% macro expression_update(name, expression) %}
-update {{ this }} set {{name}} = ({{expression}})
+update {{ this }} set {{name}} = {{expression}}
 {% endmacro %}

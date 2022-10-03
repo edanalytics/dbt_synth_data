@@ -13,10 +13,10 @@
 {% endmacro %}
 
 {% macro postgres__lookup_update(name, value_col, lookup_table, from_col, to_col) %}
-update {{ this }} set {{name}}=y.{{to_col}} from (
+update {{ this }} x set {{name}}=y.{{to_col}} from (
   select {{from_col}}, {{to_col}}
   from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
-) as y where {{value_col}}=y.{{from_col}}
+) as y where x.{{value_col}}=y.{{from_col}}
 {% endmacro %}
 
 {% macro snowflake__column_lookup(name, value_col, lookup_table, from_col, to_col) %}
@@ -29,5 +29,5 @@ update {{ this }} set {{name}}=y.{{to_col}} from (
 update {{ this }} x set x.{{name}}=y.{{to_col}} from (
   select {{from_col}}, {{to_col}}
   from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
-) as y where {{value_col}}=y.{{from_col}}
+) as y where x.{{value_col}}=y.{{from_col}}
 {% endmacro %}

@@ -17,14 +17,14 @@
 {% endmacro %}
 
 {% macro postgres__foreign_key_update(name, table, column) %}
-update {{ this }} set {{name}}=y.val from (
+update {{ this }} x set {{name}}=y.val from (
   select
     {{column}} as val,
     ( (row_number() over (order by {{column}} asc)) - 1 )::double precision / count(*) over () as from_val,
     ( row_number() over (order by {{column}} asc) )::double precision / count(*) over () as to_val
   from {{ this.database }}.{{ this.schema }}.{{ table }}
   order by {{column}}
-) as y where {{name}}_rand>=y.from_val and {{name}}_rand<y.to_val
+) as y where x.{{name}}_rand>=y.from_val and x.{{name}}_rand<y.to_val
 {% endmacro %}
 
 {% macro postgres__foreign_key_cleanup(name) %}

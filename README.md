@@ -15,6 +15,6 @@ In Snowflake, using a single Xsmall warehouse:
 
 In Postgres, using an AWS RDS small instance:
 
-* Creating `models/dim_student.sql` with 100M rows didn't finish in 3 hours...
+* Creating `models/dim_student.sql` with 10M rows didn't finish in 3 hours...
 
 * Creating 100K `dim_student`s takes 43 secs; 100K `dim_guardian`s takes 30 secs; 200K `fct_family_relationship`s takes around 76 minutes.

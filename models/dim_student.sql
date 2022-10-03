@@ -20,7 +20,7 @@
   })
 %}
 {{ dbt_synth.table(
-  rows = 100000000,
+  rows = 10000000,
   columns = [
     dbt_synth.column_primary_key(name='k_student'),
     dbt_synth.column_values(name='school', values=['15628', '15631', '15632', '60918', '60919', '60920'], distribution=[0.05, 0.1, 0.15, 0.15, 0.15, 0.4]),

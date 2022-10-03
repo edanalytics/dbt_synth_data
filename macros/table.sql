@@ -13,7 +13,7 @@
         {%- for column in columns-%}
         {{ column }} {%- if not loop.last -%},{%- endif -%}
         {%- endfor -%}
-    from generate_series(1,{{rows}})
+    from generate_series(1,{{rows}}) as s(idx)
 {% endmacro %}
 
 

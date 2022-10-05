@@ -1,8 +1,8 @@
+{#
 -- depends_on: {{ ref('dim_student') }}
 -- depends_on: {{ ref('dim_program') }}
 -- depends_on: {{ ref('dim_school') }}
 
-{#
 k_student,
 k_student_xyear,
 k_program,

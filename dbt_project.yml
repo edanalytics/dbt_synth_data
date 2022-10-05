@@ -53,5 +53,6 @@ vars:
   students_pct_is_immigrant: 0.00026
   session_types: ['YR', 'S1', 'S2', 'Q1', 'Q2', 'Q3', 'Q4']
   avg_classrooms_per_school: 20
+  avg_periods_per_school: 8
   classroom_min_seating: 15
   classroom_max_seating: 75

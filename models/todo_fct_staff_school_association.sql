@@ -1,9 +1,9 @@
+{#
 -- depends_on: {{ ref('dim_staff') }}
 -- depends_on: {{ ref('dim_lea') }}
 -- depends_on: {{ ref('dim_school') }}
 -- depends_on: {{ ref('dim_school_calendar') }}
 
-{#
 k_staff,
 k_lea,
 k_school,

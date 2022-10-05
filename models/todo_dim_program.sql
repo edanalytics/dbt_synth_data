@@ -1,7 +1,7 @@
+{#
 -- depends_on: {{ ref('dim_lea') }}
 -- depends_on: {{ ref('dim_school') }}
 
-{#
 k_program,
 k_lea,
 k_school,

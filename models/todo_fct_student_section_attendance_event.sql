@@ -1,7 +1,7 @@
+{#
 -- depends_on: {{ ref('dim_student') }}
 -- depends_on: {{ ref('dim_course_section') }}
 
-{#
 k_student,
 k_course_section,
 tenant_code,

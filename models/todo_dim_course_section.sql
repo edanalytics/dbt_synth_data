@@ -1,9 +1,9 @@
+{#
 -- depends_on: {{ ref('dim_school') }}
 -- depends_on: {{ ref('dim_course') }}
 -- depends_on: {{ ref('dim_session') }}
 -- depends_on: {{ ref('dim_classroom') }}
 
-{#
 k_course_section,
 k_course,
 k_school,

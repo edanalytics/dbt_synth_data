@@ -1,9 +1,9 @@
+{#
 -- depends_on: {{ ref('dim_student') }}
 -- depends_on: {{ ref('dim_course_section') }}
 -- depends_on: {{ ref('dim_school') }}
 -- depends_on: {{ ref('dim_grading_period') }}
 
-{#
 k_student,
 k_course_section,
 k_school,

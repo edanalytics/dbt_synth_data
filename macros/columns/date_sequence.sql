@@ -8,9 +8,9 @@
 
 {% macro postgres__column_date_sequence(name, start_date='') %}
     {% if start_date|length ==0 %}
-    CURRENT_DATE + interval '1 days' * s.idx
+    (CURRENT_DATE + interval '1 days' * s.idx)::date
     {% else %}
-    TO_DATE('{{start_date}}', 'YYYY-MM-DD') + interval '1 days' * s.idx
+    (TO_DATE('{{start_date}}', 'YYYY-MM-DD') + interval '1 days' * s.idx)::date
     {% endif %}
      AS {{name}}
 {% endmacro %}

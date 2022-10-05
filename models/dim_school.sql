@@ -1,11 +1,14 @@
 -- depends_on: {{ ref('dim_lea') }}
+-- depends_on: {{ ref('synth_words') }}
+-- depends_on: {{ ref('synth_cities') }}
+
 {{ config(materialized='table') }}
 {{ dbt_synth.table(
-    rows = 1200,
+    rows = var('num_schools'),
     columns = [
         dbt_synth.column_primary_key(name='k_school'),
         dbt_synth.column_foreign_key(name='k_lea', table='dim_lea', column='k_lea'),
-        dbt_synth.column_value(name='tenant_code', value='SomeTenant'),
+        dbt_synth.column_lookup(name='tenant_code', value_col='k_lea', lookup_table='dim_lea', from_col='k_lea', to_col='tenant_code'),
         dbt_synth.column_integer_sequence(name='school_id', step=1, start=1000),
         dbt_synth.column_value(name='school_name', value='SchoolNameComingSoon'),
         dbt_synth.column_value(name='school_short_name', value='SchoolShortNameComingSoon'),
@@ -22,11 +25,11 @@
         dbt_synth.column_value(name='magnet_type', value=None),
         dbt_synth.column_value(name='website', value=None),
         dbt_synth.column_value(name='address_type', value='Physical'),
-        dbt_synth.column_address(name='street_address', countries=['United States of America'], geo_regions=['PA'], address_types=['house'], parts=['street_address']),
-        dbt_synth.column_address(name='city', countries=['United States of America'], geo_regions=['PA'], address_types=['house'], parts=['city']),
+        dbt_synth.column_address(name='street_address', countries=['United States of America'], geo_regions=[var('state_code')], address_types=['house'], parts=['street_address']),
+        dbt_synth.column_address(name='city', countries=['United States of America'], geo_regions=[var('state_code')], address_types=['house'], parts=['city']),
         dbt_synth.column_value(name='name_of_county', value=None),
-        dbt_synth.column_address(name='state_code', countries=['United States of America'], geo_regions=['PA'], address_types=['house'], parts=['geo_region']),
-        dbt_synth.column_address(name='postal_code', countries=['United States of America'], geo_regions=['PA'], address_types=['house'], parts=['postal_code']),
+        dbt_synth.column_address(name='state_code', countries=['United States of America'], geo_regions=[var('state_code')], address_types=['house'], parts=['geo_region']),
+        dbt_synth.column_address(name='postal_code', countries=['United States of America'], geo_regions=[var('state_code')], address_types=['house'], parts=['postal_code']),
         dbt_synth.column_value(name='building_site_number', value=None),
         dbt_synth.column_value(name='locale', value=None),
         dbt_synth.column_value(name='congressional_district', value=None),
@@ -35,5 +38,4 @@
         dbt_synth.column_value(name='longitude', value=None),
     ]
 ) }}
-
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

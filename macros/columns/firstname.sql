@@ -3,7 +3,7 @@
 {%- endmacro %}
 
 {% macro default__column_firstname(randseed, name, distribution) -%}
-    {# NOT YET IMPLEMENTED #}HI!
+    {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
 {% macro postgres__column_firstname(randseed, name, distribution) %}

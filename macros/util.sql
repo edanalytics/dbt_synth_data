@@ -17,7 +17,7 @@
 {%- macro get_post_hooks() -%}
     {% set posthooks %}
     {% if builtins.get("posthooks") %}
-    {% for posthook in builtins.get("posthooks") %}
+    {% for posthook in builtins.get("posthooks") | unique %}
         {{ posthook }};
     {% endfor %}
     {% endif %}

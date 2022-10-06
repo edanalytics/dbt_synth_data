@@ -9,8 +9,8 @@
 
 
 {% macro postgres__column_foreign_key(name, table, column) %}
-    {{ dbt_synth.add_post_hook(postgres__foreign_key_update(name, table, column)) or "" }}
-    {{ dbt_synth.add_post_hook(postgres__foreign_key_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(postgres__foreign_key_update(name, table, column)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__foreign_key_cleanup(name)) or "" }}
     
     ''::varchar AS {{name}},
     RANDOM() AS {{name}}_rand
@@ -34,8 +34,8 @@ alter table {{ this }} drop column {{name}}_rand
 
 
 {% macro snowflake__column_foreign_key(name, table, column) %}
-    {{ dbt_synth.add_post_hook(snowflake__foreign_key_update(name, table, column)) or "" }}
-    {{ dbt_synth.add_post_hook(snowflake__foreign_key_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(snowflake__foreign_key_update(name, table, column)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(snowflake__foreign_key_cleanup(name)) or "" }}
     
     ''::varchar AS {{name}},
     UNIFORM(0::float, 1::float, RANDOM( {{get_randseed()}} )) AS {{name}}_rand

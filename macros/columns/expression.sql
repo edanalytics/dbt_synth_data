@@ -7,13 +7,13 @@
 {%- endmacro %}
 
 {% macro postgres__column_expression(name, expression, type='varchar') %}
-    {{ dbt_synth.add_post_hook(expression_update(name, expression)) or "" }}
+    {{ dbt_synth.add_update_hook(expression_update(name, expression)) or "" }}
     
     NULL::{{type}} AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_expression(name, expression, type='varchar') %}
-    {{ dbt_synth.add_post_hook(expression_update(name, expression)) or "" }}
+    {{ dbt_synth.add_update_hook(expression_update(name, expression)) or "" }}
     
     NULL::{{type}} AS {{name}}
 {% endmacro%}

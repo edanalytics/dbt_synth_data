@@ -14,8 +14,8 @@
   ]
 ) }}
 
-{{ dbt_synth.add_post_hook("update {{this}} set classroom_id_code = 'Room ' || classroom_id_num") or "" }}
-{{ dbt_synth.add_post_hook("alter table {{this}} drop column classroom_id_num") or "" }}
-{{ dbt_synth.add_post_hook("update {{this}} set maximum_seating = optimum_seating + 10") or "" }}
+{{ dbt_synth.add_update_hook("update {{this}} set classroom_id_code = 'Room ' || classroom_id_num") or "" }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column classroom_id_num") or "" }}
+{{ dbt_synth.add_update_hook("update {{this}} set maximum_seating = optimum_seating + 10") or "" }}
 
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

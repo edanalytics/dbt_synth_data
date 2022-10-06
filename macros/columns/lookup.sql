@@ -7,7 +7,7 @@
 {%- endmacro %}
 
 {% macro postgres__column_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
-    {{ dbt_synth.add_post_hook(postgres__lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
+    {{ dbt_synth.add_update_hook(postgres__lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
     
     ''::varchar AS {{name}}
 {% endmacro %}
@@ -20,7 +20,7 @@ update {{ this }} x set {{name}}=y.{{to_col}} from (
 {% endmacro %}
 
 {% macro snowflake__column_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
-    {{ dbt_synth.add_post_hook(snowflake__lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
+    {{ dbt_synth.add_update_hook(snowflake__lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
     
     ''::varchar AS {{name}}
 {% endmacro%}

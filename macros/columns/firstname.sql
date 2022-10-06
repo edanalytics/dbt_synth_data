@@ -7,8 +7,8 @@
 {%- endmacro %}
 
 {% macro postgres__column_firstname(randseed, name, distribution) %}
-    {{ dbt_synth.add_post_hook(postgres__frequency_firstnames_update(name)) or "" }}
-    {{ dbt_synth.add_post_hook(postgres__frequency_firstnames_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(postgres__frequency_firstnames_update(name)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__frequency_firstnames_cleanup(name)) or "" }}
     
     RANDOM() as {{name}}_rand,
     ''::varchar AS {{name}}
@@ -31,8 +31,8 @@ alter table {{ this }} drop column {{name}}_rand
 {% endmacro %}
 
 {% macro snowflake__column_firstname(randseed, name, distribution) %}
-    {{ dbt_synth.add_post_hook(snowflake__frequency_firstnames_update(name)) or "" }}
-    {{ dbt_synth.add_post_hook(snowflake__frequency_firstnames_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(snowflake__frequency_firstnames_update(name)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(snowflake__frequency_firstnames_cleanup(name)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
     ''::varchar AS {{name}}
@@ -47,7 +47,7 @@ update {{this}} x set x.{{name}}=y.the_name from(
     (sum(frequency::double) over (order by frequency desc, name asc)) / sum(frequency::double) over () as to_freq
   from {{ this.database }}.{{ this.schema }}.synth_firstnames
   order by from_freq asc, to_freq asc
-) as y where x.{{name}}_rand>=y.from_freq and x.{{name}}_rand<y.to_freq
+) as y where x.{{name}}_rand>=y.from_freq and x.{{name}}_rand<y.to_freq+0.0001
 {% endmacro %}
 
 {% macro snowflake__frequency_firstnames_cleanup(name) %}

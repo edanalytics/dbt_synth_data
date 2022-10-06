@@ -29,7 +29,7 @@
     ]
 ) }}
 
-{{ dbt_synth.add_post_hook("""
+{{ dbt_synth.add_update_hook("""
     insert into {{this}} (
         k_lea,
         k_lea__parent,

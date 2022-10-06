@@ -1,72 +1,106 @@
-country,name,postal_code_from,postal_code_to
-United States of America,AL,35004,36925
-United States of America,AK,99501,99950
-United States of America,AZ,85001,86556
-United States of America,AR,71601,72959
-United States of America,CA,90001,96162
-United States of America,CO,80001,81658
-United States of America,CT,06001,06928
-United States of America,DE,19701,19980
-United States of America,FL,32003,34997
-United States of America,GA,30002,39901
-United States of America,HI,96701,96898
-United States of America,ID,83201,83877
-United States of America,IL,60001,62999
-United States of America,IN,46001,47997
-United States of America,IA,50001,52809
-United States of America,KS,66002,67954
-United States of America,KY,40003,42788
-United States of America,LA,70001,71497
-United States of America,ME,03901,04992
-United States of America,MD,20588,21930
-United States of America,MA,01001,05544
-United States of America,MI,48001,49971
-United States of America,MN,55001,56763
-United States of America,MS,38601,39776
-United States of America,MO,63001,65899
-United States of America,MT,59001,59937
-United States of America,NE,68001,69367
-United States of America,NV,88901,89883
-United States of America,NH,03031,03897
-United States of America,NJ,07001,08989
-United States of America,NM,87001,88439
-United States of America,NY,00501,14925
-United States of America,NC,27006,28909
-United States of America,ND,58001,58856
-United States of America,OH,43001,45999
-United States of America,OK,73001,74966
-United States of America,OR,97001,97920
-United States of America,PA,15001,19640
-United States of America,RI,02801,02940
-United States of America,SC,29001,29945
-United States of America,SD,57001,57799
-United States of America,TN,37010,38589
-United States of America,TX,73301,88595
-United States of America,UT,84001,84791
-United States of America,VT,05001,05907
-United States of America,VA,20101,24658
-United States of America,WA,98001,99403
-United States of America,WV,24701,26886
-United States of America,WI,53001,54990
-United States of America,WY,82001,83414
-Australia,NSW,2619,2899
-Australia,ACT,2600,2618
-Australia,VIC,3000,3999
-Australia,QLD,4000,4999
-Australia,SA,5000,5799
-Australia,WA,6000,6797
-Australia,TAS,7000,7799
-Australia,NT,0800,0899
-Canada,Alberta,,
-Canada,British Columbia,,
-Canada,Manitoba,,
-Canada,New Brunswick,,
-Canada,Newfoundland and Labrador,,
-Canada,Northwest Territories,,
-Canada,Nova Scotia,,
-Canada,Nunavut,,
-Canada,Ontario,,
-Canada,Prince Edward Island,,
-Canada,Quebec,,
-Canada,Saskatchewan,,
-Canada,Yukon,,
+country,name,abbr,population,area,postal_code_from,postal_code_to
+United States,Alabama,AL,4849000,131171,35004,36925
+United States,Alaska,AK,737000,1477952,99501,99950
+United States,American Samoa,AS,55000,198,96799,96799
+United States,Arizona,AZ,6731000,294207,85001,86556
+United States,Arkansas,AR,2966000,134771,71601,72959
+United States,California,CA,38803000,403466,90001,96162
+United States,Colorado,CO,5356000,268431,80001,81658
+United States,Connecticut,CT,3597000,12542,06001,06928
+United States,Delaware,DE,936000,5047,19701,19980
+United States,District Of Columbia,DC,659000,158,20001,20593
+United States,Florida,FL,19893000,138887,32003,34997
+United States,Georgia,GA,10097000,148959,30002,39901
+United States,Guam,GU,161000,543,96910,96932
+United States,Hawaii,HI,1420000,16635,96701,96898
+United States,Idaho,ID,1634000,214045,83201,83877
+United States,Illinois,IL,12881000,143793,60001,62999
+United States,Indiana,IN,6597000,92789,46001,47997
+United States,Iowa,IA,3107000,144669,50001,52809
+United States,Kansas,KS,2904000,211754,66002,67954
+United States,Kentucky,KY,4413000,102269,40003,42788
+United States,Louisiana,LA,4650000,111898,70001,71497
+United States,Maine,ME,1330000,79883,03901,04992
+United States,Maryland,MD,5976000,25142,20588,21930
+United States,Massachusetts,MA,6745000,20202,01001,05544
+United States,Michigan,MI,9910000,146435,48001,49971
+United States,Minnesota,MN,5457000,206232,55001,56763
+United States,Mississippi,MS,2994000,121531,38601,39776
+United States,Missouri,MO,6064000,178040,63001,65899
+United States,Montana,MT,1024000,376962,59001,59937
+United States,Nebraska,NE,1882000,198974,68001,69367
+United States,Nevada,NV,2839000,284332,88901,89883
+United States,New Hampshire,NH,1327000,23187,03031,03897
+United States,New Jersey,NJ,8938000,19047,07001,08989
+United States,New Mexico,NM,2086000,314161,87001,88439
+United States,New York,NY,19746000,122057,00501,14925
+United States,North Carolina,NC,9944000,125920,27006,28909
+United States,North Dakota,ND,739000,178711,58001,58856
+United States,Northern Mariana Islands,MP,51000,472,96950,96952
+United States,Ohio,OH,11594000,105829,43001,45999
+United States,Oklahoma,OK,3878000,177660,73001,74966
+United States,Oregon,OR,3970000,248608,97001,97920
+United States,Pennsylvania,PA,12787000,115883,15001,19640
+United States,Puerto Rico,PR,3548000,8868,00601,00999
+United States,Rhode Island,RI,1055000,2678,02801,02940
+United States,South Carolina,SC,4832000,77857,29001,29945
+United States,South Dakota,SD,853000,196350,57001,57799
+United States,Tennessee,TN,6549000,106798,37010,38589
+United States,Texas,TX,26957000,676587,73301,88595
+United States,Utah,UT,2943000,212818,84001,84791
+United States,Vermont,VT,627000,23871,05001,05907
+United States,Virgin Islands,VI,104000,348,00801,00851
+United States,Virginia,VA,8326000,102279,20101,24658
+United States,Washington,WA,7062000,172119,98001,99403
+United States,West Virginia,WV,1850000,62259,24701,26886
+United States,Wisconsin,WI,5758000,140268,53001,54990
+United States,Wyoming,WY,584000,251470,82001,83414
+Australia,New South Wales,NSW,8130115,809952,2619,2899
+Australia,Australian Capital Territory,ACT,455869,2358,2600,2618
+Australia,Victoria,VIC,6593314,237657,3000,3999
+Australia,Queensland,QLD,5296098,1851736,4000,4999
+Australia,South Australia,SA,1815485,1044353,5000,5799
+Australia,Western Australia,WA,2773435,2642753,6000,6797
+Australia,Tasmania,TAS,571165,90758,7000,7799
+Australia,Northern Territory,NT,250398,1419630,0800,0899
+Canada,Alberta,AB,4262635,640330,,
+Canada,British Columbia,BC,5000879,922503,,
+Canada,Manitoba,MB,1342153,552371,,
+Canada,New Brunswick,NB,775610,71389,,
+Canada,Newfoundland and Labrador,NL,510550,370514,,
+Canada,Northwest Territories,NT,41070,1143794,,
+Canada,Nova Scotia,NS,969383,52942,,
+Canada,Nunavut,NU,36858,1877779,,
+Canada,Ontario,ON,14223942,908699,,
+Canada,Prince Edward Island,PE,154331,5686,,
+Canada,Quebec,QC,8501833,1356625,,
+Canada,Saskatchewan,SK,1132505,588244,,
+Canada,Yukon,YT,40232,474713,,
+India,Andhra Pradesh,IN-AP,49506799,162975,,
+India,Arunachal Pradesh,IN-AR,1383727,83743,,
+India,Assam,IN-AS,31205576,78500,,
+India,Bihar,IN-BR,104099452,94163,,
+India,Chhattisgarh,IN-CT,25545198,135194,,
+India,Goa,IN-GA,1458545,3702,,
+India,Gujarat,IN-GJ,60439692,196024,,
+India,Haryana,IN-HR,25351462,44212,,
+India,Himachal Pradesh,IN-HP,6864602,55673,,
+India,Jharkhand,IN-JH,32988134,74677,,
+India,Karnataka,IN-KA,61095297,191791,,
+India,Kerala,IN-KL,33406061,38863,,
+India,Madhya Pradesh,IN-MP,72626809,308252,,
+India,Maharashtra,IN-MH,112374333,307713,,
+India,Manipur,IN-MN,2855794,22347,,
+India,Meghalaya,IN-ML,2966889,22720,,
+India,Mizoram,IN-MZ,1097206,21081,,
+India,Nagaland,IN-NL,1978502,16579,,
+India,Odisha,IN-OR,41974218,155820,,
+India,Punjab,IN-PB,27743338,50362,,
+India,Rajasthan,IN-RJ,68548437,342269,,
+India,Sikkim,IN-SK,610577,7096,,
+India,Tamil Nadu,IN-TN,72147030,130058,,
+India,Telangana,IN-TG,35193978,112077,,
+India,Tripura,IN-TR,3673917,10492,,
+India,Uttar Pradesh,IN-UP,199812341,243286,,
+India,Uttarakhand,IN-UT,10086292,53483,,
+India,West Bengal,IN-WB,91276115,88752,,

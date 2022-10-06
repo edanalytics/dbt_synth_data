@@ -54,7 +54,7 @@
   ]
 ) }}
 
-{{ dbt_synth.add_post_hook('alter table {{ this }} drop column is_lep') or "" }}
+{{ dbt_synth.add_cleanup_hook('alter table {{ this }} drop column is_lep') or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
 
 

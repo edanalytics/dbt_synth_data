@@ -7,8 +7,8 @@
 {%- endmacro %}
 
 {% macro postgres__column_lastname(randseed, name, distribution) %}
-    {{ dbt_synth.add_post_hook(postgres__frequency_lastnames_update(name)) or "" }}
-    {{ dbt_synth.add_post_hook(postgres__frequency_lastnames_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(postgres__frequency_lastnames_update(name)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__frequency_lastnames_cleanup(name)) or "" }}
     
     RANDOM() as {{name}}_rand,
     ''::varchar AS {{name}}
@@ -31,8 +31,8 @@ alter table {{ this }} drop column {{name}}_rand
 {% endmacro %}
 
 {% macro snowflake__column_lastname(randseed, name, distribution) %}
-    {{ dbt_synth.add_post_hook(snowflake__frequency_lastnames_update(name)) or "" }}
-    {{ dbt_synth.add_post_hook(snowflake__frequency_lastnames_cleanup(name)) or "" }}
+    {{ dbt_synth.add_update_hook(snowflake__frequency_lastnames_update(name)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(snowflake__frequency_lastnames_cleanup(name)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
     ''::varchar AS {{name}}

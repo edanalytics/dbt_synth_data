@@ -16,7 +16,5 @@
     dbt_synth.column_expression(name='end_time', expression="(7+period_num)::varchar || ':' || period_duration", type='varchar'),
   ]
 ) }}
-
-{{ dbt_synth.add_post_hook("alter table {{this}} drop column period_num") or "" }}
-
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column period_num") or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

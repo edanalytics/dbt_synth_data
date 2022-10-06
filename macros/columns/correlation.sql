@@ -9,8 +9,8 @@
 
 
 {% macro postgres__column_correlation(data, column) %}
-    {{ dbt_synth.add_post_hook(postgres__correlation_column_update(data, column)) or "" }}
-    {{ dbt_synth.add_post_hook(postgres__correlation_column_cleanup(column)) or "" }}
+    {{ dbt_synth.add_update_hook(postgres__correlation_column_update(data, column)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__correlation_column_cleanup(column)) or "" }}
     
     RANDOM() as {{column}}_rand,
     {% if data.columns[column][0] is string %} ''::varchar
@@ -65,8 +65,8 @@ alter table {{ this }} drop column {{column}}_rand
 
 
 {% macro snowflake__column_correlation(data, column) %}
-    {{ dbt_synth.add_post_hook(snowflake__correlation_column_update(data, column)) or "" }}
-    {{ dbt_synth.add_post_hook(snowflake__correlation_column_cleanup(column)) or "" }}
+    {{ dbt_synth.add_update_hook(snowflake__correlation_column_update(data, column)) or "" }}
+    {{ dbt_synth.add_cleanup_hook(snowflake__correlation_column_cleanup(column)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{data.randseed}})) as {{column}}_rand,
     {% if data.columns[column][0] is string %} ''::varchar

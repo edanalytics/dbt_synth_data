@@ -24,7 +24,7 @@ synth{{year}} as (
         dbt_synth.column_value(name='school_year', value=year),
         dbt_synth.column_expression(name='week_day', expression="case extract(dow from calendar_date) when 0 then 'Sun' when 1 then 'Mon' when 2 then 'Tue' when 3 then 'Wed' when 4 then 'Thu' when 5 then 'Fri' when 6 then 'Sat' end"),
         dbt_synth.column_boolean(name='is_school_day', pct_true=0.96),
-        dbt_synth.column_map(name='calendar_event', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
+        dbt_synth.column_mapping(name='calendar_event', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
         dbt_synth.column_expression(name='calendar_event_array', expression=calendar_event_array_expression, type='array'),
         dbt_synth.column_integer_sequence(name='day_of_school_year', step=1),
         dbt_synth.column_expression(name='week_of_calendar_year', type='int', expression="DATE_PART('week', calendar_date)::int"),
@@ -48,7 +48,7 @@ select *
 from stacked
 
 -- get rid of weekend days:
-{{ dbt_synth.add_post_hook("delete from {{this}} where week_day='Sat' or week_day='Sun'") or "" }}
+{{ dbt_synth.add_cleanup_hook("delete from {{this}} where week_day='Sat' or week_day='Sun'") or "" }}
 
 
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

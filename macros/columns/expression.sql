@@ -9,7 +9,7 @@
 {% macro postgres__column_expression(name, expression, type='varchar') %}
     {{ dbt_synth.add_update_hook(expression_update(name, expression)) or "" }}
     
-    NULL::{{type}} AS {{name}}
+    NULL AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_expression(name, expression, type='varchar') %}

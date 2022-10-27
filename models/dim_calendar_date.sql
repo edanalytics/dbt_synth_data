@@ -21,14 +21,14 @@ synth{{year}} as (
         dbt_synth.column_values(name='tenant_code', values=var('tenant_codes')),
         dbt_synth.column_value(name='calendar_code', value='Normal'),
         dbt_synth.column_date_sequence(name='calendar_date', start_date=year+'-08-10'),
-        dbt_synth.column_value(name='school_year', value=year),
+        dbt_synth.column_value(name='school_year', value=year|int),
         dbt_synth.column_expression(name='week_day', expression="case extract(dow from calendar_date) when 0 then 'Sun' when 1 then 'Mon' when 2 then 'Tue' when 3 then 'Wed' when 4 then 'Thu' when 5 then 'Fri' when 6 then 'Sat' end"),
         dbt_synth.column_boolean(name='is_school_day', pct_true=0.96),
         dbt_synth.column_mapping(name='calendar_event', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
         dbt_synth.column_expression(name='calendar_event_array', expression=calendar_event_array_expression, type='array'),
         dbt_synth.column_integer_sequence(name='day_of_school_year', step=1),
         dbt_synth.column_expression(name='week_of_calendar_year', type='int', expression="DATE_PART('week', calendar_date)::int"),
-        dbt_synth.column_expression(name='week_of_school_year', type='int', expression='case when not is_school_day then null when week_of_calendar_year >= 33 then week_of_calendar_year - 33 else week_of_calendar_year + 52 - 33 end'),
+        dbt_synth.column_expression(name='week_of_school_year', type='int', expression='case when not is_school_day then null when week_of_calendar_year::int >= 33 then week_of_calendar_year::int - 33 else week_of_calendar_year::int + 52 - 33 end'),
     ]
     ) }}
 ),

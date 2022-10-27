@@ -1,4 +1,4 @@
-{% macro column_firstname(name, distribution="weighted") -%}
+{% macro column_firstname(name, distribution="weighted", filter="") -%}
     {{ return(
         dbt_synth.column_select(
             name=name,
@@ -6,7 +6,7 @@
             lookup_table="synth_firstnames",
             distribution=distribution,
             weight_col="frequency",
-            filter="",
+            filter=filter,
             funcs=["INITCAP"]
         )
     ) }}

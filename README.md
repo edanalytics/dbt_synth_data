@@ -78,9 +78,9 @@ Generates integer values.
 <details>
 <summary><code>integer sequence</code></summary>
 
-Generates an integer sequence.
+Generates an integer sequence (value is incremented at each row).
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_integer_sequence(name='day_of_year', step=1, start=1),
 ```
 </details>
 
@@ -89,7 +89,7 @@ Generates an integer sequence.
 
 Generates numeric values.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_numeric(name='price', min=1.99, max=999.99, precision=2),
 ```
 </details>
 
@@ -98,16 +98,16 @@ Generates numeric values.
 
 Generates date values.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_date(name='birth_date', min='1938-01-01', max='1994-12-31'),
 ```
 </details>
 
 <details>
 <summary><code>date sequence</code></summary>
 
-Generates a date sequence values.
+Generates a date sequence.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_date_sequence(name='calendar_date', start_date='2020-08-10', step=3),
 ```
 </details>
 
@@ -116,7 +116,7 @@ Generates a date sequence values.
 
 Generates a primary key column.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_primary_key(name='product_id'),
 ```
 </details>
 
@@ -125,7 +125,7 @@ Generates a primary key column.
 
 Generates a (single, static) value for every row.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_value(name='is_registered', value='Yes'),
 ```
 </details>
 
@@ -134,7 +134,7 @@ Generates a (single, static) value for every row.
 
 Generates values from a list of possible values, with optional weighting.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], weights=[0.2, 0.3, 0.15, 0.35]),
 ```
 </details>
 
@@ -143,7 +143,7 @@ Generates values from a list of possible values, with optional weighting.
 
 Generates values by mapping from an existing column or expresion to values in a dictionary.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_mapping(name='day_type', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
 ```
 </details>
 
@@ -152,7 +152,7 @@ Generates values by mapping from an existing column or expresion to values in a 
 
 Generates values based on an expression (which may refer to other columns, or invoke SQL functions).
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_expression(name='week_of_calendar_year', expression="DATE_PART('week', calendar_date)::int", type='int'),
 ```
 </details>
 
@@ -164,7 +164,7 @@ Generates values based on an expression (which may refer to other columns, or in
 
 Generates values that are a primary key of another table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_foreign_key(name='product_id', table='products', column='id'),
 ```
 </details>
 
@@ -173,8 +173,9 @@ Generates values that are a primary key of another table.
 
 Generates values based on looking up values from one column in another table..
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
 ```
+(`funcs` is an optional array of SQL functions to wrap the `from_col` value in prior to doing the lookup.)
 </details>
 
 <details>
@@ -182,8 +183,17 @@ Generates values based on looking up values from one column in another table..
 
 Generates values by selecting them from another table, optionally weighted using a specified column of the other table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_select(
+            name='random_ajective'',
+            value_col="word",
+            lookup_table="synth_words",
+            distribution="weighted",
+            weight_col="prevalence",
+            filter="types like '%adjective%'",
+            funcs=["INITCAP"]
+        )
 ```
+The above will generate randomly-chosen adjectives (based on the specified `filter`), weighted by prevalence.
 </details>
 
 
@@ -195,7 +205,7 @@ Data column types may all specify a `filter`, which is a SQL `where` expression 
 
 Generates a city, selected from the `synth_cities` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
 ```
 </details>
 
@@ -204,7 +214,7 @@ Generates a city, selected from the `synth_cities` seed table.
 
 Generates a country, selected from the `synth_countries` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
 ```
 </details>
 
@@ -213,7 +223,7 @@ Generates a country, selected from the `synth_countries` seed table.
 
 Generates a geo region (state, province, or territory), selected from the `synth_geo_regions` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
 ```
 </details>
 
@@ -222,7 +232,7 @@ Generates a geo region (state, province, or territory), selected from the `synth
 
 Generates a first name, selected from the `synth_firstnames` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_firstname(name='first_name', filter="gender='Male'"),
 ```
 </details>
 
@@ -231,7 +241,7 @@ Generates a first name, selected from the `synth_firstnames` seed table.
 
 Generates a last name, selected from the `synth_lastnames` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_lastname(name='last_name'),
 ```
 </details>
 
@@ -240,8 +250,9 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_word(name='random_word', distribution="weighted", pos=["noun", "verb"]),
 ```
+The above generates a randomly-selected noun or verb, weighted according to prevalence.
 </details>
 
 <details>
@@ -249,8 +260,20 @@ Generates a single word, selected from the `synth_words` seed table.
 
 Generates several words, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    dbt_synth.column_words(name='random_phrase', distribution="uniform", n=5, funcs=["INITCAP"]),
 ```
+The above generates a random string of five words, uniformly districbuted, with the first letter of each word capitalized.
+
+Alternatively, you can generate words using format strings, for example
+```python
+    dbt_synth.column_words(name='course_title', distribution="uniform", format_strings=[
+        "{adverb} learning for {adjective} {noun}s",
+        "{adverb} {verb} {noun} course"
+        ], funcs=["INITCAP"]),
+```
+This will generate sets of words according to one of the format strings you specify.
+
+Note that this data type is constructed by separately generating a single word `n` times (or, for `format_string`s, the set union of all word instances from any `format_string`), which can be slow if `n` is large (or you have many tokens in your `format_string`s).
 </details>
 
 
@@ -261,8 +284,45 @@ Composite column types put together several other column types into a more compl
 <summary><code>address</code></summary>
 
 Generates an address, based on `city`, `geo region`, `country`, `words`, and other values.
+
+Creating a column `myaddress` using this macro will also create intermediate columns `myaddress__street_address`, `myaddress__city`, `myaddress__geo_region`, and `myaddress__postal_code` (or whatever `parts` you specify). You can then `add_update_hook()`s that reference these intermediate columns if you'd like. For example:
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+{{ dbt_synth.table(
+    rows = 100,
+    columns = [
+        dbt_synth.column_primary_key(name='k_person'),
+        dbt_synth.column_firstname(name='first_name'),
+        dbt_synth.column_lastname(name='last_name'),
+        dbt_synth.column_address(name='home_address', countries=['United States of America'],
+            parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
+        dbt_synth.column_expression(name='home_address_street', expression="home_address__street_address"),
+        dbt_synth.column_expression(name='home_address_city', expression="home_address__city"),
+        dbt_synth.column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
+        dbt_synth.column_expression(name='home_address_country', expression="home_address__country"),
+        dbt_synth.column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
+    ]
+) }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
+```
+
+Alternatively, you may try something like
+
+```python
+{{ dbt_synth.table(
+    rows = 100,
+    columns = [
+        dbt_synth.column_primary_key(name='k_person'),
+        dbt_synth.column_firstname(name='first_name'),
+        dbt_synth.column_lastname(name='last_name'),
+        dbt_synth.column_address(name='home_address_street', countries=['United States of America'], parts=['street_address']),
+        dbt_synth.column_address(name='home_address_city', countries=['United States of America'], parts=['city']),
+        dbt_synth.column_address(name='home_address_geo_region', countries=['United States of America'], parts=['geo_region']),
+        dbt_synth.column_address(name='home_address_country', countries=['United States of America'], parts=['country']),
+        dbt_synth.column_address(name='home_address_postal_code', countries=['United States of America'], parts=['postal_code']),
+    ]
+) }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
 </details>
 

@@ -11,10 +11,10 @@ All the magic happens in `macros/*`.
 
 
 ## Architecture
-Tables are created using Snowflake's `generator()` or Postgres' `generate_series()`. While `select`ing `RANDOM()` for a column inside a `generate`d table results in a random value for each row, unfortunately, due to how database engines / optimizers are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore this package uses a (slower) multi-step process to generate distinct values for each row:
+Tables are created using Snowflake's `generator()` or Postgres' `generate_series()`. While `select`ing `RANDOM()` for a column inside a generated table results in a random value for each row, unfortunately, due to how database engines / optimizers are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore this package uses a (slower) multi-step process to generate distinct values for each row:
 
 1. an intermediate column is added to the table containing a `RANDOM()` number
-1. the table is `update`d, with a new column being added with values populated based on the `RANDOM()` value from the intermediate column
+1. an `update` query is run on the table which populates a new column with values based on the `RANDOM()` value from the intermediate column
 1. finally, the table is "cleaned up" by removing the intermediate column (and any other temporary columns that were created to build up a more complex value)
 
 These steps are handled using `dbt`'s [post hooks](https://docs.getdbt.com/reference/resource-configs/pre-hook-post-hook) feature, which is why you *must* include the following at the bottom of every model you build with this package:

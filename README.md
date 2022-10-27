@@ -273,7 +273,7 @@ Alternatively, you can generate words using format strings, for example
 ```
 This will generate sets of words according to one of the format strings you specify.
 
-Note that this data type is constructed by separately generating a single word `n` times (or, for `format_string`s, the set union of all word instances from any `format_string`), which can be slow if `n` is large (or you have many tokens in your `format_string`s).
+Note that this data type is constructed by separately generating a single word `n` times (or, for `format_string`s, the set union of all word instances from any `format_string`) and then concatenating them together, which can be slow if `n` is large (or you have many tokens in your `format_string`s).
 </details>
 
 

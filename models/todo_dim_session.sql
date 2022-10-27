@@ -53,5 +53,4 @@ synth{{year}} as (
     dbt_synth.column_values(name='session_name', values=var('session_types')),
   ]
 ) }}
-
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

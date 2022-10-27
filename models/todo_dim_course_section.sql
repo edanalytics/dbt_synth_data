@@ -4,8 +4,8 @@
 -- depends_on: {{ ref('dim_session') }}
 -- depends_on: {{ ref('dim_classroom') }}
 
-k_course_section,
-k_course,
+,
+,
 k_school,
 k_session,
 k_classroom,
@@ -37,6 +37,8 @@ is_official_attendance_period
     rows = var('num_course_sections'),
     columns = [
         dbt_synth.column_primary_key(name='k_course_section'),
+        dbt_synth.column_foreign_key(name='k_course', table='dim_course', column='k_course'),
+        
         dbt_synth.column_foreign_key(name='k_lea', table='dim_lea', column='k_lea'),
         dbt_synth.column_lookup(name='tenant_code', value_col='k_lea', lookup_table='dim_lea', from_col='k_lea', to_col='tenant_code'),
         dbt_synth.column_integer_sequence(name='school_id', step=1, start=1000),

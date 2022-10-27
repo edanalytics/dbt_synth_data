@@ -367,6 +367,27 @@ Generates two or more columns with correlated values.
 </details>
 
 
+## Advanced Usage
+Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
+```python
+{{ config(materialized='table') }}
+{{ dbt_synth.table(
+    rows = 100,
+    columns = [
+        dbt_synth.column_primary_key(name='k_person'),
+        dbt_synth.column_firstname(name='first_name'),
+        dbt_synth.column_lastname(name='last_name'),
+        dbt_synth.column_expression(name='full_name', expression="first_name || ' ' || last_name"),
+    ]
+) }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column first_name") or "" }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column last_name") or "" }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
+```
+Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `add_cleanup_hook()` calls in the example above.
+
+
+
 ## Performance
 In Snowflake, using a single Xsmall warehouse:
 

@@ -39,15 +39,6 @@
         dbt_synth.column_value(name='number_of_parts', value=1),
         dbt_synth.column_value(name='time_required_for_completion', value=None),
     ]
-) }}
-
-{#
-    dbt_synth.column_words(name='course_title', distribution="uniform", n=5, funcs=["INITCAP"]),
-    dbt_synth.column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
-    dbt_synth.column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
-    dbt_synth.column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
-    dbt_synth.column_numeric(name='numeric_test', min=0.5, max=1.9, precision=3),
-#}
-        
+) }}        
 {{ dbt_synth.add_cleanup_hook("alter table {{ this }} drop column course_num") or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

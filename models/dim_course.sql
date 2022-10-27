@@ -23,7 +23,7 @@
         dbt_synth.column_integer(name='course_num', min=100, max=900, distribution='uniform'),
         dbt_synth.column_expression(name='course_code', expression="REPLACE(SUBSTR(course_title,0,5), ' ', '') || course_num"),
         dbt_synth.column_expression(name='course_description', expression="'A course with Title \"' || course_title || '\" and Code \"' || course_code || '\"'"),
-        dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], distribution=[0.2, 0.3, 0.15, 0.35]),
+        dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], weights=[0.2, 0.3, 0.15, 0.35]),
         dbt_synth.column_value(name='career_pathway', value=None),
         dbt_synth.column_value(name='course_defined_by', value=None),
         dbt_synth.column_value(name='gpa_applicability', value=None),
@@ -41,5 +41,13 @@
     ]
 ) }}
 
+{#
+    dbt_synth.column_words(name='course_title', distribution="uniform", n=5, funcs=["INITCAP"]),
+    dbt_synth.column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
+    dbt_synth.column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
+    dbt_synth.column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
+    dbt_synth.column_numeric(name='numeric_test', min=0.5, max=1.9, precision=3),
+#}
+        
 {{ dbt_synth.add_cleanup_hook("alter table {{ this }} drop column course_num") or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

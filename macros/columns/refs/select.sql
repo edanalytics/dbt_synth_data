@@ -1,16 +1,16 @@
-{% macro column_select(name, value_col, lookup_table, distribution="uniform", prevalence_col="", filter="", funcs=[]) -%}
+{% macro column_select(name, value_col, lookup_table, distribution="uniform", weight_col="", filter="", funcs=[]) -%}
     
     {% if distribution=='uniform' %}
         {{ return(adapter.dispatch('column_select_uniform')(name, value_col, lookup_table, filter, funcs)) }}
     
-    {% elif distribution=='prevalence' %}
-        {% if prevalence_col=='' %}
-            {{ exceptions.raise_compiler_error("`prevalence_col` is required when `distribution` for select column `" ~ name ~ "` is `prevalence`.") }}
+    {% elif distribution=='weighted' %}
+        {% if weight_col=='' %}
+            {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
         {% endif %}
-        {{ return(adapter.dispatch('column_select_prevalence')(name, value_col, lookup_table, prevalence_col, filter, funcs)) }}
+        {{ return(adapter.dispatch('column_select_weighted')(name, value_col, lookup_table, weight_col, filter, funcs)) }}
     
     {% else %}
-        {{ exceptions.raise_compiler_error("Invalid `distribution` " ~ distribution ~ " for select column `" ~ name ~ "`: should be `uniform` (default) or `prevalence`.") }}
+        {{ exceptions.raise_compiler_error("Invalid `distribution` " ~ distribution ~ " for select column `" ~ name ~ "`: should be `uniform` (default) or `weighted`.") }}
     {% endif %}
 
 {%- endmacro %}
@@ -19,7 +19,7 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro default__column_select_prevalence(name, value_col, lookup_table, prevalence_col, filter, funcs) -%}
+{% macro default__column_select_weighted(name, value_col, lookup_table, weight_col, filter, funcs) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
@@ -46,21 +46,21 @@ update {{ this }} set {{name}}=y.{{value_col}} from (
 ) as y where {{name}}_rand>=y.from_val and {{name}}_rand<y.to_val+0.0001
 {% endmacro %}
 
-{% macro postgres__column_select_prevalence(name, value_col, lookup_table, prevalence_col, filter, funcs) %}
-    {{ dbt_synth.add_update_hook(postgres__select_prevalence_update(name, value_col, lookup_table, prevalence_col, filter, funcs)) or "" }}
+{% macro postgres__column_select_weighted(name, value_col, lookup_table, weight_col, filter, funcs) %}
+    {{ dbt_synth.add_update_hook(postgres__select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs)) or "" }}
     {{ dbt_synth.add_cleanup_hook(postgres__select_cleanup(name)) or "" }}
     
     RANDOM() as {{name}}_rand,
     ''::varchar AS {{name}}
 {% endmacro %}
 
-{% macro postgres__select_prevalence_update(name, value_col, lookup_table, prevalence_col, filter, funcs) %}
+{% macro postgres__select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs) %}
 update {{this}} set {{name}}=y.{{value_col}} from(
   select
     {% for f in funcs %}{{f}}({% endfor %}{{value_col}}{% for f in funcs %}){% endfor %} as {{value_col}},
-    {{prevalence_col}},
-    ((sum({{prevalence_col}}::double precision) over (order by {{prevalence_col}} desc, {{value_col}} asc)) - {{prevalence_col}}::double precision) / sum({{prevalence_col}}::double precision) over () as from_freq,
-    (sum({{prevalence_col}}::double precision) over (order by {{prevalence_col}} desc, {{value_col}} asc)) / sum({{prevalence_col}}::double precision) over () as to_freq
+    {{weight_col}},
+    ((sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) - {{weight_col}}::double precision) / sum({{weight_col}}::double precision) over () as from_freq,
+    (sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) / sum({{weight_col}}::double precision) over () as to_freq
   from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
   {% if filter|trim|length %}
   where {{filter}}
@@ -96,21 +96,21 @@ update {{ this }} x set x.{{name}}=y.{{value_col}} from (
 ) as y where x.{{name}}_rand>=y.from_val and x.{{name}}_rand<y.to_val+0.0001
 {% endmacro %}
 
-{% macro snowflake__column_select_prevalence(name, value_col, lookup_table, prevalence_col, filter, funcs) %}
-    {{ dbt_synth.add_update_hook(snowflake__select_prevalence_update(name, value_col, lookup_table, prevalence_col, filter, funcs)) or "" }}
+{% macro snowflake__column_select_weighted(name, value_col, lookup_table, weight_col, filter, funcs) %}
+    {{ dbt_synth.add_update_hook(snowflake__select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs)) or "" }}
     {{ dbt_synth.add_cleanup_hook(snowflake__select_cleanup(name)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
     ''::varchar AS {{name}}
 {% endmacro %}
 
-{% macro snowflake__select_prevalence_update(name, value_col, lookup_table, prevalence_col, filter, funcs) %}
+{% macro snowflake__select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs) %}
 update {{this}} x set x.{{name}}=y.{{value_col}} from(
   select
     {% for f in funcs %}{{f}}({% endfor %}{{value_col}}{% for f in funcs %}){% endfor %} as {{value_col}},
-    {{prevalence_col}},
-    ((sum({{prevalence_col}}::double precision) over (order by {{prevalence_col}} desc, {{value_col}} asc)) - {{prevalence_col}}::double precision) / sum({{prevalence_col}}::double precision) over () as from_freq,
-    (sum({{prevalence_col}}::double precision) over (order by {{prevalence_col}} desc, {{value_col}} asc)) / sum({{prevalence_col}}::double precision) over () as to_freq
+    {{weight_col}},
+    ((sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) - {{weight_col}}::double precision) / sum({{prevalence_col}}::double precision) over () as from_freq,
+    (sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) / sum({{weight_col}}::double precision) over () as to_freq
   from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
   {% if filter|trim|length %}
   where {{filter}}

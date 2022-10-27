@@ -34,9 +34,9 @@ is_official_attendance_period
 
 {{ config(materialized='table') }}
 {{ dbt_synth.table(
-    rows = var('num_schools'),
+    rows = var('num_course_sections'),
     columns = [
-        dbt_synth.column_primary_key(name='k_school'),
+        dbt_synth.column_primary_key(name='k_course_section'),
         dbt_synth.column_foreign_key(name='k_lea', table='dim_lea', column='k_lea'),
         dbt_synth.column_lookup(name='tenant_code', value_col='k_lea', lookup_table='dim_lea', from_col='k_lea', to_col='tenant_code'),
         dbt_synth.column_integer_sequence(name='school_id', step=1, start=1000),

@@ -1,4 +1,4 @@
-{% macro column_words(name, distribution="prevalence", n=3, format_strings=[], funcs=[]) -%}
+{% macro column_words(name, distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
 
     {% if format_strings|length %}
 
@@ -59,15 +59,7 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ dbt_synth.column_select(
-            name=name + "_word" + i|string,
-            value_col="word",
-            lookup_table="synth_words",
-            distribution=distribution,
-            prevalence_col="prevalence",
-            filter=filter,
-            funcs=["INITCAP"]
-        ) }},
+        {{ dbt_synth.column_word(name=name + "_word" + i|string, distribution=distribution) }},
         {% endfor %}
         {{ dbt_synth.column_expression(name=name, expression=words_expression, type='varchar') }}
         {% for col in cleanup_cols %}

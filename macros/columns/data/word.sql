@@ -1,4 +1,4 @@
-{% macro column_word(name, distribution="prevalence", pos=[]) -%}
+{% macro column_word(name, distribution="weighted", pos=[]) -%}
     {% set filter %}
         {% for p in pos %}
             types like '{{p}};%' OR types like '%;{{p}};%' OR types like '%;{{p}}'
@@ -11,7 +11,7 @@
             value_col="word",
             lookup_table="synth_words",
             distribution=distribution,
-            prevalence_col="prevalence",
+            weight_col="prevalence",
             filter=filter,
             funcs=["INITCAP"]
         )

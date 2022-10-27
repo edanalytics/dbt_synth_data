@@ -44,7 +44,7 @@
     dbt_synth.column_expression(name='lep_code', expression="case when is_lep then 'Limited' else 'NotLimited' end"),
     dbt_synth.column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
     dbt_synth.column_correlation(data=birthyear_grade_correlations, column='grade'),
-    dbt_synth.column_values(name='race_ethnicity', values=['Latinx', 'White', 'Black - African American', 'Asian', 'Multiple', 'Native Hawaiian - Pacific Islander', 'American Indian - Alaska Native'], distribution=[0.334, 0.180, 0.332, 0.109, 0.042, 0.001, 0.002]),
+    dbt_synth.column_values(name='race_ethnicity', values=['Latinx', 'White', 'Black - African American', 'Asian', 'Multiple', 'Native Hawaiian - Pacific Islander', 'American Indian - Alaska Native'], weights=[0.334, 0.180, 0.332, 0.109, 0.042, 0.001, 0.002]),
     dbt_synth.column_boolean(name='is_special_education_annual', pct_true=var('students_pct_is_special_education_annual')),
     dbt_synth.column_boolean(name='is_special_education_active', pct_true=var('students_pct_is_special_education_active')),
     dbt_synth.column_boolean(name='is_economic_disadvantaged', pct_true=var('students_pct_is_economic_disadvantaged')),

@@ -58,6 +58,7 @@ This package provides the following column types:
 
 
 ### Base column types
+Basic column types, which are quite performant.
 
 <details>
 <summary><code>boolean</code></summary>
@@ -170,6 +171,7 @@ Generates values based on an expression (which may refer to other columns, or in
 
 
 ### Reference column types
+Column types which reference values in another table.
 
 <details>
 <summary><code>foreign key</code></summary>
@@ -206,6 +208,46 @@ Generates values by selecting them from another table, optionally weighted using
         )
 ```
 The above will generate randomly-chosen adjectives (based on the specified `filter`), weighted by prevalence.
+</details>
+
+
+### Statistical column types
+Statistical column types can be used to make advanced statistical relationships between tables and columns.
+
+<details>
+<summary><code>correlation</code></summary>
+
+Generates two or more columns with correlated values.
+```python
+    {% set birthyear_grade_correlations = ({
+        "randseed": dbt_synth.get_randseed(),
+        "columns": {
+            "birth_year": [ 2010, 2009, 2008, 2007, 2006, 2005, 2004 ],
+            "grade": [ 'Eighth grade', 'Ninth grade', 'Tenth grade', 'Eleventh grade', 'Twelfth grade' ]
+        },
+        "probabilities": [
+            [ 0.02, 0.00, 0.00, 0.00, 0.00 ],
+            [ 0.15, 0.02, 0.00, 0.00, 0.00 ],
+            [ 0.03, 0.15, 0.02, 0.00, 0.00 ],
+            [ 0.00, 0.03, 0.15, 0.02, 0.00 ],
+            [ 0.00, 0.00, 0.03, 0.15, 0.02 ],
+            [ 0.00, 0.00, 0.00, 0.03, 0.15 ],
+            [ 0.00, 0.00, 0.00, 0.00, 0.03 ]
+        ]
+        })
+    %}
+    ...
+    {{ dbt_synth.table(
+        rows = var('num_students'),
+        columns = [
+            dbt_synth.column_primary_key(name='k_student'),
+            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='birth_year'),
+            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='grade'),
+            ...
+        ]
+    ) }}
+    {{ config(post_hook=dbt_synth.get_post_hooks())}}
+```
 </details>
 
 
@@ -339,46 +381,6 @@ Alternatively, you may try something like
     ]
 ) }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
-```
-</details>
-
-
-### Statistical column types
-Statistical column types can be used to make advanced statistical relationships between tables and columns.
-
-<details>
-<summary><code>correlation</code></summary>
-
-Generates two or more columns with correlated values.
-```python
-    {% set birthyear_grade_correlations = ({
-        "randseed": dbt_synth.get_randseed(),
-        "columns": {
-            "birth_year": [ 2010, 2009, 2008, 2007, 2006, 2005, 2004 ],
-            "grade": [ 'Eighth grade', 'Ninth grade', 'Tenth grade', 'Eleventh grade', 'Twelfth grade' ]
-        },
-        "probabilities": [
-            [ 0.02, 0.00, 0.00, 0.00, 0.00 ],
-            [ 0.15, 0.02, 0.00, 0.00, 0.00 ],
-            [ 0.03, 0.15, 0.02, 0.00, 0.00 ],
-            [ 0.00, 0.03, 0.15, 0.02, 0.00 ],
-            [ 0.00, 0.00, 0.03, 0.15, 0.02 ],
-            [ 0.00, 0.00, 0.00, 0.03, 0.15 ],
-            [ 0.00, 0.00, 0.00, 0.00, 0.03 ]
-        ]
-        })
-    %}
-    ...
-    {{ dbt_synth.table(
-        rows = var('num_students'),
-        columns = [
-            dbt_synth.column_primary_key(name='k_student'),
-            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='birth_year'),
-            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='grade'),
-            ...
-        ]
-    ) }}
-    {{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
 </details>
 

@@ -207,6 +207,11 @@ Generates two or more columns with correlated values.
     ) }}
     {{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
+To created correlated columns, you must specify a `data` object representing the correlation, which contains
+* `columns` is a list of column names and possible values.
+* `probabilities` is a hypercube with dimension equal to the number of `columns`, the elements of which sum to `1.0`, indicating the probability of each possible combination of values for the `columns`. The outermost elements of the `probabilities` hypercube corresond to the values of the first column. innermost elements of the hypercube correspond to the values of the last column. Each dimension of the hypercube must have the same size as the number of values for its corresponding column.
+
+Constructing a `probabilities` hypercube of dimension more than two or three can be difficult &ndash; we recommend adding (temporary) comments and using indentation to keep track of columns, values, and dimensions.
 </details>
 
 

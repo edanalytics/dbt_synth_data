@@ -7,11 +7,6 @@
 {%- endmacro %}
 
 {% macro postgres__column_string(name, min_length, max_length) %}
-    {# substr(
-        md5(random()::text),
-        0,
-        floor(RANDOM() * ({{max_length}}-{{min_length}}) + {{min_length}})::int
-    ) as {{name}} #}
     substr(
         translate(
             encode(

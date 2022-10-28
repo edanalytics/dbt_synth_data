@@ -1,6 +1,6 @@
 # dbt_synth_data
 
-This is a `dbt` package for creating synthetic data. Currently it supports Snowflake and Postgresql. Other backends may be added eventually.
+This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/) and [Postgres](https://www.postgresql.org/). Other backends may be added eventually.
 
 See `models/*` for examples of usage, further documentation will come soon.
 
@@ -198,6 +198,10 @@ The above will generate randomly-chosen adjectives (based on the specified `filt
 
 
 ### Data column types
+Data column types use real-world data which is maintained in the `seeds/` directory. Some effort has been made to make these data sets
+* **Generalized**, rather than specific to a particular country, region, language, etc. For example, the *words* dictionary contains common words from many common languages, not just English.
+* **Statistically rich**, with associated metadata which makes the data more useful by capturing various distributions embedded in the data. For example, the *countries* list includes the (approximate) population and land area of each country, which facilitates generating country lists weighted according to these features. Likewise, the *cities* list has the latitude and longitude coordinates for each city, which facilitates generating fairly realistic coordinates for synthetic addresses.
+
 Data column types may all specify a `filter`, which is a SQL `where` expression narrowing down the pool of data values that will be used. They may also specify `distribution="weighted"` and `weight_col="population"` (or similar) to skew value distributions.
 
 <details>

@@ -11,9 +11,9 @@ All the magic happens in `macros/*`.
 
 
 ## Architecture
-Robert Fehrmann (CTO at Snowflake) has a couple blog posts about [how to generate random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package (like `boolean`, `integer`, `numeric`, `string`, `date`, etc.) follow.
+Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generating random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package emulate.
 
-However, creating more realistic synthetic data requires more complex data types, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore this package uses a (slower) multi-step process to generate distinct values for each row:
+However, creating more realistic synthetic data requires more complex data types, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore advanced column types in this package use a (slower) multi-step process to generate distinct values for each row:
 
 1. an intermediate column is added to the table containing a `RANDOM()` number
 1. an `update` query is run on the table which populates a new column with values based on the `RANDOM()` value from the intermediate column

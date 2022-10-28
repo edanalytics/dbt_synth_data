@@ -103,7 +103,7 @@ Generates random strings.
 ```python
     dbt_synth.column_string(name='password', min_length=10, max_length=20),
 ```
-String characters will include `A-Z`, `a-z`, and `0-9`.
+String characters will include characters `A-Z`, `a-z`, and `0-9`.
 </details>
 
 <details>

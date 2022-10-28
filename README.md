@@ -356,7 +356,7 @@ Creating a column `myaddress` using this macro will also create intermediate col
         dbt_synth.column_primary_key(name='k_person'),
         dbt_synth.column_firstname(name='first_name'),
         dbt_synth.column_lastname(name='last_name'),
-        dbt_synth.column_address(name='home_address', countries=['United States of America'],
+        dbt_synth.column_address(name='home_address', countries=['United States'],
             parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
         dbt_synth.column_expression(name='home_address_street', expression="home_address__street_address"),
         dbt_synth.column_expression(name='home_address_city', expression="home_address__city"),
@@ -369,7 +369,7 @@ Creating a column `myaddress` using this macro will also create intermediate col
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
 
-Alternatively, you may try something like
+Alternatively, you may use something like
 
 ```python
 {{ dbt_synth.table(
@@ -378,11 +378,11 @@ Alternatively, you may try something like
         dbt_synth.column_primary_key(name='k_person'),
         dbt_synth.column_firstname(name='first_name'),
         dbt_synth.column_lastname(name='last_name'),
-        dbt_synth.column_address(name='home_address_street', countries=['United States of America'], parts=['street_address']),
-        dbt_synth.column_address(name='home_address_city', countries=['United States of America'], parts=['city']),
-        dbt_synth.column_address(name='home_address_geo_region', countries=['United States of America'], parts=['geo_region']),
-        dbt_synth.column_address(name='home_address_country', countries=['United States of America'], parts=['country']),
-        dbt_synth.column_address(name='home_address_postal_code', countries=['United States of America'], parts=['postal_code']),
+        dbt_synth.column_address(name='home_address_street', countries=['United States'], parts=['street_address']),
+        dbt_synth.column_address(name='home_address_city', countries=['United States'], parts=['city']),
+        dbt_synth.column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']),
+        dbt_synth.column_address(name='home_address_country', countries=['United States'], parts=['country']),
+        dbt_synth.column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']),
     ]
 ) }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

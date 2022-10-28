@@ -38,6 +38,7 @@
         dbt_synth.column_value(name='minimum_available_credit_conversion', value=None),
         dbt_synth.column_value(name='number_of_parts', value=1),
         dbt_synth.column_value(name='time_required_for_completion', value=None),
+        dbt_synth.column_string(name='test_str', min_length=8, max_length=10),
     ]
 ) }}        
 {{ dbt_synth.add_cleanup_hook("alter table {{ this }} drop column course_num") or "" }}

@@ -11,7 +11,9 @@ All the magic happens in `macros/*`.
 
 
 ## Architecture
-Tables are created using Snowflake's `generator()` or Postgres' `generate_series()`. While `select`ing `RANDOM()` for a column inside a generated table results in a random value for each row, unfortunately, due to how database engines / optimizers are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore this package uses a (slower) multi-step process to generate distinct values for each row:
+Robert Fehrmann (CTO at Snowflake) has a couple blog posts about [how to generate random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package (like `boolean`, `integer`, `numeric`, `string`, `date`, etc.) follow.
+
+However, creating more realistic synthetic data requires more complex data types, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore this package uses a (slower) multi-step process to generate distinct values for each row:
 
 1. an intermediate column is added to the table containing a `RANDOM()` number
 1. an `update` query is run on the table which populates a new column with values based on the `RANDOM()` value from the intermediate column
@@ -91,6 +93,16 @@ Generates numeric values.
 ```python
     dbt_synth.column_numeric(name='price', min=1.99, max=999.99, precision=2),
 ```
+</details>
+
+<details>
+<summary><code>string</code></summary>
+
+Generates random strings.
+```python
+    dbt_synth.column_string(name='password', min_length=10, max_length=20),
+```
+String characters will include `A-Z`, `a-z`, and `0-9`.
 </details>
 
 <details>

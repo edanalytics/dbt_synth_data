@@ -101,6 +101,7 @@
         
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'address_type')) or "" }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'number1')) or "" }}
+        {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'street_name')) or "" }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'street_type')) or "" }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'unit_type')) or "" }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'number2')) or "" }}

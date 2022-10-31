@@ -45,7 +45,7 @@
         {% for col_name in token_set.keys() %}{{ cleanup_cols.append(col_name) or "" }}{% endfor %}
         {{ cleanup_cols.append(name + "_format_idx") or "" }}
         {% for col in cleanup_cols %}
-        {# dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" #}
+        {{ dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" }}
         {% endfor %}
 
     {% elif n|int>0 %}

@@ -109,7 +109,7 @@ update {{this}} x set x.{{name}}=y.{{value_col}} from(
   select
     {% for f in funcs %}{{f}}({% endfor %}{{value_col}}{% for f in funcs %}){% endfor %} as {{value_col}},
     {{weight_col}},
-    ((sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) - {{weight_col}}::double precision) / sum({{prevalence_col}}::double precision) over () as from_freq,
+    ((sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) - {{weight_col}}::double precision) / sum({{weight_col}}::double precision) over () as from_freq,
     (sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) / sum({{weight_col}}::double precision) over () as to_freq
   from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
   {% if filter|trim|length %}

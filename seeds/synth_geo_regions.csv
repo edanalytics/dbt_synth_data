@@ -1,4 +1,4 @@
-country,name,abbr,population,area,postal_code_from,postal_code_to
+country_name,name,abbr,population,area,postal_code_from,postal_code_to
 United States,Alabama,AL,4849000,131171,35004,36925
 United States,Alaska,AK,737000,1477952,99501,99950
 United States,American Samoa,AS,55000,198,96799,96799

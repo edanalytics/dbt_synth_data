@@ -27,14 +27,14 @@
         {% for f in funcs %}{{f}}({% endfor %}
         (CASE
         {% for i in range(tokenized_format_strings|length) %}
-            WHEN {{name}}_format_idx={{i}} THEN {{tokenized_format_strings[i]["expression"]}}
+            WHEN {{name}}_format_idx={{i+1}} THEN {{tokenized_format_strings[i]["expression"]}}
         {% endfor %}
         END)
         {% for f in funcs %}){% endfor %}
         {% endset %}
 
         {% set query %}
-        {{ dbt_synth.column_integer(name=name+'_format_idx', min=0, max=format_strings|length, distribution='uniform') }},
+        {{ dbt_synth.column_integer(name=name+'_format_idx', min=1, max=format_strings|length, distribution='uniform') }},
         {% for col_name,pos in token_set.items() %}
         {{ dbt_synth.column_word(name=col_name, pos=[pos], distribution=distribution) }},
         {% endfor %}
@@ -45,7 +45,7 @@
         {% for col_name in token_set.keys() %}{{ cleanup_cols.append(col_name) or "" }}{% endfor %}
         {{ cleanup_cols.append(name + "_format_idx") or "" }}
         {% for col in cleanup_cols %}
-        {{ dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" }}
+        {# dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" #}
         {% endfor %}
 
     {% elif n|int>0 %}

@@ -1,46 +1,3 @@
-{#
-    Creating a column `myaddress` using this macro will also create
-    intermediate columns `myaddress__street_address`, `myaddress__city`,
-    `myaddress__geo_region`, and `myaddress__postal_code` (or whatever
-    `parts` you specify). You can then `add_update_hook()`s that reference
-    these intermediate columns if you'd like. For example:
-
-    {{ dbt_synth.table(
-        rows = 100,
-        columns = [
-            dbt_synth.column_primary_key(name='k_person'),
-            dbt_synth.column_firstname(name='first_name'),
-            dbt_synth.column_lastname(name='last_name'),
-            dbt_synth.column_address(name='home_address', countries=['United States of America'],
-                parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
-            dbt_synth.column_expression(name='home_address_street', expression="home_address__street_address"),
-            dbt_synth.column_expression(name='home_address_city', expression="home_address__city"),
-            dbt_synth.column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
-            dbt_synth.column_expression(name='home_address_country', expression="home_address__country"),
-            dbt_synth.column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
-        ]
-    ) }}
-    {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
-    {{ config(post_hook=dbt_synth.get_post_hooks())}}
-
-    Alternatively, you may try something like
-
-    {{ dbt_synth.table(
-        rows = 100,
-        columns = [
-            dbt_synth.column_primary_key(name='k_person'),
-            dbt_synth.column_firstname(name='first_name'),
-            dbt_synth.column_lastname(name='last_name'),
-            dbt_synth.column_address(name='home_address_street', countries=['United States of America'], parts=['street_address']),
-            dbt_synth.column_address(name='home_address_city', countries=['United States of America'], parts=['city']),
-            dbt_synth.column_address(name='home_address_geo_region', countries=['United States of America'], parts=['geo_region']),
-            dbt_synth.column_address(name='home_address_country', countries=['United States of America'], parts=['country']),
-            dbt_synth.column_address(name='home_address_postal_code', countries=['United States of America'], parts=['postal_code']),
-        ]
-    ) }}
-    {{ config(post_hook=dbt_synth.get_post_hooks())}}
-
-#}
 {% macro column_address(
     name,
     address_types=['house','apartment','pobox'],
@@ -52,9 +9,145 @@
     postal_code_max=99999,
     parts=['street_address', 'city', 'geo_region', 'postal_code']
 ) -%}
-    {{ return(adapter.dispatch('column_address')(name, address_types, street_types, cities, geo_regions, countries, postal_code_min, postal_code_max, parts)) }}
+
+    {% set needs_comma=0 %}
+
+    {% if 'street_address' in parts %}
+    {% set street_address_expression %}
+        case {{name}}__address_type
+            {% for i in range(address_types|length) %}
+
+            when {{i+1}} then
+            {% if address_types[i]=='house' %}
+
+                {{name}}__number1
+                || ' '
+                || {{name}}__street_name
+                || ' '
+                || (case {{name}}__street_type
+                    {% for i in range(street_types|length) %}
+                    when {{i+1}} THEN '{{street_types[i]}}'
+                    {% endfor %}
+                end)
+            
+            
+            {% elif address_types[i]=='apartment' %}
+            
+                {{name}}__number1
+                || ' '
+                || {{name}}__street_name
+                || ' '
+                || (case {{name}}__street_type
+                    {% for i in range(street_types|length) %}
+                    when {{i+1}} THEN '{{street_types[i]}}'
+                    {% endfor %}
+                end)
+                || ' ' {# unit #}
+                || (case {{name}}__unit_type
+                    when 1 then 'No. '
+                    else '#'
+                end)
+                || {{name}}__number2
+            
+            {% elif address_types[i]=='pobox' %}
+            
+                (case {{name}}__unit_type
+                    when 1 then 'PO'
+                    else 'P.O. '
+                end)
+                || ' Box '
+                || {{name}}__number2
+            
+            {% endif %}
+
+            {% endfor %}
+        end
+    {% endset %}
+
+    {% set address_expression %}
+        {% if 'street_address' in parts %}
+            {{name}}__street_address
+        {% endif %}
+
+        {% if 'city' in parts %}
+            {% if parts.index('city') > 0 %} || {% endif %}
+            {{name}}__city
+        {% endif %}
+
+        {% if 'geo_region' in parts %}
+            {% if parts.index('geo_region') > 0 %} || {% endif %}
+            {{name}}__geo_region
+        {% endif %}
+
+        {% if 'postal_code' in parts %}
+            {% if parts.index('postal_code') > 0 %} || {% endif %}
+            {{name}}__postal_code
+        {% endif %}
+
+        {% if 'country' in parts %}
+            {% if parts.index('country') > 0 %} || {% endif %}
+            {{name}}__country
+        {% endif %}
+    {% endset %}
+    {{ print(address_expression) }}
+
+    {{ dbt_synth.column_integer(name=name+'__address_type', min=1, max=address_types|length, distribution='uniform') }},
+    {{ dbt_synth.column_integer(name=name+'__number1', min=10, max=9999, distribution='uniform') }},
+    {{ dbt_synth.column_words(name=name+'__street_name', distribution="uniform", format_strings=[
+        "{noun}",
+        "{adjective} {noun}"
+        ], funcs=["INITCAP"]) }},
+    {{ dbt_synth.column_integer(name=name+'__street_type', min=1, max=street_types|length, distribution='uniform') }},
+    {{ dbt_synth.column_integer(name=name+'__unit_type', min=1, max=2, distribution='uniform') }},
+    {{ dbt_synth.column_integer(name=name+'__number2', min=1, max=999, distribution='uniform') }},
+    {{ dbt_synth.column_expression(name=name+'__street_address', expression=street_address_expression) }}
+    {% set needs_comma=1 %}
+    {% endif %}
+
+    {% if 'city' in parts %}
+    {{ dbt_synth.column_city(name=name+'__city', distribution="weighted", weight_col="population", filter="country in ('"+("','".join(countries))+"')") }}
+    {% endif %}
+
+    {% if 'geo_region' in parts %}
+    {{ dbt_synth.column_geo_region(name=name+'__geo_region', distribution="weighted", weight_col="population", filter="country in ('"+("','".join(countries))+"')") }}
+    {% endif %}
+
+    {% if 'postal_code' in parts %}
+    {{ dbt_synth.column_integer(name=name+'__postal_code', min=postal_code_min, max=postal_code_max, distribution='uniform') }}
+    {% endif %}
+
+    {% if 'country' in parts %}
+    {{ dbt_synth.column_country(name=name+'__country', distribution="weighted", weight_col="population", filter="country in ('"+("','".join(countries))+"')") }}
+    {% endif %}
+
+    {% if 'street_address' in parts %}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'address_type')) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'number1')) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'street_type')) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'unit_type')) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'number2')) or "" }}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'street_address')) or "" }}
+    {% endif %}
+
+    {% if 'city' in parts %}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'city')) or "" }}
+    {% endif %}
+
+    {% if 'geo_region' in parts %}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'geo_region')) or "" }}
+    {% endif %}
+
+    {% if 'postal_code' in parts %}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'postal_code')) or "" }}
+    {% endif %}
+
+    {% if 'country' in parts %}
+    {{ dbt_synth.add_cleanup_hook(postgres__address_cleanup(name, 'country')) or "" }}
+    {% endif %}
 {%- endmacro %}
 
+
+{# return(adapter.dispatch('column_address')(name, address_types, street_types, cities, geo_regions, countries, postal_code_min, postal_code_max, parts)) #}
 {% macro default__column_address(name, address_types, street_types, cities, geo_regions, countries, postal_code_min, postal_code_max, parts) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}

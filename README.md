@@ -313,11 +313,11 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_word(name='random_word', language_code="en", distribution="weighted", pos=["noun", "verb"]),
+    dbt_synth.column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]),
 ```
 The above generates a randomly-selected English noun or verb, weighted according to frequency.
 
-Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters.
+Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters. See [Words (Data Sets)](#words) for a list of supported languages and parts of speech.
 </details>
 
 <details>
@@ -332,15 +332,15 @@ The above generates a random string of five words, uniformly districbuted, with 
 Alternatively, you can generate words using format strings, for example
 ```python
     dbt_synth.column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
-        "{adverb} learning for {adjective} {noun}s",
-        "{adverb} {verb} {noun} course"
+        "{ADV} learning for {ADJ} {NOUN}s",
+        "{ADV} {VERB} {NOUN} course"
         ], funcs=["INITCAP"]),
 ```
 This will generate sets of words according to one of the format strings you specify.
 
 Note that this data type is constructed by separately generating a single word `n` times (or, for `format_string`s, the set union of all word instances from any `format_string`) and then concatenating them together, which can be slow if `n` is large (or you have many tokens in your `format_string`s).
 
-Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters.
+Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters. See [Words (Data Sets)](#words) for a list of supported languages and parts of speech.
 </details>
 
 

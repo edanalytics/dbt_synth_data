@@ -16,9 +16,9 @@
         dbt_synth.column_value(name='ed_org_type', value='LocalEducationAgency'),
         dbt_synth.column_lookup(name='tenant_code', value_col='ed_org_id', lookup_table='dim_lea', from_col='k_lea', to_col='tenant_code'),
         dbt_synth.column_integer(name='school_year', min=var('min_school_year'), max=var('max_school_year'), distribution='uniform'),
-        dbt_synth.column_words(name='course_title', distribution="uniform", format_strings=[
-            "{adverb} learning for {adjective} {noun}s",
-            "{adverb} {verb} {noun} course"
+        dbt_synth.column_words(name='course_title', language_code='en', distribution="uniform", format_strings=[
+            "{ADV} learning for {ADJ} {NOUN}s",
+            "{ADV} {VERB} {NOUN} course"
             ], funcs=["INITCAP"]),
         dbt_synth.column_integer(name='course_num', min=100, max=900, distribution='uniform'),
         dbt_synth.column_expression(name='course_code', expression="REPLACE(SUBSTR(course_title,0,5), ' ', '') || course_num"),
@@ -39,6 +39,7 @@
         dbt_synth.column_value(name='number_of_parts', value=1),
         dbt_synth.column_value(name='time_required_for_completion', value=None),
     ]
-) }}        
+) }}
+
 {{ dbt_synth.add_cleanup_hook("alter table {{ this }} drop column course_num") or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}

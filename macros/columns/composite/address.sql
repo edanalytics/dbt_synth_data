@@ -95,9 +95,9 @@
 
         {{ dbt_synth.column_integer(name=name+'__address_type', min=1, max=address_types|length, distribution='uniform') }},
         {{ dbt_synth.column_integer(name=name+'__number1', min=10, max=9999, distribution='uniform') }},
-        {{ dbt_synth.column_words(name=name+'__street_name', distribution="uniform", format_strings=[
+        {{ dbt_synth.column_words(name=name+'__street_name', language_code='en', distribution="uniform", format_strings=[
             "{noun}",
-            "{adjective} {noun}"
+            "{ADJ} {NOUN}"
             ], funcs=["INITCAP"]) }},
         {{ dbt_synth.column_integer(name=name+'__street_type', min=1, max=street_types|length, distribution='uniform') }},
         {{ dbt_synth.column_integer(name=name+'__unit_type', min=1, max=2, distribution='uniform') }},

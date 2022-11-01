@@ -313,9 +313,11 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_word(name='random_word', distribution="weighted", pos=["noun", "verb"]),
+    dbt_synth.column_word(name='random_word', language_code="en", distribution="weighted", pos=["noun", "verb"]),
 ```
-The above generates a randomly-selected noun or verb, weighted according to prevalence.
+The above generates a randomly-selected English noun or verb, weighted according to frequency.
+
+Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters.
 </details>
 
 <details>
@@ -329,7 +331,7 @@ The above generates a random string of five words, uniformly districbuted, with 
 
 Alternatively, you can generate words using format strings, for example
 ```python
-    dbt_synth.column_words(name='course_title', distribution="uniform", format_strings=[
+    dbt_synth.column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
         "{adverb} learning for {adjective} {noun}s",
         "{adverb} {verb} {noun} course"
         ], funcs=["INITCAP"]),
@@ -337,6 +339,8 @@ Alternatively, you can generate words using format strings, for example
 This will generate sets of words according to one of the format strings you specify.
 
 Note that this data type is constructed by separately generating a single word `n` times (or, for `format_string`s, the set union of all word instances from any `format_string`) and then concatenating them together, which can be slow if `n` is large (or you have many tokens in your `format_string`s).
+
+Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters.
 </details>
 
 
@@ -409,6 +413,48 @@ Occasionally you may want to build up a more complex column's values from severa
 ```
 Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `add_cleanup_hook()` calls in the example above.
 
+
+## Datasets
+
+### Words
+The word list in `seeds/synth_words.csv` contains 70k words &ndash; the top 5k most common words from each of the following 14 languages:
+* Bulgarian (`bg`)
+* Czech (`cs`)
+* Danish (`da`)
+* Dutch (`nl`)
+* English (`en`)
+* Finnish (`fi`)
+* French (`fr`)
+* German (`de`)
+* Hungarian (`hu`)
+* Indonesian (`id`)
+* Italian (`it`)
+* Portuguese (`pt`)
+* Slovenian (`sv`)
+* Spanish (`es`)
+
+With each word is associated a **frequency**, which is a value between 0 and 1 representing the frequency with which the word appears in common usage of the language, and a **part of speech** for the word, which is one of:
+* ADJ: adjective
+* ADP: adposition
+* ADV: adverb
+* AUX: auxiliary verb
+* CONJ: coordinating conjunction
+* DET: determiner
+* INTJ: interjection
+* NOUN: noun
+* NUM: numeral
+* PART: particle
+* PRON: pronoun
+* PROPN: proper noun
+* PUNCT: punctuation
+* SCONJ: subordinating conjunction
+* SYM: symbol
+* VERB: verb
+* X: other
+
+Some words may functionally belong to multiple parts of speech; this dataset uses only the single most common.
+
+The data set is constructed based on word lists and frequencies from [`wordfreq`](https://github.com/rspeer/wordfreq) and part-of-speech tagging from [`polyglot`](https://polyglot.readthedocs.io/en/latest/POS.html). Language availability is based on the set intersection of the languages supported by these two libraries.
 
 
 ## Performance

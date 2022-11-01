@@ -1,4 +1,8 @@
-{% macro column_words(name, distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
+{% macro column_words(name, language="", language_code="", distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
+
+    {% if not language and not language_code %}
+        {{ exceptions.raise_compiler_error("Words column `" ~ name ~ "` must specify either `language` or `language_code`.") }}
+    {% endif %}
 
     {% if format_strings|length %}
 
@@ -36,7 +40,7 @@
         {% set query %}
         {{ dbt_synth.column_integer(name=name+'_format_idx', min=1, max=format_strings|length, distribution='uniform') }},
         {% for col_name,pos in token_set.items() %}
-        {{ dbt_synth.column_word(name=col_name, pos=[pos], distribution=distribution) }},
+        {{ dbt_synth.column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
         {% endfor %}
         {{ dbt_synth.column_expression(name=name, expression=words_expression, type='varchar') }}
         {% endset %}
@@ -59,7 +63,7 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ dbt_synth.column_word(name=name + "_word" + i|string, distribution=distribution) }},
+        {{ dbt_synth.column_word(name=name + "_word" + i|string, language=language, language_code=language_code, distribution=distribution) }},
         {% endfor %}
         {{ dbt_synth.column_expression(name=name, expression=words_expression, type='varchar') }}
         {% for col in cleanup_cols %}

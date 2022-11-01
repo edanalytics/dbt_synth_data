@@ -325,7 +325,7 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates several words, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_words(name='random_phrase', distribution="uniform", n=5, funcs=["INITCAP"]),
+    dbt_synth.column_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]),
 ```
 The above generates a random string of five words, uniformly districbuted, with the first letter of each word capitalized.
 

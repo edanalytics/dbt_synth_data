@@ -1,4 +1,4 @@
-name,name_ascii,country_code,country_name,geo_region,population,timezone,latitude,longitude
+name,name_ascii,country_code,country_name,geo_region_abbr,population,timezone,latitude,longitude
 Kabul,Kabul,AF,Afghanistan,,4434550,Asia/Kabul,34.52813,69.17233
 Herāt,Herat,AF,Afghanistan,,574300,Asia/Kabul,34.34817,62.19967
 Kandahār,Kandahar,AF,Afghanistan,,523300,Asia/Kabul,31.61332,65.71013

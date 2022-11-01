@@ -4,10 +4,12 @@
     street_types=['St.', 'Rd.', 'Dr.', 'Ln.', 'Ave.', 'Pl.', 'Blvd.', 'Ct.', 'Trl.', 'Pkwy.'],
     cities=[],
     geo_regions=[],
+    geo_region_abbrs=[],
     countries=['United States'],
     postal_code_min=10,
     postal_code_max=99999,
-    parts=['street_address', 'city', 'geo_region', 'postal_code']
+    parts=['street_address', 'city', 'geo_region', 'postal_code'],
+    distribution="weighted"
 ) -%}
 
     {% set address_expression %}
@@ -23,6 +25,9 @@
         {% if 'geo_region' in parts %}
             {% if parts.index('geo_region') > 0 %} || ', ' || {% endif %}
             {{name}}__geo_region
+        {% elif 'geo_region_abbr' in parts %}
+            {% if parts.index('geo_region_abbr') > 0 %} || ', ' || {% endif %}
+            {{name}}__geo_region_abbr
         {% endif %}
 
         {% if 'postal_code' in parts %}
@@ -109,23 +114,61 @@
     {% endif %}
 
     {% if 'city' in parts %}
-        {% if cities|length>0 %}
-            {% set city_filter = "country_name in ('"+("','".join(countries))+"')" %}
-        {% else %}
-            {% set city_filter = "" %}
+        {% set filter_pieces = [] %}
+        {% if countries|length %}
+            {% do filter_pieces.append("country_name in ('"+("','".join(countries))+"')") %}
         {% endif %}
-        {{ dbt_synth.column_city(name=name+'__city', distribution="weighted", weight_col="population", filter=city_filter) }}
+        {% if geo_region_abbrs|length %}
+            {% do filter_pieces.append("geo_region_abbr in ('"+("','".join(geo_region_abbrs))+"')") %}
+        {% endif %}
+        {% if cities|length %}
+            {% do filter_pieces.append("name_ascii in ('"+("','".join(cities))+"')") %}
+        {% endif %}
+        {% if filter_pieces|length %}
+            {% set filter = " and ".join(filter_pieces) %}
+        {% else %}
+            {% set filter = "" %}
+        {% endif %}
+        {{ dbt_synth.column_city(name=name+'__city', distribution=distribution, weight_col="population", filter=filter) }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'city')) or "" }}
     {% endif %}
 
     {% if 'geo_region' in parts %}
-        {% if geo_regions|length>0 %}
-            {% set geo_region_filter = "country_name in ('"+("','".join(countries))+"')" %}
-        {% else %}
-            {% set geo_region_filter = "" %}
+        {% set filter_pieces = [] %}
+        {% if countries|length %}
+            {% do filter_pieces.append("country_name in ('"+("','".join(countries))+"')") %}
         {% endif %}
-        {{ dbt_synth.column_geo_region(name=name+'__geo_region', distribution="weighted", weight_col="population", filter=geo_region_filter) }}
+        {% if geo_regions|length %}
+            {% do filter_pieces.append("name in ('"+("','".join(geo_regions))+"')") %}
+        {% endif %}
+        {% if geo_region_abbrs|length %}
+            {% do filter_pieces.append("abbr in ('"+("','".join(geo_region_abbrs))+"')") %}
+        {% endif %}
+        {% if filter_pieces|length %}
+            {% set filter = " and ".join(filter_pieces) %}
+        {% else %}
+            {% set filter = "" %}
+        {% endif %}
+        {{ dbt_synth.column_geo_region(name=name+'__geo_region', distribution=distribution, weight_col="population", filter=filter) }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'geo_region')) or "" }}
+    {% elif 'geo_region_abbr' in parts %}
+        {% set filter_pieces = [] %}
+        {% if countries|length %}
+            {% do filter_pieces.append("country_name in ('"+("','".join(countries))+"')") %}
+        {% endif %}
+        {% if geo_regions|length %}
+            {% do filter_pieces.append("abbr in ('"+("','".join(geo_regions))+"')") %}
+        {% endif %}
+        {% if geo_region_abbrs|length %}
+            {% do filter_pieces.append("abbr in ('"+("','".join(geo_region_abbrs))+"')") %}
+        {% endif %}
+        {% if filter_pieces|length %}
+            {% set filter = " and ".join(filter_pieces) %}
+        {% else %}
+            {% set filter = "" %}
+        {% endif %}
+        {{ dbt_synth.column_geo_region(name=name+'__geo_region_abbr', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'geo_region_abbr')) or "" }}
     {% endif %}
 
     {% if 'postal_code' in parts %}
@@ -134,12 +177,12 @@
     {% endif %}
 
     {% if 'country' in parts %}
-        {% if countries|length>0 %}
-            {% set country_filter = "name in ('"+("','".join(countries))+"')" %}
+        {% if countries|length %}
+            {% set filter = "name_ascii in ('"+("','".join(countries))+"')" %}
         {% else %}
-            {% set country_filter = "" %}
+            {% set filter = "" %}
         {% endif %}
-        {{ dbt_synth.column_country(name=name+'__country', distribution="weighted", weight_col="population", filter=country_filter) }}
+        {{ dbt_synth.column_country(name=name+'__country', distribution=distribution, weight_col="population", filter=filter) }}
         {{ dbt_synth.add_cleanup_hook(address_cleanup(name, 'country')) or "" }}
     {% endif %}
 

@@ -7,7 +7,7 @@
 {%- endmacro %}
 
 {% macro postgres__column_integer(randseed, name, min, max, distribution) %}
-    floor(RANDOM() * ({{max}}-{{min}}) + {{min}}) as {{name}}
+    round( (RANDOM() * ({{max}}-{{min}})) + {{min}}) as {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_integer(randseed, name, min, max, distribution) %}

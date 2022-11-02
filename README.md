@@ -317,7 +317,7 @@ Generates a single word, selected from the `synth_words` seed table.
 ```
 The above generates a randomly-selected English noun or verb, weighted according to frequency.
 
-Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters. See [Words (Data Sets)](#words) for a list of supported languages and parts of speech.
+Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters. See [Words (Datasets)](#words) for a list of supported languages and parts of speech.
 </details>
 
 <details>
@@ -454,10 +454,10 @@ With each word is associated a **frequency**, which is a value between 0 and 1 r
 
 Some words may functionally belong to multiple parts of speech; this dataset uses only the single most common.
 
-The data set is constructed based on word lists and frequencies from [`wordfreq`](https://github.com/rspeer/wordfreq) and part-of-speech tagging from [`polyglot`](https://polyglot.readthedocs.io/en/latest/POS.html). Language availability is based on the set intersection of the languages supported by these two libraries.
+The dataset is constructed based on word lists and frequencies from [`wordfreq`](https://github.com/rspeer/wordfreq) and part-of-speech tagging from [`polyglot`](https://polyglot.readthedocs.io/en/latest/POS.html). Language availability is based on the set intersection of the languages supported by these two libraries.
 
 ### Languages
-The language list in `seeds/synth_languages.csv` contains 222 commonly-spoken (living) languages, with, for each, the ISO 693-2 and ISO 693-3 language codes, the approximate number of speakers, and a list of countries in which the language is predominantly spoken. Country names are consistent with those in `seeds/synth_countries.csv`.
+The language list in `seeds/synth_languages.csv` contains 222 commonly-spoken (living) languages, with, for each, the ISO 693-2 and ISO 693-3 language codes, the approximate number of speakers, and a list of countries in which the language is predominantly spoken. Country names are consistent with those in the countries dataset at `seeds/synth_countries.csv`.
 
 The dataset is assembled primarily from Wikipedia, including [this list of official languages by country](https://en.wikipedia.org/wiki/List_of_official_languages_by_country_and_territory), and the specific pages for each individual language.
 

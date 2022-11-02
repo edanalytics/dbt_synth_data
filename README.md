@@ -261,7 +261,19 @@ Data column types use real-world data which is maintained in the `seeds/` direct
 * **Generalized**, rather than specific to a particular country, region, language, etc. For example, the *words* dictionary contains common words from many common languages, not just English.
 * **Statistically rich**, with associated metadata which makes the data more useful by capturing various distributions embedded in the data. For example, the *countries* list includes the (approximate) population and land area of each country, which facilitates generating country lists weighted according to these features. Likewise, the *cities* list has the latitude and longitude coordinates for each city, which facilitates generating fairly realistic coordinates for synthetic addresses.
 
-Data column types may all specify a `filter`, which is a SQL `where` expression narrowing down the pool of data values that will be used. They may also specify `distribution="weighted"` and `weight_col="population"` (or similar) to skew value distributions.
+Data column types may all specify a `distribution="weighted"` and `weight_col="population"` (or similar) to skew value distributions. They may also specify `filter`, which is a SQL `where` expression narrowing down the pool of data values that will be used. Finally, they may specify a `filter_expressions` dictionary which allows dynamic filtering based on expressions which can involve row values from other columns. If, for example, we are creating a country column and pass `filter_expressions` as
+```json
+{
+    "country_name": "INITCAP(my_country_col)",
+    "geo_region_code": "my_geo_region_col"
+}
+```
+then a `WHERE` clause like this will result:
+```sql
+synth_countries.country_name=INITCAP(my_country_col)
+AND synth_countries.geo_region_code=my_geo_region_col
+```
+(`filter_expressions` and `filter` - if any - are combined via logical `AND`.)
 
 <details>
 <summary><code>city</code></summary>
@@ -348,7 +360,7 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates a spoken language (name or 2- or 3-letter code), selected from the `synth_languages` seed table.
 ```python
-    dbt_synth.column_languages(name='random_language', type="name", distribution="weighted"),
+    dbt_synth.column_languages(name='random_lang', type="name", distribution="weighted"),
 ```
 The optional `type` (which defaults to `name`) can take values `name` (the full English name of the language, e.g. *Spanish*), `code2` (the ISO 693-2 two-letter code for the langage, e.g. `es`), or `code3` (the ISO 693-3 three-letter code for the language, e.g. `spa`).
 </details>

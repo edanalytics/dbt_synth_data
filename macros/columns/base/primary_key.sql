@@ -7,9 +7,9 @@
 {%- endmacro %}
 
 {% macro postgres__column_primary_key(name) %}
-    MD5( RANDOM()::varchar ) AS {{name}}
+    MD5( s.idx::varchar ) AS {{name}}
 {% endmacro %}
 
 {% macro snowflake__column_primary_key(name) %}
-    MD5( RANDOM( {{get_randseed()}} ) ) AS {{name}}
+    MD5( seq8() ) AS {{name}}
 {% endmacro%}

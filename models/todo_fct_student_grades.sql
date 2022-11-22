@@ -19,3 +19,4 @@ exclude_from_gpa,
 is_dorf,
 grade_sort_index
 #}
+select 1 as test

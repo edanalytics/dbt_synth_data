@@ -25,3 +25,4 @@ graduation_plan_type,
 residency_status,
 is_latest_annual_entry
 #}
+select 1 as test

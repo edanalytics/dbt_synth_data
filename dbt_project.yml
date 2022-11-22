@@ -49,6 +49,8 @@ vars:
   staff_max_birthdate: '1994-12-31'
   
   num_students: 500000
+  # min_students_per_school?
+  # max_students_per_school?
   students_pct_lep: 0.1733
   students_pct_is_special_education_annual: 0.02
   students_pct_is_special_education_active: 0.015

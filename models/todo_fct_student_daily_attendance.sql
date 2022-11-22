@@ -23,3 +23,4 @@ is_chronic_absentee,
 absentee_category_rank,
 absentee_category_label
 #}
+select 1 as test

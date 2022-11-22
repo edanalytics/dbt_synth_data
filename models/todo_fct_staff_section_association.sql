@@ -13,3 +13,4 @@ percentage_contribution,
 teacher_student_data_link_exclusion,
 is_active_assignment
 #}
+select 1 as test

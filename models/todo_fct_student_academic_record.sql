@@ -28,3 +28,4 @@ session_earned_credit_conversion,
 session_attempted_credit_type,
 session_attempted_credit_conversion
 #}
+select 1 as test

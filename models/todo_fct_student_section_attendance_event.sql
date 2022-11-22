@@ -15,3 +15,4 @@ arrival_time,
 departure_time,
 educational_environment
 #}
+select 1 as test

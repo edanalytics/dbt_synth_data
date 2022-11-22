@@ -30,3 +30,4 @@ reason_exited,
 special_education_setting
 ...
 #}
+select 1 as test

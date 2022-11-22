@@ -15,3 +15,4 @@ teacher_student_data_link_exclusion,
 attempt_status,
 repeat_identifier
 #}
+select 1 as test

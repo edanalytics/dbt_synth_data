@@ -8,3 +8,4 @@ operational_status,
 network_short_name,
 website
 #}
+select 1 as test

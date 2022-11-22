@@ -29,3 +29,4 @@ attempted_credit_conversion,
 assigning_organization_identification_code,
 course_catalog_url
 #}
+select 1 as test

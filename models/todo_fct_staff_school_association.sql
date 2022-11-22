@@ -19,3 +19,4 @@ order_of_assignment,
 staff_classification,
 is_active_assignment
 #}
+select 1 as test

@@ -23,3 +23,4 @@ is_exp,
 is_minor,
 severity_order
 #}
+select 1 as test

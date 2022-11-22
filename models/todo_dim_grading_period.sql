@@ -11,3 +11,4 @@ begin_date,
 end_date,
 total_instructional_days
 #}
+select 1 as test

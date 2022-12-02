@@ -498,3 +498,10 @@ In Postgres, using an AWS RDS small instance:
 * Creating 100K `dim_student`s takes 43 secs; 100K `dim_guardian`s takes 30 secs; 200K `fct_family_relationship`s takes around 76 minutes.
 
 
+## Todo
+[ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
+[ ] implement other distributions... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
+[ ] implement methods for combining (adding, multiplying, etc.) distributions
+[ ] update various column types to use new distribution macros
+[ ] document distributions
+[ ] flesh out more seeds, data columns, and composite columns

@@ -1,3 +1,4 @@
+{{ config(materialized='table') }}
 {{ dbt_synth.table(
   rows = 100000,
   columns = [

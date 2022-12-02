@@ -4,7 +4,7 @@
     * a dictionary with integer keys { "1": 0.05, "3": 0.8, "7": 0.15 }, in which case the keys will be returned with
       the specified probabilities
 -#}
-{#- TODO: not working in Snowflake!!! (due to random() being inside a subquery...) -#}
+{#- TODO: not working!!! (...due to random() being inside a subquery...) -#}
 {% macro distribution_discrete_probabilities(probabilities) %}
     {%- if probabilities is mapping -%}{#- dict -#}
     {%- set ns = namespace(threshold=0.0) -%}

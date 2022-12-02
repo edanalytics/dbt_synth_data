@@ -12,4 +12,4 @@
 
 {% macro snowflake__column_numeric(randseed, name, min, max, precision) %}
     ROUND( UNIFORM({{min}}::float, {{max}}::float, RANDOM( {{randseed}} )) , {{precision}} ) AS {{name}}
-{% endmacro%}
+{% endmacro %}

@@ -75,9 +75,19 @@ Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. D
 
 Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) real numbers.
 ```python
-    dbt_synth.distribution_continuous_unormal(mean=5, stddev=0.5, precision=2)
+    dbt_synth.distribution_continuous_normal(mean=5, stddev=0.5, precision=2)
 ```
 Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full precision.
+</details>
+
+<details>
+<summary><code>exponential</code></summary>
+
+Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) real numbers.
+```python
+    dbt_synth.distribution_continuous_exponential(lambda=5.0, precision=2)
+```
+Default `lambda` is `1.0`. Default `precision` is full precision.
 </details>
 
 
@@ -100,6 +110,18 @@ Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal
     dbt_synth.distribution_discrete_normal(mean=5, stddev=0.5)
 ```
 Default `mean` is `0`, default `stddev` is `1`.
+</details>
+
+<details>
+<summary><code>exponential</code></summary>
+
+Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) integers.
+```python
+    dbt_synth.distribution_discrete_exponential(lambda=5.0)
+```
+Default `lambda` is `1.0`.
+
+Note that this implementation simply takes `floor()` of the continuous exponential distribution, so `avg()` may not be close to `1 / lambda`.
 </details>
 
 <details>
@@ -606,7 +628,7 @@ In Postgres, using an AWS RDS small instance:
 
 ## Todo
 - [ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
-- [ ] implement other [distributions](#distributions)... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
+- [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
 - [ ] implement methods for combining (adding, multiplying, etc.) distributions
 - [ ] update various column types to use new distribution macros
 - [ ] document distributions

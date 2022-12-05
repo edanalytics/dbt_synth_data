@@ -14,7 +14,7 @@
     dbt_synth.column_distribution(name='discrete_uniform_0_10',  class='discrete',   type='uniform',       min=0, max=9),
     dbt_synth.column_distribution(name='discrete_normal',        class='discrete',   type='normal',        mean=0, stddev=5),
     dbt_synth.column_distribution(name='discrete_bernoulli',     class='discrete',   type='bernoulli' ),
-    dbt_synth.column_distribution(name='discrete_binomial',      class='discrete',   type='binomial',      n=30, p=0.1),
+    dbt_synth.column_distribution(name='discrete_binomial',      class='discrete',   type='binomial',      n=100, p=0.05),
     dbt_synth.column_distribution(name='discrete_probability',   class='discrete',   type='probabilities', probabilities=[0.05, 0.15, 0.25, 0.35, 0.2]),
   ]
 ) }}

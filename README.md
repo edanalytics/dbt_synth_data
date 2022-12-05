@@ -13,7 +13,7 @@ All the magic happens in `macros/*`.
 ## Architecture
 Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generating random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package emulate.
 
-However, creating more realistic synthetic data requires more complex data types, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore advanced column types in this package use a (slower) multi-step process to generate distinct values for each row:
+However, creating more realistic synthetic data requires more complex data types, advanced random distributions, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *subqueries of expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore advanced column types in this package use a (slower) multi-step process to generate distinct values for each row:
 
 1. an intermediate column is added to the table containing a `RANDOM()` number
 1. an `update` query is run on the table which populates a new column with values based on the `RANDOM()` value from the intermediate column
@@ -37,8 +37,11 @@ Consider the example model `orders.sql` below:
     columns = [
         dbt_synth.column_primary_key(name='order_id'),
         dbt_synth.column_foreign_key(name='product_id', table='products', column='product_id'),
-        dbt_synth.column_values(name='status', values=["New", "Shipped", "Returned", "Lost"], weights=[0.2, 0.5, 0.2, 0.1]),
-        dbt_synth.column_integer(name='num_ordered', min=1, max=10, distribution='uniform'),
+        dbt_synth.column_values(name='status', 
+            values=["New", "Shipped", "Returned", "Lost"],
+            distribution=dbt_synth.distribution_discrete_probabilities(probabilities=[0.2, 0.5, 0.2, 0.1])),
+        dbt_synth.column_integer(name='num_ordered',
+            distribution=dbt_synth.distribution_discrete_uniform(min=1, max=10)),
     ]
 ) }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
@@ -46,11 +49,94 @@ Consider the example model `orders.sql` below:
 The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, a new table is created with 5000 rows and several columns:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
 * `product_id` is a foreign key to the `products` table - values in this column will be uniformly-distributed, valid primary keys of the `products` table
-* each order has a `status` with several possible values - a `weights` array is also supplied, which will determine the prevalence of each `status` value
+* each order has a `status` with several possible values, whose prevalence/likelihoods are given by a discrete probability distribution
 * `num_ordered` is the count of how many of the product were ordered, a uniformly-distributed integer from 1-10
 
 Finally, the model adds the post hooks required to finish building and clean up the new table.
 
+
+
+## Distributions
+This package provides the following distributions:
+
+### Continuous Distributions
+<details>
+<summary><code>uniform</code></summary>
+
+Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Continuous_uniform_distribution) real numbers.
+```python
+    dbt_synth.distribution_continuous_uniform(min=0.6, max=7.9, precision=4)
+```
+Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. Default `precision` is full precision.
+</details>
+
+<details>
+<summary><code>normal</code></summary>
+
+Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) real numbers.
+```python
+    dbt_synth.distribution_continuous_unormal(mean=5, stddev=0.5, precision=2)
+```
+Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full precision.
+</details>
+
+
+### Discrete Distributions
+<details>
+<summary><code>uniform</code></summary>
+
+Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Discrete_uniform_distribution) integers.
+```python
+    dbt_synth.distribution_discrete_uniform(min=6, max=55)
+```
+Default `min` is `0`, default `max` is `1`. `min` and `max` are inclusive.
+</details>
+
+<details>
+<summary><code>normal</code></summary>
+
+Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) integers.
+```python
+    dbt_synth.distribution_discrete_normal(mean=5, stddev=0.5)
+```
+Default `mean` is `0`, default `stddev` is `1`.
+</details>
+
+<details>
+<summary><code>bernoulli</code></summary>
+
+Generates integers (`0` and `1`) according to a [Bernoulli distribution](https://en.wikipedia.org/wiki/Bernoulli_distribution).
+```python
+    dbt_synth.distribution_discrete_bernoulli(p=0.3)
+```
+Default `p` is `0.5`.
+</details>
+
+<details>
+<summary><code>binomial</code></summary>
+
+Generates integers according to a [Binomial distribution](https://en.wikipedia.org/wiki/Binomial_distribution).
+```python
+    dbt_synth.distribution_discrete_binomial(n=100, p=0.3)
+```
+Default `n` is `10`, default `p` is `0.5`.
+
+Note that the implementation is approximate, based on a normal distribution (see [here](https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation)). For very "wide" binomial distributions (large `n`) or "skew" binomial distributions (extreme `p`), normally-distributed values may be `< 0` or `> n`, which is impossible in a binomial distribution. These long-tail values are rare, so, while not completely correct, we use
+* `abs()` to eliminate those `< 0`
+* `mod(..., n+1)` to eliminate those `> n`
+
+This may artificially increase small values slightly.
+</details>
+
+<details>
+<summary><code>probabilities</code></summary>
+
+Generates integers (`0` and `1`) according to a user-defined probability set.
+```python
+    dbt_synth.distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
+```
+`probabilities` is required and has no default. It may be a list (array), in which case the indices are the integer values generated, or a dictionary (key-value) structure, in which case the keys are the integers generated. `probabilities` must sum to `1.0`.
+</details>
 
 
 ## Column types
@@ -499,9 +585,9 @@ In Postgres, using an AWS RDS small instance:
 
 
 ## Todo
-[ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
-[ ] implement other distributions... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
-[ ] implement methods for combining (adding, multiplying, etc.) distributions
-[ ] update various column types to use new distribution macros
-[ ] document distributions
-[ ] flesh out more seeds, data columns, and composite columns
+- [ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
+- [ ] implement other distributions... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
+- [ ] implement methods for combining (adding, multiplying, etc.) distributions
+- [ ] update various column types to use new distribution macros
+- [ ] document distributions
+- [ ] flesh out more seeds, data columns, and composite columns

@@ -143,9 +143,9 @@ More advanced distributions can be constructed from combinations of the above. F
 {{ dbt_synth.table(
   rows = 100000,
   columns = [
-    dbt_synth.distribution(name='normal_0',               class='continuous', type='normal', mean=5.0, stddev=1.0),
-    dbt_synth.distribution(name='normal_1',               class='continuous', type='normal', mean=8.0, stddev=1.0),
-    dbt_synth.distribution(name='which_one',              class='discrete',   type='bernoulli'),
+    dbt_synth.distribution(name='normal_0',  class='continuous', type='normal', mean=5.0, stddev=1.0),
+    dbt_synth.distribution(name='normal_1',  class='continuous', type='normal', mean=8.0, stddev=1.0),
+    dbt_synth.distribution(name='which_one', class='discrete',   type='bernoulli'),
     dbt_synth.column_expression(name='continuous_bimodal',
         expression='(case when which_one=0 then normal_0 else normal_1 end)'),
   ]

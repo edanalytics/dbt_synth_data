@@ -22,7 +22,7 @@
         However, this trick does artificially increase small values slightly, and therefore does not produce a
         completely accurate binomial distribution. It's probably good enough, though.
     -#}
-    mod( abs( {{ dbt_synth.distribution_continuous_normal(mean=n*p, stddev=n*p*(1-p), precision=0) }} ) , {{n+1}} )
+    mod( abs( {{ dbt_synth.distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5, precision=0) }} ) , {{n+1}} )
 
     {%- endif -%}
 {%- endmacro %}

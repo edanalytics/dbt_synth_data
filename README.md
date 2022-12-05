@@ -586,7 +586,7 @@ In Postgres, using an AWS RDS small instance:
 
 ## Todo
 - [ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
-- [ ] implement other distributions... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
+- [ ] implement other [distributions](#distributions)... Poisson, Exponential, Gamma, Power law/Pareto, Multinomial?
 - [ ] implement methods for combining (adding, multiplying, etc.) distributions
 - [ ] update various column types to use new distribution macros
 - [ ] document distributions

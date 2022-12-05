@@ -3,7 +3,7 @@
     the distribution ("uniform", "normal", "bernoulli", "binomial", or "probabilities"). Depending on the `type`
     chosen, other parameters may also be required.
 -#}
-{% macro distribution(name, class, type, min=0, max=1, mean=0, stddev=1, precision=-1, n=10, p=0.5, probabilities=None) %}
+{% macro column_distribution(name, class, type, min=0, max=1, mean=0, stddev=1, precision=-1, n=10, p=0.5, probabilities=None) %}
     {% if class=='discrete' %}
     {{ dbt_synth.distribution_discrete(type, min=min, max=max, mean=mean, stddev=stddev, n=n, p=p, probabilities=probabilities) }}
     {% elif class=='continuous' %}

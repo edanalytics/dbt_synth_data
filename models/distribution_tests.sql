@@ -5,9 +5,9 @@
     dbt_synth.distribution(name='continuous_uniform_0_1', class='continuous', type='uniform',       min=0, max=1),
     dbt_synth.distribution(name='continuous_normal',      class='continuous', type='normal' ),
     
-    dbt_synth.distribution(name='which_one',              class='discrete',   type='bernoulli'),
-    dbt_synth.distribution(name='normal_0',               class='continuous', type='normal', mean=5.0, stddev=1.0),
-    dbt_synth.distribution(name='normal_1',               class='continuous', type='normal', mean=8.0, stddev=1.0),
+    dbt_synth.distribution(name='normal_0',               class='continuous', type='normal',    mean=5.0, stddev=1.0),
+    dbt_synth.distribution(name='normal_1',               class='continuous', type='normal',    mean=8.0, stddev=1.0),
+    dbt_synth.distribution(name='which_one',              class='discrete',   type='bernoulli', p=0.35),
     dbt_synth.column_expression(name='continuous_bimodal',
         expression='(case when which_one=0 then normal_0 else normal_1 end)'),
     

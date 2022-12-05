@@ -138,6 +138,24 @@ Generates integers (`0` and `1`) according to a user-defined probability set.
 `probabilities` is required and has no default. It may be a list (array), in which case the indices are the integer values generated, or a dictionary (key-value) structure, in which case the keys are the integers generated. `probabilities` must sum to `1.0`.
 </details>
 
+More advanced distributions can be constructed from combinations of the above. For example, we can make a *bi-modal distribution* as follows:
+```python
+{{ dbt_synth.table(
+  rows = 100000,
+  columns = [
+    dbt_synth.distribution(name='normal_0',               class='continuous', type='normal', mean=5.0, stddev=1.0),
+    dbt_synth.distribution(name='normal_1',               class='continuous', type='normal', mean=8.0, stddev=1.0),
+    dbt_synth.distribution(name='which_one',              class='discrete',   type='bernoulli'),
+    dbt_synth.column_expression(name='continuous_bimodal',
+        expression='(case when which_one=0 then normal_0 else normal_1 end)'),
+  ]
+) }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}
+{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_1") or "" }}
+```
+
 
 ## Column types
 This package provides the following column types:

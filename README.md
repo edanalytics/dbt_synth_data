@@ -138,7 +138,7 @@ Generates integers (`0` and `1`) according to a user-defined probability set.
 `probabilities` is required and has no default. It may be a list (array), in which case the indices are the integer values generated, or a dictionary (key-value) structure, in which case the keys are the integers generated. `probabilities` must sum to `1.0`.
 </details>
 
-More advanced distributions can be constructed from combinations of the above. For example, we can make a *bi-modal distribution* as follows:
+More advanced distributions can be constructed from combinations of the above. For example, we can make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
 ```python
 {{ dbt_synth.table(
   rows = 100000,

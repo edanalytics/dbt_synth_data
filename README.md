@@ -122,8 +122,8 @@ Generates integers according to a [Binomial distribution](https://en.wikipedia.o
 Default `n` is `10`, default `p` is `0.5`.
 
 Note that the implementation is approximate, based on a normal distribution (see [here](https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation)). For very "wide" binomial distributions (large `n`) or "skew" binomial distributions (extreme `p`), normally-distributed values may be `< 0` or `> n`, which is impossible in a binomial distribution. These long-tail values are rare, so, while not completely correct, we use
-* `abs()` to eliminate those `< 0`
-* `mod(..., n+1)` to eliminate those `> n`
+* `abs()` to shift those `< 0`
+* `mod(..., n+1)` to shift those `> n`
 
 This may artificially increase small values slightly.
 </details>

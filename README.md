@@ -150,10 +150,10 @@ More advanced distributions can be constructed from combinations of the above. F
         expression='(case when which_one=0 then normal_0 else normal_1 end)'),
   ]
 ) }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_1") or "" }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
 
 

@@ -18,10 +18,10 @@
     dbt_synth.distribution(name='discrete_probability',   class='discrete',   type='probabilities', probabilities=[0.05, 0.15, 0.25, 0.35, 0.2]),
   ]
 ) }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_1") or "" }}
+{{ config(post_hook=dbt_synth.get_post_hooks())}}
 {#-
     Test by wrapping compiled output in something like
     with rand_data as (

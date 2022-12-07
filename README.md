@@ -159,7 +159,7 @@ Generates integers according to a user-defined probability set.
 ```
 `probabilities` is required and has no default. It may be
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
-* or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }`, in which case the keys are the integers generated
+* or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }` with integer keys (specified as strings in order to be valud JSON), in which case the keys are the integers generated
 
 `probabilities` must sum to `1.0`. Note that, because values are generated using `case` statements, supplying `probabilities` with many digits of specificity will run slower, i.e., `probabilities=[0.1, 0.3, 0.6]` will generate something like
 ```sql

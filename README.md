@@ -153,7 +153,7 @@ This may artificially increase small values. However, the approximation is close
 <details>
 <summary><code>probabilities</code></summary>
 
-Generates integers (`0` and `1`) according to a user-defined probability set.
+Generates integers according to a user-defined probability set.
 ```python
     dbt_synth.distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
 ```

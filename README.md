@@ -161,7 +161,14 @@ Generates integers according to a user-defined probability set.
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
 * or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }` with integer keys (specified as strings in order to be valud JSON), in which case the keys are the integers generated
 
-`probabilities` must sum to `1.0`. Note that, because values are generated using `case` statements, supplying `probabilities` with many digits of specificity will run slower, i.e., `probabilities=[0.1, 0.3, 0.6]` will generate something like
+You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however string keys require an additional parameter `wrap="'"` so the database interprets the values as a string. Example:
+```python
+dbt_synth.distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
+```
+
+`probabilities` must sum to `1.0`.
+
+Note that, because values are generated using `case` statements, supplying `probabilities` with many digits of specificity will run slower, i.e., `probabilities=[0.1, 0.3, 0.6]` will generate something like
 ```sql
 case floor( 10*random() )
     when 0 then 0
@@ -185,10 +192,10 @@ case floor( 1000*random() )
     when 100 then 0
     when 101 then 1
     when ...
-    when 300 then 1
-    when 301 then 1
-    when 302 then 1
-    when 303 then 2
+    when 400 then 1
+    when 401 then 1
+    when 402 then 1
+    when 403 then 2
     ...
     when 998 then 2
     when 999 then 2
@@ -196,7 +203,7 @@ end
 ```
 which takes longer for the database engine to evaluate.
 
-Really you should avoid probability specifications of more than 4 digits at the most.
+Really you should avoid specifiying `probabilities` of more than 4 digits at the most.
 </details>
 
 ### Constructing Distributions

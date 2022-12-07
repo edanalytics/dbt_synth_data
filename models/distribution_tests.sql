@@ -18,9 +18,10 @@
     dbt_synth.column_distribution(name='discrete_bernoulli',     class='discrete',   type='bernoulli' ),
     dbt_synth.column_distribution(name='discrete_binomial',      class='discrete',   type='binomial',      n=100000, p=0.02),
     dbt_synth.column_distribution(name='discrete_probability',   class='discrete',   type='probabilities',
-        probabilities={ "5":0.05, "7":0.15, "11":0.25, "13":0.35, "17":0.2}),
+        probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'"),
   ]
 ) }}
+{# { "5":0.05, "7":0.15, "11":0.25, "13":0.35, "17":0.2} #}
 {# [0.05, 0.15, 0.25, 0.35, 0.2] #}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}

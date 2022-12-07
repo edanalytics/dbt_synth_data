@@ -1,4 +1,4 @@
-{% macro distribution_discrete_probabilities(probabilities) %}
+{% macro distribution_discrete_probabilities(probabilities, wrap="") %}
     {# Set up some variables: #}
     {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
     
@@ -31,7 +31,7 @@
             {%- set ns.curr_idx = ns.curr_idx + 1 -%}
             {%- set ns.curr_threshold = ns.curr_threshold + ns.values[ns.curr_idx] -%}
         {%- endif -%}
-        when {{i}} then {{ns.keys[ns.curr_idx]}}
+        when {{i}} then {{wrap}}{{ns.keys[ns.curr_idx]}}{{wrap}}
         {% endfor %}
     end
 {% endmacro %}

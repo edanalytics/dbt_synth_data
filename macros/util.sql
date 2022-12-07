@@ -68,3 +68,11 @@
     
     {{ return(posthooks) }}
 {%- endmacro %}
+
+{%- macro zip(list_a, list_b) -%}
+    {% set dct = {} %}
+    {% for i in range(list_a|length) %}
+        {% do dct.update({list_a[i]: list_b[i]}) %}
+    {% endfor %}
+    {{ return(dct) }}
+{%- endmacro %}

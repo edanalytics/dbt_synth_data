@@ -1,23 +1,25 @@
-{% macro column_values(name, values, weights) -%}
-    {{ return(adapter.dispatch('column_values')(get_randseed(), name, values, weights)) }}
-{%- endmacro %}
+{% macro column_values(name, values, probabilities=None) -%}
+    {# Determine generated value types: #}
+    {%- if values[0] is number -%}
+        {% set wrap = "" %}
+    {% elif values[0] is string %}
+        {% set wrap = "'" %}
+    {% else %}
+        {{ exceptions.raise_compiler_error("`values` must be strings or numbers") }}
+    {% endif %}
 
-{% macro default__column_values(randseed, name, values, weights) -%}
-    {# NOT YET IMPLEMENTED #}
-{%- endmacro %}
-
-{% macro postgres__column_values(randseed, name, values, weights) %}
-    CASE floor(RANDOM() * {{values|length}} + 1)
-        {% for i in range(0, values|length) %}
-        WHEN {{i+1}} THEN '{{values[i]}}'
+    {% if values|length==1 %}
+        {{wrap}}{{values[0]}}{{wrap}} as {{name}}
+    {% else %}
+        {# Construct probabilities if none specified: #}
+        {%- if probabilities is none -%}
+        {% set probabilities = [] %}
+        {% for i in range(values|length-1) %}
+            {% do probabilities.append( (1 / values|length)|round(3) ) %}
         {% endfor %}
-    END AS {{name}}
-{% endmacro %}
+        {% do probabilities.append( (1.0 - probabilities|sum)|round(3) ) %}
+        {% endif %}
 
-{% macro snowflake__column_values(randseed, name, values, weights) %}
-    CASE UNIFORM(1, {{values|length}}, RANDOM( {{randseed}} ))
-        {% for i in range(0, values|length) %}
-        WHEN {{i+1}} THEN '{{values[i]}}'
-        {% endfor %}
-    END AS {{name}}
-{% endmacro%}
+        {{ dbt_synth.distribution_discrete_probabilities(probabilities=zip(values, probabilities), wrap=wrap) }} as {{name}}
+    {% endif %}
+{%- endmacro %}

@@ -23,6 +23,9 @@
         {%- set ns.max_prob_digits = ns.values[i]|string|replace("0.","")|replace(".","")|length -%}
         {%- endif -%}
     {%- endfor -%}
+    {%- if ns.max_prob_digits > 4 -%}
+        {{ exceptions.raise_compiler_error("`probabilities` should not exceed 4 digits (for performance reasons, see docs)") }}
+    {%- endif -%}
     
     {# Case statement on uniformly-distributed range: #}
     case {{ dbt_synth.distribution_discrete_uniform(min=0, max=(10**ns.max_prob_digits - 1)) }}

@@ -161,7 +161,7 @@ Generates integers according to a user-defined probability set.
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
 * or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }` with integer keys (specified as strings in order to be valud JSON), in which case the keys are the integers generated
 
-You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however string keys require an additional parameter `wrap="'"` so the database interprets the values as a string. Example:
+You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however string keys require an additional parameter `wrap="'"` so the database interprets the values as a string. For example:
 ```python
 dbt_synth.distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
 ```
@@ -319,10 +319,11 @@ Generates a (single, static) value for every row.
 <details>
 <summary><code>values</code></summary>
 
-Generates values from a list of possible values, with optional weighting.
+Generates values from a list of possible values, with optional probability weighting.
 ```python
-    dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], weights=[0.2, 0.3, 0.15, 0.35]),
+    dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], probabilities=[0.2, 0.3, 0.15, 0.35]),
 ```
+If `probabilities` are omitted, every value is equally likely.
 </details>
 
 <details>
@@ -673,9 +674,7 @@ In Postgres, using an AWS RDS small instance:
 
 
 ## Todo
-- [ ] fix `distribution_discrete_probabilities()` to not use subquery (may need to post-hook `update`)
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
-- [ ] implement methods for combining (adding, multiplying, etc.) distributions
+- [ ] implement methods for combining distributions
 - [ ] update various column types to use new distribution macros
-- [ ] document distributions
 - [ ] flesh out more seeds, data columns, and composite columns

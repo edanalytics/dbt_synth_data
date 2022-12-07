@@ -23,7 +23,7 @@
         dbt_synth.column_integer(name='course_num', min=100, max=900, distribution='uniform'),
         dbt_synth.column_expression(name='course_code', expression="REPLACE(SUBSTR(course_title,0,5), ' ', '') || course_num"),
         dbt_synth.column_expression(name='course_description', expression="'A course with Title \"' || course_title || '\" and Code \"' || course_code || '\"'"),
-        dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], weights=[0.2, 0.3, 0.15, 0.35]),
+        dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], probabilities=[0.2, 0.3, 0.15, 0.35]),
         dbt_synth.column_value(name='career_pathway', value=None),
         dbt_synth.column_value(name='course_defined_by', value=None),
         dbt_synth.column_value(name='gpa_applicability', value=None),

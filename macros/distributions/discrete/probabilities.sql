@@ -1,30 +1,37 @@
-{#-
-    `probabilities` may be
-    * a list [0.05, 0.8, 0.15], in which case the (zero-based) indices will be returned with the specified probabilities
-    * a dictionary with integer keys { "1": 0.05, "3": 0.8, "7": 0.15 }, in which case the keys will be returned with
-      the specified probabilities
--#}
-{#- TODO: not working!!! (...due to random() being inside a subquery...) -#}
 {% macro distribution_discrete_probabilities(probabilities) %}
+    {# Set up some variables: #}
+    {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
+    
+    {# Set up probability cutoff values and return keys: #}
     {%- if probabilities is mapping -%}{#- dict -#}
-    {%- set ns = namespace(threshold=0.0) -%}
-    ( select m.k from (VALUES
-        {%- for k,v in probabilities.items() -%}
-        {%- set ns.threshold = ns.threshold + v -%}
-        ({{k}}, {{ns.threshold}}){% if not loop.last %}, {% endif %}
-        {%- endfor -%}
-        ) AS m (k,v) inner join ( select {{ dbt_synth.distribution_continuous_uniform() }} as value) rand on rand.value<m.v limit 1 )
-
+        {%- set ns.keys = probabilities.keys()|list -%}
+        {%- set ns.values = probabilities.values()|list -%}
     {%- elif probabilities is iterable -%}{#- list -#}
-    {%- set ns = namespace(threshold=0.0) -%}
-    ( select m.k from (VALUES
-        {%- for i in range(probabilities|length) -%}
-        {%- set ns.threshold = ns.threshold + probabilities[i] -%}
-        ({{i}}, {{ns.threshold}}){% if not loop.last %}, {% endif %}
-        {%- endfor -%}
-        ) AS m (k,v) inner join ( select {{ dbt_synth.distribution_continuous_uniform() }} as value) rand on rand.value<m.v limit 1 )
-
+        {%- set ns.keys = range(probabilities|length) -%}
+        {%- set ns.values = probabilities -%}
     {%- else -%}
-    {{ exceptions.raise_compiler_error("`probabilities` must be a list or dict") }}
+        {{ exceptions.raise_compiler_error("`probabilities` must be a list or dict") }}
     {%- endif -%}
+    {%- if ns.values|sum!=1.0 -%}
+        {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0") }}
+    {%- endif -%}
+    {%- set ns.curr_threshold = ns.values[0] -%}
+    
+    {# Find max number of digits in any specified probability: #}
+    {%- for i in range(probabilities|length) -%}
+        {%- if ns.values[i]|string|replace("0.","")|replace(".","")|length > ns.max_prob_digits -%}
+        {%- set ns.max_prob_digits = ns.values[i]|string|replace("0.","")|replace(".","")|length -%}
+        {%- endif -%}
+    {%- endfor -%}
+    
+    {# Case statement on uniformly-distributed range: #}
+    case {{ dbt_synth.distribution_discrete_uniform(min=0, max=(10**ns.max_prob_digits - 1)) }}
+        {% for i in range(0, 10**ns.max_prob_digits) %}
+        {%- if i >= ((10**ns.max_prob_digits)*ns.curr_threshold)|int and ns.curr_idx<probabilities|length-1 -%}
+            {%- set ns.curr_idx = ns.curr_idx + 1 -%}
+            {%- set ns.curr_threshold = ns.curr_threshold + ns.values[ns.curr_idx] -%}
+        {%- endif -%}
+        when {{i}} then {{ns.keys[ns.curr_idx]}}
+        {% endfor %}
+    end
 {% endmacro %}

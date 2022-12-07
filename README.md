@@ -143,7 +143,7 @@ Generates integers according to a [Binomial distribution](https://en.wikipedia.o
 ```
 Default `n` is `10`, default `p` is `0.5`.
 
-Note that the implementation is approximate, based on a normal distribution (see [here](https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation)). For large `n` or extreme `p`, normally-distributed values may be `< 0` or `> n`, which is impossible in a binomial distribution. These long-tail values are rare, so, while not completely correct, we use
+Note that the implementation is approximate, based on a normal distribution (see [here](https://en.wikipedia.org/wiki/Binomial_distribution#Normal_approximation)). For small `n` or `p` near `0` or `1`, normally-distributed values may be `< 0` or `> n`, which is impossible in a binomial distribution. These long-tail values are rare, so, while not completely correct, we use
 * `abs()` to shift those `< 0`
 * `mod(..., n+1)` to shift those `> n`
 
@@ -157,7 +157,46 @@ Generates integers (`0` and `1`) according to a user-defined probability set.
 ```python
     dbt_synth.distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
 ```
-`probabilities` is required and has no default. It may be a list (array), in which case the indices are the integer values generated, or a dictionary (key-value) structure, in which case the keys are the integers generated. `probabilities` must sum to `1.0`.
+`probabilities` is required and has no default. It may be
+* a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
+* or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }`, in which case the keys are the integers generated
+
+`probabilities` must sum to `1.0`. Note that, because values are generated using `case` statements, supplying `probabilities` with many digits of specificity will run slower, i.e., `probabilities=[0.1, 0.3, 0.6]` will generate something like
+```sql
+case floor( 10*random() )
+    when 0 then 0
+    when 1 then 1
+    when 2 then 1
+    when 3 then 1
+    when 4 then 2
+    when 5 then 2
+    when 6 then 2
+    when 7 then 2
+    when 8 then 2
+    when 9 then 2
+end
+```
+while `probabilities=[0.101, 0.301, 0.598]` will generate something like
+```sql
+case floor( 1000*random() )
+    when 0 then 0
+    when ...
+    when 99 then 0
+    when 100 then 0
+    when 101 then 1
+    when ...
+    when 300 then 1
+    when 301 then 1
+    when 302 then 1
+    when 303 then 2
+    ...
+    when 998 then 2
+    when 999 then 2
+end
+```
+which takes longer for the database engine to evaluate.
+
+Really you should avoid probability specifications of more than 4 digits at the most.
 </details>
 
 ### Constructing Distributions

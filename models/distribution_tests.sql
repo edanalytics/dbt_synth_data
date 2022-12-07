@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 {{ dbt_synth.table(
-  rows = 1000000,
+  rows = 100000,
   columns = [
     dbt_synth.column_distribution(name='continuous_uniform_0_1', class='continuous', type='uniform',       min=0, max=1),
     dbt_synth.column_distribution(name='continuous_normal',      class='continuous', type='normal' ),
@@ -17,9 +17,11 @@
     dbt_synth.column_distribution(name='discrete_exponential',   class='discrete',   type='exponential', lambda=0.5 ),
     dbt_synth.column_distribution(name='discrete_bernoulli',     class='discrete',   type='bernoulli' ),
     dbt_synth.column_distribution(name='discrete_binomial',      class='discrete',   type='binomial',      n=100000, p=0.02),
-    dbt_synth.column_distribution(name='discrete_probability',   class='discrete',   type='probabilities', probabilities=[0.05, 0.15, 0.25, 0.35, 0.2]),
+    dbt_synth.column_distribution(name='discrete_probability',   class='discrete',   type='probabilities',
+        probabilities={ "5":0.05, "7":0.15, "11":0.25, "13":0.35, "17":0.2}),
   ]
 ) }}
+{# [0.05, 0.15, 0.25, 0.35, 0.2] #}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}
 {{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_1") or "" }}

@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table', custom_description='HEADER!') }}
 {{ dbt_synth.table(
   rows = 100000,
   columns = [

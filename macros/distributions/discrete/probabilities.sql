@@ -1,4 +1,4 @@
-{% macro distribution_discrete_probabilities(probabilities, wrap="") %}
+{% macro synth_distribution_discrete_probabilities(probabilities, wrap="") %}
     {# Set up some variables: #}
     {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
     
@@ -28,7 +28,7 @@
     {%- endif -%}
     
     {# Case statement on uniformly-distributed range: #}
-    case {{ dbt_synth.distribution_discrete_uniform(min=0, max=(10**ns.max_prob_digits - 1)) }}
+    case {{ synth_distribution_discrete_uniform(min=0, max=(10**ns.max_prob_digits - 1)) }}
         {% for i in range(0, 10**ns.max_prob_digits) %}
         {%- if i >= ((10**ns.max_prob_digits)*ns.curr_threshold)|int and ns.curr_idx<probabilities|length-1 -%}
             {%- set ns.curr_idx = ns.curr_idx + 1 -%}

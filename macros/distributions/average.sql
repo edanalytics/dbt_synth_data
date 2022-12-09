@@ -1,4 +1,4 @@
-{% macro distribution_average(d0, d1, d2=None, d3=None, d4=None, d5=None, d6=None, d7=None, d8=None, d9=None, weights=None) -%}
+{% macro synth_distribution_average(d0, d1, d2=None, d3=None, d4=None, d5=None, d6=None, d7=None, d8=None, d9=None, weights=None) -%}
     {# Assume uniform/equal weights if weights are not specified:  #}
     {% if weights is none %}
         {% if d9 %}{% set weights=[1]*10 %}

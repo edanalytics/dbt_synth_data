@@ -1,4 +1,4 @@
-{% macro column_word(name, language="English", language_code="en", distribution="weighted", pos=[]) -%}
+{% macro synth_column_word(name, language="English", language_code="en", distribution="weighted", pos=[]) -%}
     {% set filter %}
         (
             {% for p in pos %}
@@ -16,7 +16,7 @@
         )
     {% endset %}
     {{ return(
-        dbt_synth.column_select(
+        synth_column_select(
             name=name,
             value_col="word",
             lookup_table="synth_words",

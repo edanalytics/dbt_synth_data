@@ -1,6 +1,6 @@
-{% macro column_lastname(name, distribution="weighted", filter="") -%}
+{% macro synth_column_lastname(name, distribution="weighted", filter="") -%}
     {{ return(
-        dbt_synth.column_select(
+        synth_column_select(
             name=name,
             value_col="name",
             lookup_table="synth_lastnames",

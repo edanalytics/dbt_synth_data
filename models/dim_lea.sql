@@ -1,35 +1,35 @@
 {{ config(materialized='table') }}
-{{ dbt_synth.table(
+{{ synth_table(
     rows = var('num_leas'),
     columns = [
-        dbt_synth.column_primary_key(name='k_lea'),
-        dbt_synth.column_value(name='k_lea__parent', value='c3203005af9e98e33a2cd94f030a2a89'),
-        dbt_synth.column_value(name='k_sea', value='c3203005af9e98e33a2cd94f030a2a89'),
-        dbt_synth.column_values(name='tenant_code', values=var('tenant_codes')),
-        dbt_synth.column_integer_sequence(name='lea_id', step=1, start=125),
-        dbt_synth.column_value(name='lea_name', value='LEANameComingSoon'),
-        dbt_synth.column_value(name='lea_short_name', value='LEAShortNameComingSoon'),
-        dbt_synth.column_value(name='parent_lea_id', value=None),
-        dbt_synth.column_value(name='lea_category', value='Independent'),
-        dbt_synth.column_value(name='education_service_center_id', value=None),
-        dbt_synth.column_value(name='operational_status', value=None),
-        dbt_synth.column_value(name='charter_status', value=None),
-        dbt_synth.column_value(name='address_type', value='Mailing'),
-        dbt_synth.column_address(name='street_address', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['street_address']),
-        dbt_synth.column_address(name='city', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['city']),
-        dbt_synth.column_value(name='name_of_county', value=None),
-        dbt_synth.column_address(name='state_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['geo_region']),
-        dbt_synth.column_address(name='postal_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['postal_code']),
-        dbt_synth.column_value(name='building_site_number', value=None),
-        dbt_synth.column_value(name='locale', value=None),
-        dbt_synth.column_value(name='congressional_district', value=None),
-        dbt_synth.column_value(name='county_fips_code', value=None),
-        dbt_synth.column_value(name='latitude', value=None),
-        dbt_synth.column_value(name='longitude', value=None),
+        synth_column_primary_key(name='k_lea'),
+        synth_column_value(name='k_lea__parent', value='c3203005af9e98e33a2cd94f030a2a89'),
+        synth_column_value(name='k_sea', value='c3203005af9e98e33a2cd94f030a2a89'),
+        synth_column_values(name='tenant_code', values=var('tenant_codes')),
+        synth_column_integer_sequence(name='lea_id', step=1, start=125),
+        synth_column_value(name='lea_name', value='LEANameComingSoon'),
+        synth_column_value(name='lea_short_name', value='LEAShortNameComingSoon'),
+        synth_column_value(name='parent_lea_id', value=None),
+        synth_column_value(name='lea_category', value='Independent'),
+        synth_column_value(name='education_service_center_id', value=None),
+        synth_column_value(name='operational_status', value=None),
+        synth_column_value(name='charter_status', value=None),
+        synth_column_value(name='address_type', value='Mailing'),
+        synth_column_address(name='street_address', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['street_address']),
+        synth_column_address(name='city', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['city']),
+        synth_column_value(name='name_of_county', value=None),
+        synth_column_address(name='state_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['geo_region']),
+        synth_column_address(name='postal_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['postal_code']),
+        synth_column_value(name='building_site_number', value=None),
+        synth_column_value(name='locale', value=None),
+        synth_column_value(name='congressional_district', value=None),
+        synth_column_value(name='county_fips_code', value=None),
+        synth_column_value(name='latitude', value=None),
+        synth_column_value(name='longitude', value=None),
     ]
 ) }}
 
-{{ dbt_synth.add_update_hook("""
+{{ synth_add_update_hook("""
     insert into {{this}} (
         k_lea,
         k_lea__parent,
@@ -83,4 +83,4 @@
     )
 """) or "" }}
 
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ config(post_hook=synth_get_post_hooks())}}

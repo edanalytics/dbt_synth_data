@@ -1,16 +1,16 @@
-{% macro column_correlation(data, column=1) -%}
-    {{ return(adapter.dispatch('column_correlation')(data, column)) }}
+{% macro synth_column_correlation(data, column=1) -%}
+    {{ return(adapter.dispatch('synth_column_correlation')(data, column)) }}
 {%- endmacro %}
 
-{% macro default__column_correlation(data, column) -%}
+{% macro default__synth_column_correlation(data, column) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
 
 
-{% macro postgres__column_correlation(data, column) %}
-    {{ dbt_synth.add_update_hook(postgres__correlation_column_update(data, column)) or "" }}
-    {{ dbt_synth.add_cleanup_hook(postgres__correlation_column_cleanup(column)) or "" }}
+{% macro postgres__synth_column_correlation(data, column) %}
+    {{ synth_add_update_hook(postgres__synth_correlation_column_update(data, column)) or "" }}
+    {{ synth_add_cleanup_hook(postgres__synth_correlation_column_cleanup(column)) or "" }}
     
     RANDOM() as {{column}}_rand,
     {% if data.columns[column][0] is string %} ''::varchar
@@ -20,7 +20,7 @@
     {% endif %} AS {{column}}
 {% endmacro %}
 
-{% macro postgres__correlation_column_update(data, column) %}
+{% macro postgres__synth_correlation_column_update(data, column) %}
     {%- set hypercube_dimension = data.columns|length -%}
     {%- set hypercube_shape = [] -%}
     {%- set ns = namespace(column_index=0) -%}
@@ -32,12 +32,12 @@
     {% endfor %}
     update {{this}} set {{column}}=(
     CASE
-    {% set iterator = hypercube_iterator(hypercube_shape) %}
+    {% set iterator = synth_hypercube_iterator(hypercube_shape) %}
     {% set ns_from = namespace(threshhold=0.0) %}
     {% set ns_to = namespace(threshhold=0.0) %}
     {% for indices_string in iterator %}
         {%- set indices = indices_string.split('.') -%}
-        {%- set this_probability = hypercube_value_at_indices(data.probabilities, indices) -%}
+        {%- set this_probability = synth_hypercube_value_at_indices(data.probabilities, indices) -%}
         {%- if this_probability > 0 -%}
         {%- set value = data.columns[column][(indices[ns.column_index]|int)] %}
         {%- set ns_to.threshhold = ns_from.threshhold + this_probability -%}
@@ -58,15 +58,15 @@
     END)
 {% endmacro %}
 
-{% macro postgres__correlation_column_cleanup(column) %}
+{% macro postgres__synth_correlation_column_cleanup(column) %}
 alter table {{ this }} drop column {{column}}_rand
 {% endmacro %}
 
 
 
-{% macro snowflake__column_correlation(data, column) %}
-    {{ dbt_synth.add_update_hook(snowflake__correlation_column_update(data, column)) or "" }}
-    {{ dbt_synth.add_cleanup_hook(snowflake__correlation_column_cleanup(column)) or "" }}
+{% macro snowflake__synth_column_correlation(data, column) %}
+    {{ synth_add_update_hook(snowflake__synth_correlation_column_update(data, column)) or "" }}
+    {{ synth_add_cleanup_hook(snowflake__synth_correlation_column_cleanup(column)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{data.randseed}})) as {{column}}_rand,
     {% if data.columns[column][0] is string %} ''::varchar
@@ -76,7 +76,7 @@ alter table {{ this }} drop column {{column}}_rand
     {% endif %} AS {{column}}
 {% endmacro%}
 
-{% macro snowflake__correlation_column_update(data, column) %}
+{% macro snowflake__synth_correlation_column_update(data, column) %}
     {%- set hypercube_dimension = data.columns|length -%}
     {%- set hypercube_shape = [] -%}
     {%- set ns = namespace(column_index=0) -%}
@@ -88,12 +88,12 @@ alter table {{ this }} drop column {{column}}_rand
     {% endfor %}
     update {{this}} x set x.{{column}}=(
     CASE
-    {% set iterator = hypercube_iterator(hypercube_shape) %}
+    {% set iterator = synth_hypercube_iterator(hypercube_shape) %}
     {% set ns_from = namespace(threshhold=0.0) %}
     {% set ns_to = namespace(threshhold=0.0) %}
     {% for indices_string in iterator %}
         {%- set indices = indices_string.split('.') -%}
-        {%- set this_probability = hypercube_value_at_indices(data.probabilities, indices) -%}
+        {%- set this_probability = synth_hypercube_value_at_indices(data.probabilities, indices) -%}
         {%- if this_probability > 0 -%}
         {%- set value = data.columns[column][(indices[ns.column_index]|int)] %}
         {%- set ns_to.threshhold = ns_from.threshhold + this_probability -%}
@@ -114,11 +114,11 @@ alter table {{ this }} drop column {{column}}_rand
     END)
 {% endmacro %}
 
-{% macro snowflake__correlation_column_cleanup(column) %}
+{% macro snowflake__synth_correlation_column_cleanup(column) %}
 alter table {{ this }} drop column {{column}}_rand
 {% endmacro %}
 
-{% macro hypercube_iterator(shape, prefix="") %}
+{% macro synth_hypercube_iterator(shape, prefix="") %}
     {% set idx_list = [] %}
     {% if shape|length == 1 %}
         {% for idx in range(0, shape[0]) %}
@@ -126,7 +126,7 @@ alter table {{ this }} drop column {{column}}_rand
         {% endfor %}
     {% elif shape|length > 1 %}
         {% for idx in range(0, shape[0]) %}
-            {% set sub_list = hypercube_iterator(shape[1:], idx|string + '.') %}
+            {% set sub_list = synth_hypercube_iterator(shape[1:], idx|string + '.') %}
             {% for value in sub_list %}
                 {% do idx_list.append(prefix + value) %}
             {% endfor %}
@@ -135,9 +135,9 @@ alter table {{ this }} drop column {{column}}_rand
     {{ return(idx_list) }}
 {% endmacro %}
 
-{% macro hypercube_value_at_indices(hypercube, indices) %}
+{% macro synth_hypercube_value_at_indices(hypercube, indices) %}
     {% if indices|length > 1 %}
-        {{ return(hypercube_value_at_indices(hypercube[indices[0]|int], indices[1:])) }}
+        {{ return(synth_hypercube_value_at_indices(hypercube[indices[0]|int], indices[1:])) }}
     {% else %}
         {{ return(hypercube[indices[0]|int]) }}
     {% endif %}

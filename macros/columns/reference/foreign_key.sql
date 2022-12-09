@@ -1,22 +1,22 @@
-{% macro column_foreign_key(name, table, column) -%}
-    {{ return(adapter.dispatch('column_foreign_key')(name, table, column)) }}
+{% macro synth_column_foreign_key(name, table, column) -%}
+    {{ return(adapter.dispatch('synth_column_foreign_key')(name, table, column)) }}
 {%- endmacro %}
 
-{% macro default__column_foreign_key(name, table, column) -%}
+{% macro default__synth_column_foreign_key(name, table, column) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
 
 
-{% macro postgres__column_foreign_key(name, table, column) %}
-    {{ dbt_synth.add_update_hook(postgres__foreign_key_update(name, table, column)) or "" }}
-    {{ dbt_synth.add_cleanup_hook(postgres__foreign_key_cleanup(name)) or "" }}
+{% macro postgres__synth_column_foreign_key(name, table, column) %}
+    {{ synth_add_update_hook(postgres__synth_foreign_key_update(name, table, column)) or "" }}
+    {{ synth_add_cleanup_hook(postgres__synth_foreign_key_cleanup(name)) or "" }}
     
     ''::varchar AS {{name}},
     RANDOM() AS {{name}}_rand
 {% endmacro %}
 
-{% macro postgres__foreign_key_update(name, table, column) %}
+{% macro postgres__synth_foreign_key_update(name, table, column) %}
 update {{ this }} x set {{name}}=y.val from (
   select
     {{column}} as val,
@@ -27,21 +27,21 @@ update {{ this }} x set {{name}}=y.val from (
 ) as y where x.{{name}}_rand>=y.from_val and x.{{name}}_rand<y.to_val
 {% endmacro %}
 
-{% macro postgres__foreign_key_cleanup(name) %}
+{% macro postgres__synth_foreign_key_cleanup(name) %}
 alter table {{ this }} drop column {{name}}_rand
 {% endmacro %}
 
 
 
-{% macro snowflake__column_foreign_key(name, table, column) %}
-    {{ dbt_synth.add_update_hook(snowflake__foreign_key_update(name, table, column)) or "" }}
-    {{ dbt_synth.add_cleanup_hook(snowflake__foreign_key_cleanup(name)) or "" }}
+{% macro snowflake__synth_column_foreign_key(name, table, column) %}
+    {{ synth_add_update_hook(snowflake__synth_foreign_key_update(name, table, column)) or "" }}
+    {{ synth_add_cleanup_hook(snowflake__synth_foreign_key_cleanup(name)) or "" }}
     
     ''::varchar AS {{name}},
     UNIFORM(0::float, 1::float, RANDOM( {{get_randseed()}} )) AS {{name}}_rand
 {% endmacro%}
 
-{% macro snowflake__foreign_key_update(name, table, column) %}
+{% macro snowflake__synth_foreign_key_update(name, table, column) %}
 update {{ this }} x set x.{{name}}=y.val from (
   select
     {{column}} as val,
@@ -52,6 +52,6 @@ update {{ this }} x set x.{{name}}=y.val from (
 ) as y where x.{{name}}_rand>=y.from_val and x.{{name}}_rand<y.to_val
 {% endmacro %}
 
-{% macro snowflake__foreign_key_cleanup(name) %}
+{% macro snowflake__synth_foreign_key_cleanup(name) %}
 alter table {{ this }} drop column {{name}}_rand
 {% endmacro %}

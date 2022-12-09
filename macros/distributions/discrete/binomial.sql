@@ -1,4 +1,4 @@
-{% macro distribution_discrete_binomial(n=10, p=0.5) -%}
+{% macro synth_distribution_discrete_binomial(n=10, p=0.5) -%}
     {%- if p<0 or p>1 -%}
     {{ exceptions.raise_compiler_error("`p` for a binomial distribution must be in the range [0,1]") }}
     {%- endif -%}
@@ -10,7 +10,7 @@
     {{ dbt_synth.distribution_discrete_bernoulli(p=p) }}
     
     {%- else -%}
-    mod( abs( {{ dbt_synth.distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5, precision=0) }} ) , {{n+1}} )
+    mod( abs( {{ synth_distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5, precision=0) }} ) , {{n+1}} )
 
     {%- endif -%}
 {%- endmacro %}

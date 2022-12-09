@@ -1,6 +1,6 @@
-{% macro column_city(name, distribution="weighted", weight_col="population", filter="") -%}
+{% macro synth_column_city(name, distribution="weighted", weight_col="population", filter="") -%}
     {{ return(
-        dbt_synth.column_select(
+        synth_column_select(
             name=name,
             value_col="name",
             lookup_table="synth_cities",

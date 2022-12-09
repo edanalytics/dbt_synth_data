@@ -21,7 +21,7 @@ However, creating more realistic synthetic data requires more complex data types
 
 These steps are handled using `dbt`'s [post hooks](https://docs.getdbt.com/reference/resource-configs/pre-hook-post-hook) feature, which is why you *must* include the following at the bottom of every model you build with this package:
 ```
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
 Hook queries (and other package data) are stored in the `dbt` [`builtins` object](https://docs.getdbt.com/reference/dbt-jinja-functions/builtins) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s.
 
@@ -32,22 +32,22 @@ Consider the example model `orders.sql` below:
 ```sql
 -- depends_on: {{ ref('products') }}
 {{ config(materialized='table') }}
-{{ dbt_synth.table(
+{{ synth_table(
     rows = 5000,
     columns = [
-        dbt_synth.column_primary_key(name='order_id'),
-        dbt_synth.column_foreign_key(name='product_id', table='products', column='product_id'),
-        dbt_synth.column_distribution(name='status', 
-            distribution=dbt_synth.distribution(class='discrete', type='probabilities',
+        synth_column_primary_key(name='order_id'),
+        synth_column_foreign_key(name='product_id', table='products', column='product_id'),
+        synth_column_distribution(name='status', 
+            distribution=synth_distribution(class='discrete', type='probabilities',
                 probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
             )
         ),
-        dbt_synth.column_integer(name='num_ordered',
-            distribution=dbt_synth.distribution_discrete_uniform(min=1, max=10)
+        synth_column_integer(name='num_ordered',
+            distribution=synth_distribution_discrete_uniform(min=1, max=10)
         ),
     ]
 ) }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
 The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, a new table is created with 5000 rows and several columns:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
@@ -68,7 +68,7 @@ This package provides the following distributions:
 
 Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Continuous_uniform_distribution) real numbers.
 ```python
-    dbt_synth.distribution_continuous_uniform(min=0.6, max=7.9, precision=4)
+    synth_distribution_continuous_uniform(min=0.6, max=7.9, precision=4)
 ```
 Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. Default `precision` is full precision.
 </details>
@@ -78,7 +78,7 @@ Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. D
 
 Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) real numbers.
 ```python
-    dbt_synth.distribution_continuous_normal(mean=5, stddev=0.5, precision=2)
+    synth_distribution_continuous_normal(mean=5, stddev=0.5, precision=2)
 ```
 Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full precision.
 </details>
@@ -88,7 +88,7 @@ Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full 
 
 Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) real numbers.
 ```python
-    dbt_synth.distribution_continuous_exponential(lambda=5.0, precision=2)
+    synth_distribution_continuous_exponential(lambda=5.0, precision=2)
 ```
 Default `lambda` is `1.0`. Default `precision` is full precision.
 </details>
@@ -100,7 +100,7 @@ Default `lambda` is `1.0`. Default `precision` is full precision.
 
 Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Discrete_uniform_distribution) integers.
 ```python
-    dbt_synth.distribution_discrete_uniform(min=6, max=55)
+    synth_distribution_discrete_uniform(min=6, max=55)
 ```
 Default `min` is `0`, default `max` is `1`. `min` and `max` are inclusive.
 </details>
@@ -110,7 +110,7 @@ Default `min` is `0`, default `max` is `1`. `min` and `max` are inclusive.
 
 Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) integers.
 ```python
-    dbt_synth.distribution_discrete_normal(mean=5, stddev=0.5)
+    synth_distribution_discrete_normal(mean=5, stddev=0.5)
 ```
 Default `mean` is `0`, default `stddev` is `1`.
 </details>
@@ -120,7 +120,7 @@ Default `mean` is `0`, default `stddev` is `1`.
 
 Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) integers.
 ```python
-    dbt_synth.distribution_discrete_exponential(lambda=5.0)
+    synth_distribution_discrete_exponential(lambda=5.0)
 ```
 Default `lambda` is `1.0`.
 
@@ -132,7 +132,7 @@ Note that this implementation simply takes `floor()` of the continuous exponenti
 
 Generates integers (`0` and `1`) according to a [Bernoulli distribution](https://en.wikipedia.org/wiki/Bernoulli_distribution).
 ```python
-    dbt_synth.distribution_discrete_bernoulli(p=0.3)
+    synth_distribution_discrete_bernoulli(p=0.3)
 ```
 Default `p` is `0.5`.
 </details>
@@ -142,7 +142,7 @@ Default `p` is `0.5`.
 
 Generates integers according to a [Binomial distribution](https://en.wikipedia.org/wiki/Binomial_distribution).
 ```python
-    dbt_synth.distribution_discrete_binomial(n=100, p=0.3)
+    synth_distribution_discrete_binomial(n=100, p=0.3)
 ```
 Default `n` is `10`, default `p` is `0.5`.
 
@@ -158,7 +158,7 @@ This may artificially increase small values. However, the approximation is close
 
 Generates integers according to a user-defined probability set.
 ```python
-    dbt_synth.distribution_discrete_weights(values=[1,3,5,7,9], weights=[1,1,6,3,1])
+    synth_distribution_discrete_weights(values=[1,3,5,7,9], weights=[1,1,6,3,1])
 ```
 `values` is a required list of strings, floats, or integers; it has no default.
 
@@ -172,7 +172,7 @@ Avoid using `weights` with a large sum; this will generate long `case` statement
 
 Generates integers according to a user-defined probability set.
 ```python
-    dbt_synth.distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
+    synth_distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
 ```
 `probabilities` is required and has no default. It may be
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
@@ -180,7 +180,7 @@ Generates integers according to a user-defined probability set.
 
 You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however string keys require an additional parameter `wrap="'"` so the database interprets the values as a string. For example:
 ```python
-dbt_synth.distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
+    synth_distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
 ```
 
 `probabilities` must sum to `1.0`.
@@ -232,9 +232,9 @@ Any of the continuous distributions listed above can be made discrete using the 
 
 Converts values from [continuous distributions](#continuous-distributions) to (discrete) integers by applying the `floor()` function.
 ```python
-    distribution_union(
-        dbt_synth.distribution(class='...', type='...', ...),
-        dbt_synth.distribution(class='...', type='...', ...),
+    synth_distribution_union(
+        synth_distribution(class='...', type='...', ...),
+        synth_distribution(class='...', type='...', ...),
         weights=[1, 2, ...]
     )
 ```
@@ -246,19 +246,19 @@ Up to 10 distributions may be unioned. (Compose the macro to union more.)
 
 More advanced distributions can be constructed from combinations of the above. For example, we can make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
 ```python
-{{ dbt_synth.table(
+{{ synth_table(
   rows = 100000,
   columns = [
-    dbt_synth.column_distribution(name='continuous_bimodal',
-        distribution=dbt_synth.distribution_union(
-            dbt_synth.distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+    synth_column_distribution(name='continuous_bimodal',
+        distribution=distribution_union(
+            synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+            synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
             weights=[1, 2]
         )
     ),
   ]
 ) }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
 Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
 
@@ -269,9 +269,9 @@ This package provides the following mechanisms for composing several distributio
 
 Generates values from several distributions with optional `weights`. If `weights` is omitted, each distribution is equally likely.
 ```python
-    dbt_synth.distribution_union(
-        dbt_synth.distribution(class='...', type='...', ...),
-        dbt_synth.distribution(class='...', type='...', ...),
+    synth_distribution_union(
+        synth_distribution(class='...', type='...', ...),
+        synth_distribution(class='...', type='...', ...),
         weights=[1, 2, ...]
     )
 ```
@@ -283,9 +283,9 @@ Up to 10 distributions may be unioned. (Compose the macro to union more.)
 
 Generates values from the (optionally weighted) average of values from several distributions. If `weights` is omitted, each distribution contributes equally to the average.
 ```python
-    dbt_synth.distribution_average(
-        dbt_synth.distribution(class='...', type='...', ...),
-        dbt_synth.distribution(class='...', type='...', ...),
+    synth_distribution_average(
+        synth_distribution(class='...', type='...', ...),
+        synth_distribution(class='...', type='...', ...),
         weights=[1, 2, ...]
     )
 ```
@@ -306,7 +306,7 @@ Basic column types, which are quite performant.
 
 Generates boolean values.
 ```python
-    dbt_synth.column_boolean(name='is_complete', pct_true=0.2),
+    synth_column_boolean(name='is_complete', pct_true=0.2),
 ```
 </details>
 
@@ -315,7 +315,7 @@ Generates boolean values.
 
 Generates integer values.
 ```python
-    dbt_synth.column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    synth_column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
 ```
 </details>
 
@@ -324,7 +324,7 @@ Generates integer values.
 
 Generates an integer sequence (value is incremented at each row).
 ```python
-    dbt_synth.column_integer_sequence(name='day_of_year', step=1, start=1),
+    synth_column_integer_sequence(name='day_of_year', step=1, start=1),
 ```
 </details>
 
@@ -333,7 +333,7 @@ Generates an integer sequence (value is incremented at each row).
 
 Generates numeric values.
 ```python
-    dbt_synth.column_numeric(name='price', min=1.99, max=999.99, precision=2),
+    synth_column_numeric(name='price', min=1.99, max=999.99, precision=2),
 ```
 </details>
 
@@ -342,7 +342,7 @@ Generates numeric values.
 
 Generates random strings.
 ```python
-    dbt_synth.column_string(name='password', min_length=10, max_length=20),
+    synth_column_string(name='password', min_length=10, max_length=20),
 ```
 String characters will include `A-Z`, `a-z`, and `0-9`.
 </details>
@@ -352,7 +352,7 @@ String characters will include `A-Z`, `a-z`, and `0-9`.
 
 Generates date values.
 ```python
-    dbt_synth.column_date(name='birth_date', min='1938-01-01', max='1994-12-31'),
+    synth_column_date(name='birth_date', min='1938-01-01', max='1994-12-31'),
 ```
 </details>
 
@@ -361,7 +361,7 @@ Generates date values.
 
 Generates a date sequence.
 ```python
-    dbt_synth.column_date_sequence(name='calendar_date', start_date='2020-08-10', step=3),
+    synth_column_date_sequence(name='calendar_date', start_date='2020-08-10', step=3),
 ```
 </details>
 
@@ -370,7 +370,7 @@ Generates a date sequence.
 
 Generates a primary key column.
 ```python
-    dbt_synth.column_primary_key(name='product_id'),
+    synth_column_primary_key(name='product_id'),
 ```
 </details>
 
@@ -379,7 +379,7 @@ Generates a primary key column.
 
 Generates a (single, static) value for every row.
 ```python
-    dbt_synth.column_value(name='is_registered', value='Yes'),
+    synth_column_value(name='is_registered', value='Yes'),
 ```
 </details>
 
@@ -388,7 +388,7 @@ Generates a (single, static) value for every row.
 
 Generates values from a list of possible values, with optional probability weighting.
 ```python
-    dbt_synth.column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], probabilities=[0.2, 0.3, 0.15, 0.35]),
+    synth_column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], probabilities=[0.2, 0.3, 0.15, 0.35]),
 ```
 If `probabilities` are omitted, every value is equally likely.
 </details>
@@ -398,7 +398,7 @@ If `probabilities` are omitted, every value is equally likely.
 
 Generates values by mapping from an existing column or expresion to values in a dictionary.
 ```python
-    dbt_synth.column_mapping(name='day_type', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
+    synth_column_mapping(name='day_type', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
 ```
 </details>
 
@@ -407,7 +407,7 @@ Generates values by mapping from an existing column or expresion to values in a 
 
 Generates values based on an expression (which may refer to other columns, or invoke SQL functions).
 ```python
-    dbt_synth.column_expression(name='week_of_calendar_year', expression="DATE_PART('week', calendar_date)::int", type='int'),
+    synth_column_expression(name='week_of_calendar_year', expression="DATE_PART('week', calendar_date)::int", type='int'),
 ```
 </details>
 
@@ -421,7 +421,7 @@ Statistical column types can be used to make advanced statistical relationships 
 Generates two or more columns with correlated values.
 ```python
     {% set birthyear_grade_correlations = ({
-        "randseed": dbt_synth.get_randseed(),
+        "randseed": synth_get_randseed(),
         "columns": {
             "birth_year": [ 2010, 2009, 2008, 2007, 2006, 2005, 2004 ],
             "grade": [ 'Eighth grade', 'Ninth grade', 'Tenth grade', 'Eleventh grade', 'Twelfth grade' ]
@@ -438,16 +438,16 @@ Generates two or more columns with correlated values.
         })
     %}
     ...
-    {{ dbt_synth.table(
+    {{ synth_table(
         rows = var('num_students'),
         columns = [
-            dbt_synth.column_primary_key(name='k_student'),
-            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='birth_year'),
-            dbt_synth.column_correlation(data=birthyear_grade_correlations, column='grade'),
+            synth_column_primary_key(name='k_student'),
+            synth_column_correlation(data=birthyear_grade_correlations, column='birth_year'),
+            synth_column_correlation(data=birthyear_grade_correlations, column='grade'),
             ...
         ]
     ) }}
-    {{ config(post_hook=dbt_synth.get_post_hooks())}}
+    {{ config(post_hook=synth_get_post_hooks())}}
 ```
 To created correlated columns, you must specify a `data` object representing the correlation, which contains
 * `columns` is a list of column names and possible values.
@@ -465,7 +465,7 @@ Column types which reference values in another table.
 
 Generates values that are a primary key of another table.
 ```python
-    dbt_synth.column_foreign_key(name='product_id', table='products', column='id'),
+    synth_column_foreign_key(name='product_id', table='products', column='id'),
 ```
 </details>
 
@@ -474,7 +474,7 @@ Generates values that are a primary key of another table.
 
 Generates values based on looking up values from one column in another table..
 ```python
-    dbt_synth.column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
+    synth_column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
 ```
 (`funcs` is an optional array of SQL functions to wrap the `from_col` value in prior to doing the lookup.)
 </details>
@@ -484,7 +484,7 @@ Generates values based on looking up values from one column in another table..
 
 Generates values by selecting them from another table, optionally weighted using a specified column of the other table.
 ```python
-    dbt_synth.column_select(
+    synth_column_select(
             name='random_ajective'',
             value_col="word",
             lookup_table="synth_words",
@@ -522,7 +522,7 @@ AND synth_countries.geo_region_code=my_geo_region_col
 
 Generates a city, selected from the `synth_cities` seed table.
 ```python
-    dbt_synth.column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
+    synth_column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
 ```
 </details>
 
@@ -531,7 +531,7 @@ Generates a city, selected from the `synth_cities` seed table.
 
 Generates a country, selected from the `synth_countries` seed table.
 ```python
-    dbt_synth.column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
+    synth_column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
 ```
 </details>
 
@@ -540,7 +540,7 @@ Generates a country, selected from the `synth_countries` seed table.
 
 Generates a geo region (state, province, or territory), selected from the `synth_geo_regions` seed table.
 ```python
-    dbt_synth.column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
+    synth_column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
 ```
 </details>
 
@@ -549,7 +549,7 @@ Generates a geo region (state, province, or territory), selected from the `synth
 
 Generates a first name, selected from the `synth_firstnames` seed table.
 ```python
-    dbt_synth.column_firstname(name='first_name', filter="gender='Male'"),
+    synth_column_firstname(name='first_name', filter="gender='Male'"),
 ```
 </details>
 
@@ -558,7 +558,7 @@ Generates a first name, selected from the `synth_firstnames` seed table.
 
 Generates a last name, selected from the `synth_lastnames` seed table.
 ```python
-    dbt_synth.column_lastname(name='last_name'),
+    synth_column_lastname(name='last_name'),
 ```
 </details>
 
@@ -567,7 +567,7 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]),
+    synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]),
 ```
 The above generates a randomly-selected English noun or verb, weighted according to frequency.
 
@@ -579,13 +579,13 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates several words, selected from the `synth_words` seed table.
 ```python
-    dbt_synth.column_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]),
+    synth_column_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]),
 ```
 The above generates a random string of five words, uniformly districbuted, with the first letter of each word capitalized.
 
 Alternatively, you can generate words using format strings, for example
 ```python
-    dbt_synth.column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
+    synth_column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
         "{ADV} learning for {ADJ} {NOUN}s",
         "{ADV} {VERB} {NOUN} course"
         ], funcs=["INITCAP"]),
@@ -602,7 +602,7 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates a spoken language (name or 2- or 3-letter code), selected from the `synth_languages` seed table.
 ```python
-    dbt_synth.column_languages(name='random_lang', type="name", distribution="weighted"),
+    synth_column_languages(name='random_lang', type="name", distribution="weighted"),
 ```
 The optional `type` (which defaults to `name`) can take values `name` (the full English name of the language, e.g. *Spanish*), `code2` (the ISO 693-2 two-letter code for the langage, e.g. `es`), or `code3` (the ISO 693-3 three-letter code for the language, e.g. `spa`).
 </details>
@@ -618,42 +618,42 @@ Generates an address, based on `city`, `geo region`, `country`, `words`, and oth
 
 Creating a column `myaddress` using this macro will also create intermediate columns `myaddress__street_address`, `myaddress__city`, `myaddress__geo_region`, and `myaddress__postal_code` (or whatever `parts` you specify). You can then `add_update_hook()`s that reference these intermediate columns if you'd like. For example:
 ```python
-{{ dbt_synth.table(
+{{ synth_table(
     rows = 100,
     columns = [
-        dbt_synth.column_primary_key(name='k_person'),
-        dbt_synth.column_firstname(name='first_name'),
-        dbt_synth.column_lastname(name='last_name'),
-        dbt_synth.column_address(name='home_address', countries=['United States'],
+        synth_column_primary_key(name='k_person'),
+        synth_column_firstname(name='first_name'),
+        synth_column_lastname(name='last_name'),
+        synth_column_address(name='home_address', countries=['United States'],
             parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
-        dbt_synth.column_expression(name='home_address_street', expression="home_address__street_address"),
-        dbt_synth.column_expression(name='home_address_city', expression="home_address__city"),
-        dbt_synth.column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
-        dbt_synth.column_expression(name='home_address_country', expression="home_address__country"),
-        dbt_synth.column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
+        synth_column_expression(name='home_address_street', expression="home_address__street_address"),
+        synth_column_expression(name='home_address_city', expression="home_address__city"),
+        synth_column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
+        synth_column_expression(name='home_address_country', expression="home_address__country"),
+        synth_column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
     ]
 ) }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ synth_add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
 
 Alternatively, you may use something like
 
 ```python
-{{ dbt_synth.table(
+{{ synth_table(
     rows = 100,
     columns = [
-        dbt_synth.column_primary_key(name='k_person'),
-        dbt_synth.column_firstname(name='first_name'),
-        dbt_synth.column_lastname(name='last_name'),
-        dbt_synth.column_address(name='home_address_street', countries=['United States'], parts=['street_address']),
-        dbt_synth.column_address(name='home_address_city', countries=['United States'], parts=['city']),
-        dbt_synth.column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']),
-        dbt_synth.column_address(name='home_address_country', countries=['United States'], parts=['country']),
-        dbt_synth.column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']),
+        synth_column_primary_key(name='k_person'),
+        synth_column_firstname(name='first_name'),
+        synth_column_lastname(name='last_name'),
+        synth_column_address(name='home_address_street', countries=['United States'], parts=['street_address']),
+        synth_column_address(name='home_address_city', countries=['United States'], parts=['city']),
+        synth_column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']),
+        synth_column_address(name='home_address_country', countries=['United States'], parts=['country']),
+        synth_column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']),
     ]
 ) }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
 </details>
 
@@ -662,20 +662,20 @@ Alternatively, you may use something like
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
 ```python
 {{ config(materialized='table') }}
-{{ dbt_synth.table(
+{{ synth_table(
     rows = 100,
     columns = [
-        dbt_synth.column_primary_key(name='k_person'),
-        dbt_synth.column_firstname(name='first_name'),
-        dbt_synth.column_lastname(name='last_name'),
-        dbt_synth.column_expression(name='full_name', expression="first_name || ' ' || last_name"),
+        synth_column_primary_key(name='k_person'),
+        synth_column_firstname(name='first_name'),
+        synth_column_lastname(name='last_name'),
+        synth_column_expression(name='full_name', expression="first_name || ' ' || last_name"),
     ]
 ) }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column first_name") or "" }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column last_name") or "" }}
-{{ config(post_hook=dbt_synth.get_post_hooks())}}
+{{ synth_add_cleanup_hook("alter table {{this}} drop column first_name") or "" }}
+{{ synth_add_cleanup_hook("alter table {{this}} drop column last_name") or "" }}
+{{ config(post_hook=synth_get_post_hooks())}}
 ```
-Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `add_cleanup_hook()` calls in the example above.
+Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `synth_add_cleanup_hook()` calls in the example above.
 
 
 ## Datasets

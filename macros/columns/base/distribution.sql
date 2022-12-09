@@ -1,3 +1,3 @@
-{% macro column_distribution(name, distribution) %}
+{% macro synth_column_distribution(name, distribution) %}
     {{distribution}} as {{name}}
 {% endmacro %}

@@ -1,4 +1,4 @@
-{% macro distribution_union(d0, d1, d2=None, d3=None, d4=None, d5=None, d6=None, d7=None, d8=None, d9=None, weights=None) -%}
+{% macro synth_distribution_union(d0, d1, d2=None, d3=None, d4=None, d5=None, d6=None, d7=None, d8=None, d9=None, weights=None) -%}
     {% if weights is none %}
         {% if d9 %}{% set weights=[1]*10 %}
         {% elif d8 %}{% set weights=[1]*9 %}
@@ -11,7 +11,7 @@
         {% else %}{% set weights=[1]*2 %}
         {% endif %}
     {% endif %}
-    case {{ dbt_synth.distribution_discrete_uniform(min=0, max=weights|sum - 1) }}
+    case {{ synth_distribution_discrete_uniform(min=0, max=weights|sum - 1) }}
     {% for d in range(0, weights|length) %}
         {% for w in range(0, weights[d]) %}
         when {{ weights[:d]|sum + w }} then (

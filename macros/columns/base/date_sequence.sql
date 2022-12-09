@@ -1,12 +1,12 @@
-{% macro column_date_sequence(name, start_date='', step=1) -%}
-    {{ return(adapter.dispatch('column_date_sequence')(name, start_date, step)) }}
+{% macro synth_column_date_sequence(name, start_date='', step=1) -%}
+    {{ return(adapter.dispatch('synth_column_date_sequence')(name, start_date, step)) }}
 {%- endmacro %}
 
-{% macro default__column_date_sequence(name, start_date='', step=1) -%}
+{% macro default__synth_column_date_sequence(name, start_date='', step=1) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgres__column_date_sequence(name, start_date='', step=1) %}
+{% macro postgres__synth_column_date_sequence(name, start_date='', step=1) %}
     {% if start_date|length ==0 %}
     (CURRENT_DATE + interval '{{step}} days' * s.idx)::date
     {% else %}
@@ -15,7 +15,7 @@
      AS {{name}}
 {% endmacro %}
 
-{% macro snowflake__column_date_sequence(name, start_date='', step=1) %}
+{% macro snowflake__synth_column_date_sequence(name, start_date='', step=1) %}
     {% if start_date|length ==0 %}
     dateadd(day, {{step}}*seq4(), current_date())
     {% else %}

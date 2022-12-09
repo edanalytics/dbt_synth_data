@@ -1,14 +1,14 @@
-{% macro table(rows=1000, columns=[]) -%}
-    {{ return(adapter.dispatch('table')(rows, columns)) }}
+{% macro synth_table(rows=1000, columns=[]) -%}
+    {{ return(adapter.dispatch('synth_table')(rows, columns)) }}
 {%- endmacro %}
 
 
-{% macro default__table(rows=1000, columns=[]) -%}
+{% macro default__synth_table(rows=1000, columns=[]) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
 
-{% macro postgres__table(rows=1000, columns=[]) %}
+{% macro postgres__synth_table(rows=1000, columns=[]) %}
     select
         {%- for column in columns-%}
         {{ column }} {%- if not loop.last -%},{%- endif -%}
@@ -17,7 +17,7 @@
 {% endmacro %}
 
 
-{% macro snowflake__table(rows=1000, columns=[]) %}
+{% macro snowflake__synth_table(rows=1000, columns=[]) %}
     select
         {%- for column in columns-%}
         {{ column }} {%- if not loop.last -%},{%- endif -%}

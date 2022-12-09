@@ -12,7 +12,7 @@
     added. The `builtins` object is one of few dbt objects that are *not*
     read-only, so we can store, read, and increment a key value on it.
 #}
-{% macro get_randseed() %}
+{% macro synth_get_randseed() %}
     {%- if not builtins.get("rand_seed") -%}
     {%- do builtins.update({"rand_seed": 10000}) -%}
     {%- set next_rand_seed = 10000 -%}
@@ -37,19 +37,19 @@
         {{ config(post_hook=dbt_synth.get_post_hooks())}}
     which will first run the update hooks and then run the cleanup hooks.
 #}
-{%- macro add_update_hook(query) -%}
+{%- macro synth_add_update_hook(query) -%}
     {%- set updatehooks = builtins.get("updatehooks") or [] -%}
     {{ updatehooks.append(query) or "" }}
     {%- do builtins.update({"updatehooks": updatehooks}) -%}
 {%- endmacro %}
 
-{%- macro add_cleanup_hook(query) -%}
+{%- macro synth_add_cleanup_hook(query) -%}
     {%- set cleanuphooks = builtins.get("cleanuphooks") or [] -%}
     {{ cleanuphooks.append(query) or "" }}
     {%- do builtins.update({"cleanuphooks": cleanuphooks}) -%}
 {%- endmacro %}
 
-{%- macro get_post_hooks() -%}
+{%- macro synth_get_post_hooks() -%}
     {% set posthooks %}
     
     {% if builtins.get("updatehooks") %}
@@ -69,7 +69,7 @@
     {{ return(posthooks) }}
 {%- endmacro %}
 
-{%- macro zip(list_a, list_b) -%}
+{%- macro synth_zip(list_a, list_b) -%}
     {% set dct = {} %}
     {% for i in range(list_a|length) %}
         {% do dct.update({list_a[i]: list_b[i]}) %}

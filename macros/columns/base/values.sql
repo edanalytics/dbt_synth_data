@@ -1,4 +1,4 @@
-{% macro column_values(name, values, probabilities=None) -%}
+{% macro synth_column_values(name, values, probabilities=None) -%}
     {# Determine generated value types: #}
     {%- if values[0] is number -%}
         {% set wrap = "" %}
@@ -20,6 +20,6 @@
         {% do probabilities.append( (1.0 - probabilities|sum)|round(3) ) %}
         {% endif %}
 
-        {{ dbt_synth.distribution_discrete_probabilities(probabilities=zip(values, probabilities), wrap=wrap) }} as {{name}}
+        {{ synth_distribution_discrete_probabilities(probabilities=synth_zip(values, probabilities), wrap=wrap) }} as {{name}}
     {% endif %}
 {%- endmacro %}

@@ -1,12 +1,12 @@
-{% macro column_value(name, value='') -%}
-    {{ return(adapter.dispatch('column_value')(name, value)) }}
+{% macro synth_column_value(name, value='') -%}
+    {{ return(adapter.dispatch('synth_column_value')(name, value)) }}
 {%- endmacro %}
 
-{% macro default__column_value(name, value) -%}
+{% macro default__synth_column_value(name, value) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgres__column_value(name, value) %}
+{% macro postgres__synth_column_value(name, value) %}
     {% if value is string %} '{{value}}'
     {% elif value is integer %}{{value}}
     {% elif value is float %}{{value}}
@@ -15,7 +15,7 @@
     {% endif %} AS {{name}}
 {% endmacro %}
 
-{% macro snowflake__column_value(name, value) %}
+{% macro snowflake__synth_column_value(name, value) %}
     {% if value is string %} '{{value}}'
     {% elif value is integer %}{{value}}
     {% elif value is float %}{{value}}

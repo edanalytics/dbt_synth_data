@@ -1,4 +1,4 @@
-{% macro column_words(name, language="", language_code="", distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
+{% macro synth_column_words(name, language="", language_code="", distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
 
     {% if not language and not language_code %}
         {{ exceptions.raise_compiler_error("Words column `" ~ name ~ "` must specify either `language` or `language_code`.") }}
@@ -9,7 +9,7 @@
         {# tokenize each format_string #}
         {% set tokenized_format_strings = [] %}
         {% for format_string in format_strings %}
-            {% set tokens, expression = dbt_synth.words_tokenize_format_string(name, format_string) %}
+            {% set tokens, expression = synth_words_tokenize_format_string(name, format_string) %}
             {{ tokenized_format_strings.append({
                 "format_string": format_string,
                 "tokens": tokens,
@@ -38,18 +38,18 @@
         {% endset %}
 
         {% set query %}
-        {{ dbt_synth.column_integer(name=name+'_format_idx', min=1, max=format_strings|length, distribution='uniform') }},
+        {{ synth_column_integer(name=name+'_format_idx', min=1, max=format_strings|length, distribution='uniform') }},
         {% for col_name,pos in token_set.items() %}
-        {{ dbt_synth.column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
+        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
         {% endfor %}
-        {{ dbt_synth.column_expression(name=name, expression=words_expression, type='varchar') }}
+        {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
         {% endset %}
 
         {% set cleanup_cols = [] %}
         {% for col_name in token_set.keys() %}{{ cleanup_cols.append(col_name) or "" }}{% endfor %}
         {{ cleanup_cols.append(name + "_format_idx") or "" }}
         {% for col in cleanup_cols %}
-        {{ dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" }}
+        {{ synth_add_cleanup_hook(synth_words_cleanup(col)) or "" }}
         {% endfor %}
 
     {% elif n|int>0 %}
@@ -63,11 +63,11 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ dbt_synth.column_word(name=name + "_word" + i|string, language=language, language_code=language_code, distribution=distribution) }},
+        {{ synth_column_word(name=name + "_word" + i|string, language=language, language_code=language_code, distribution=distribution) }},
         {% endfor %}
-        {{ dbt_synth.column_expression(name=name, expression=words_expression, type='varchar') }}
+        {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
         {% for col in cleanup_cols %}
-        {{ dbt_synth.add_cleanup_hook(words_cleanup(col)) or "" }}
+        {{ synth_add_cleanup_hook(synth_words_cleanup(col)) or "" }}
         {% endfor %}
         {% endset %}
 
@@ -78,12 +78,12 @@
     {{ return(query) }}
 {%- endmacro %}
 
-{% macro words_cleanup(col) %}
+{% macro synth_words_cleanup(col) %}
 alter table {{ this }} drop column {{col}}
 {% endmacro %}
 
 
-{% macro words_tokenize_format_string(name, format_string) %}
+{% macro synth_words_tokenize_format_string(name, format_string) %}
     {% set poss = [] %}
     {% set pieces1 = format_string.split('{') %}
     {% set pieces = [] %}

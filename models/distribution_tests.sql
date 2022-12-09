@@ -1,75 +1,75 @@
 {{ config(materialized='table', custom_description='HEADER!') }}
-{{ dbt_synth.table(
+{{ table(
   rows = 1000000,
   columns = [
-    dbt_synth.column_distribution(name='continuous_uniform_0_1',
-        distribution=dbt_synth.distribution(class='continuous', type='uniform', min=0, max=1)
+    column_distribution(name='continuous_uniform_0_1',
+        distribution=distribution(class='continuous', type='uniform', min=0, max=1)
     ),
-    dbt_synth.column_distribution(name='continuous_normal',
-        distribution=dbt_synth.distribution(class='continuous', type='normal')
+    column_distribution(name='continuous_normal',
+        distribution=distribution(class='continuous', type='normal')
     ),
-    dbt_synth.column_distribution(name='continuous_bimodal',
-        distribution=dbt_synth.distribution_union(
-            dbt_synth.distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+    column_distribution(name='continuous_bimodal',
+        distribution=distribution_union(
+            distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+            distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
             weights=[1, 2]
         )
     ),
-    dbt_synth.column_distribution(name='continuous_trimodal',
-        distribution=dbt_synth.distribution_union(
-            dbt_synth.distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=10.0, stddev=2.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=15.0, stddev=1.0),
+    column_distribution(name='continuous_trimodal',
+        distribution=distribution_union(
+            distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+            distribution(class='continuous', type='normal', mean=10.0, stddev=2.0),
+            distribution(class='continuous', type='normal', mean=15.0, stddev=1.0),
             weights=[1, 2, 3]
         )
     ),
-    dbt_synth.column_distribution(name='continuous_average',
-        distribution=dbt_synth.distribution_average(
-            dbt_synth.distribution(class='continuous', type='exponential', lambda=0.1),
-            dbt_synth.distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
+    column_distribution(name='continuous_average',
+        distribution=distribution_average(
+            distribution(class='continuous', type='exponential', lambda=0.1),
+            distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
             weights=[1,4]
         )
     ),
-    dbt_synth.column_distribution(name='interesting_wave',
-        distribution=dbt_synth.distribution_union(
-            dbt_synth.distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=4.0, stddev=1.0),
-            dbt_synth.distribution(class='continuous', type='normal', mean=6.0, stddev=1.0),
+    column_distribution(name='interesting_wave',
+        distribution=distribution_union(
+            distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
+            distribution(class='continuous', type='normal', mean=4.0, stddev=1.0),
+            distribution(class='continuous', type='normal', mean=6.0, stddev=1.0),
             weights=[1,2,3]
         )
     ),
-    dbt_synth.column_distribution(name='steps',
-        distribution=dbt_synth.distribution_union(
-            dbt_synth.distribution(class='continuous', type='uniform', min=0, max=1),
-            dbt_synth.distribution(class='continuous', type='uniform', min=1, max=2),
-            dbt_synth.distribution(class='continuous', type='uniform', min=2, max=3),
+    column_distribution(name='steps',
+        distribution=distribution_union(
+            distribution(class='continuous', type='uniform', min=0, max=1),
+            distribution(class='continuous', type='uniform', min=1, max=2),
+            distribution(class='continuous', type='uniform', min=2, max=3),
             weights=[1,2,3]
         )
     ),
-    dbt_synth.column_distribution(name='continuous_exponential',
-        distribution=dbt_synth.distribution(class='continuous', type='exponential', lambda=0.1)
+    column_distribution(name='continuous_exponential',
+        distribution=distribution(class='continuous', type='exponential', lambda=0.1)
     ),
-    dbt_synth.column_distribution(name='discrete_uniform_0_10',
-        distribution=dbt_synth.distribution(class='discrete', type='uniform', min=0, max=9, precision=1)
+    column_distribution(name='discrete_uniform_0_10',
+        distribution=distribution(class='discrete', type='uniform', min=0, max=9, precision=1)
     ),
-    dbt_synth.column_distribution(name='discrete_normal',
-        distribution=dbt_synth.distribution(class='discrete', type='normal', mean=0, stddev=5)
+    column_distribution(name='discrete_normal',
+        distribution=distribution(class='discrete', type='normal', mean=0, stddev=5)
     ),
-    dbt_synth.column_distribution(name='discrete_exponential',
-        distribution=dbt_synth.distribution(class='discrete', type='exponential', lambda=0.5)
+    column_distribution(name='discrete_exponential',
+        distribution=distribution(class='discrete', type='exponential', lambda=0.5)
     ),
-    dbt_synth.column_distribution(name='discrete_bernoulli',
-        distribution=dbt_synth.distribution(class='discrete', type='bernoulli')
+    column_distribution(name='discrete_bernoulli',
+        distribution=distribution(class='discrete', type='bernoulli')
     ),
-    dbt_synth.column_distribution(name='discrete_binomial',
-        distribution=dbt_synth.distribution(class='discrete', type='binomial', n=100000, p=0.02)
+    column_distribution(name='discrete_binomial',
+        distribution=distribution(class='discrete', type='binomial', n=100000, p=0.02)
     ),
-    dbt_synth.column_distribution(name='discrete_probability',
-        distribution=dbt_synth.distribution(class='discrete', type='probabilities',
+    column_distribution(name='discrete_probability',
+        distribution=distribution(class='discrete', type='probabilities',
             probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
     ),
-    dbt_synth.column_distribution(name='discrete_weights',
-        distribution=dbt_synth.distribution(class='discrete', type='weights',
+    column_distribution(name='discrete_weights',
+        distribution=distribution(class='discrete', type='weights',
             values=["cat", "dog", "parrot"], weights=[3, 6, 1])
     ),
   ]

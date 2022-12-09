@@ -162,7 +162,7 @@ Generates integers according to a user-defined probability set.
 ```
 `values` is a required list of strings, floats, or integers; it has no default.
 
-`weights` is an optional list of integers. It's length should be the same the length of `values`. If `weights` is omitted, each of the `values` will be equally likely. Otherwise, the integers indicate likelihood; in the example above, the value `5` will be six times as prevalent as the value `9`.
+`weights` is an optional list of integers. It's length should be the same the length of `values`. If `weights` is omitted, each of the `values` will be equally likely. Otherwise, the integers indicate likelihood; in the example above, the value `5` will be about six times as prevalent as the value `9`.
 
 Avoid using `weights` with a large sum; this will generate long `case` statements which can run slowly.
 </details>
@@ -222,6 +222,25 @@ which takes longer for the database engine to evaluate.
 
 Really you should avoid specifiying `probabilities` of more than 4 digits at the most.
 </details>
+
+### Discretizing Continuous Distributions
+
+Any of the continuous distributions listed above can be made discrete using the following mechanisms:
+
+<details>
+<summary><code>discretize_floor</code></summary>
+
+Converts values from [continuous distributions](#continuous-distributions) to (discrete) integers by applying the `floor()` function.
+```python
+    distribution_union(
+        dbt_synth.distribution(class='...', type='...', ...),
+        dbt_synth.distribution(class='...', type='...', ...),
+        weights=[1, 2, ...]
+    )
+```
+Up to 10 distributions may be unioned. (Compose the macro to union more.)
+</details>
+
 
 ### Constructing Complex Distributions
 

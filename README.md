@@ -232,13 +232,58 @@ Any of the continuous distributions listed above can be made discrete using the 
 
 Converts values from [continuous distributions](#continuous-distributions) to (discrete) integers by applying the `floor()` function.
 ```python
-    synth_distribution_union(
-        synth_distribution(class='...', type='...', ...),
-        synth_distribution(class='...', type='...', ...),
-        weights=[1, 2, ...]
+    synth_discretize_floor(
+        distribution=synth_distribution(class='...', type='...', ...),
     )
 ```
-Up to 10 distributions may be unioned. (Compose the macro to union more.)
+</details>
+
+<details>
+<summary><code>discretize_ceiling</code></summary>
+
+Converts values from [continuous distributions](#continuous-distributions) to (discrete) integers by applying the `ceil()` function.
+```python
+    synth_discretize_ceil(
+        distribution=synth_distribution(class='...', type='...', ...),
+    )
+```
+</details>
+
+<details>
+<summary><code>discretize_round</code></summary>
+
+Converts values from [continuous distributions](#continuous-distributions) to discrete values by applying the `round()` function.
+```python
+    synth_discretize_round(
+        distribution=synth_distribution(class='...', type='...', ...),
+        precision=0
+    )
+```
+`precision` indicates the number of digits to round to.
+</details>
+
+<details>
+<summary><code>discretize_bins</code></summary>
+
+Converts values from [continuous distributions](#continuous-distributions) to discrete values by binning values into a target `count` of bins or a target `size`. Optionally map binned values to new `labels`, otherwise the lower bound of the bin is used as the value.
+```python
+    synth_discretize_bins(
+        distribution=synth_distribution(class='...', type='...', ...),
+        from=0.0, to=1.5, count=20
+    )
+```
+```python
+    synth_discretize_bins(
+        distribution=synth_distribution(class='...', type='...', ...),
+        from=0.0, to=1.5, size=0.1
+    )
+```
+```python
+    synth_discretize_bins(
+        distribution=synth_distribution(class='...', type='...', ...),
+        from=0.0, to=1.5, count=5, labels=['< 0.0', '0.0 - 0.5', '0.5 - 1.0', '1.0 - 1.5', '> 1.5']
+    )
+```
 </details>
 
 

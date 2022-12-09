@@ -37,11 +37,14 @@ Consider the example model `orders.sql` below:
     columns = [
         dbt_synth.column_primary_key(name='order_id'),
         dbt_synth.column_foreign_key(name='product_id', table='products', column='product_id'),
-        dbt_synth.column_values(name='status', 
-            values=["New", "Shipped", "Returned", "Lost"],
-            distribution=dbt_synth.distribution_discrete_probabilities(probabilities=[0.2, 0.5, 0.2, 0.1])),
+        dbt_synth.column_distribution(name='status', 
+            distribution=dbt_synth.distribution(class='discrete', type='probabilities',
+                probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
+            )
+        ),
         dbt_synth.column_integer(name='num_ordered',
-            distribution=dbt_synth.distribution_discrete_uniform(min=1, max=10)),
+            distribution=dbt_synth.distribution_discrete_uniform(min=1, max=10)
+        ),
     ]
 ) }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
@@ -151,6 +154,20 @@ This may artificially increase small values. However, the approximation is close
 </details>
 
 <details>
+<summary><code>weights</code></summary>
+
+Generates integers according to a user-defined probability set.
+```python
+    dbt_synth.distribution_discrete_weights(values=[1,3,5,7,9], weights=[1,1,6,3,1])
+```
+`values` is a required list of strings, floats, or integers; it has no default.
+
+`weights` is an optional list of integers. It's length should be the same the length of `values`. If `weights` is omitted, each of the `values` will be equally likely. Otherwise, the integers indicate likelihood; in the example above, the value `5` will be six times as prevalent as the value `9`.
+
+Avoid using `weights` with a large sum; this will generate long `case` statements which can run slowly.
+</details>
+
+<details>
 <summary><code>probabilities</code></summary>
 
 Generates integers according to a user-defined probability set.
@@ -206,25 +223,56 @@ which takes longer for the database engine to evaluate.
 Really you should avoid specifiying `probabilities` of more than 4 digits at the most.
 </details>
 
-### Constructing Distributions
+### Constructing Complex Distributions
 
 More advanced distributions can be constructed from combinations of the above. For example, we can make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
 ```python
 {{ dbt_synth.table(
   rows = 100000,
   columns = [
-    dbt_synth.column_distribution(name='normal_0',  class='continuous', type='normal',    mean=5.0, stddev=1.0),
-    dbt_synth.column_distribution(name='normal_1',  class='continuous', type='normal',    mean=8.0, stddev=1.0),
-    dbt_synth.column_distribution(name='which_one', class='discrete',   type='bernoulli', p=0.35),
-    dbt_synth.column_expression(name='continuous_bimodal',
-        expression='(case when which_one=0 then normal_0 else normal_1 end)'),
+    dbt_synth.column_distribution(name='continuous_bimodal',
+        distribution=dbt_synth.distribution_union(
+            dbt_synth.distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+            dbt_synth.distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+            weights=[1, 2]
+        )
+    ),
   ]
 ) }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column which_one") or "" }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_0") or "" }}
-{{ dbt_synth.add_cleanup_hook("alter table {{this}} drop column normal_1") or "" }}
 {{ config(post_hook=dbt_synth.get_post_hooks())}}
 ```
+Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
+
+This package provides the following mechanisms for composing several distributions:
+
+<details>
+<summary><code>union</code></summary>
+
+Generates values from several distributions with optional `weights`. If `weights` is omitted, each distribution is equally likely.
+```python
+    dbt_synth.distribution_union(
+        dbt_synth.distribution(class='...', type='...', ...),
+        dbt_synth.distribution(class='...', type='...', ...),
+        weights=[1, 2, ...]
+    )
+```
+Up to 10 distributions may be unioned. (Compose the macro to union more.)
+</details>
+
+<details>
+<summary><code>average</code></summary>
+
+Generates values from the (optionally weighted) average of values from several distributions. If `weights` is omitted, each distribution contributes equally to the average.
+```python
+    dbt_synth.distribution_average(
+        dbt_synth.distribution(class='...', type='...', ...),
+        dbt_synth.distribution(class='...', type='...', ...),
+        weights=[1, 2, ...]
+    )
+```
+Up to 10 distributions may be averaged. (Compose the macro to average more.)
+</details>
+
 
 
 ## Column types

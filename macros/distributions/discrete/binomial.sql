@@ -10,7 +10,10 @@
     {{ dbt_synth.distribution_discrete_bernoulli(p=p) }}
     
     {%- else -%}
-    mod( abs( {{ synth_distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5, precision=0) }} ) , {{n+1}} )
+    mod( abs( {{ synth_discretize_round(
+        distribution=synth_distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5),
+        precision=0
+    ) }} ) , {{n+1}} )
 
     {%- endif -%}
 {%- endmacro %}

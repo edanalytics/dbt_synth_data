@@ -1,6 +1,6 @@
 {{ config(materialized='table') }}
 {{ synth_table(
-  rows = 100000,
+  rows = 1000000,
   columns = [
     synth_column_distribution(name='continuous_uniform',
         distribution=synth_distribution(class='continuous', type='uniform', min=0, max=1)

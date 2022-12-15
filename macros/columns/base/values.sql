@@ -20,6 +20,6 @@
         {% do probabilities.append( (1.0 - probabilities|sum)|round(3) ) %}
         {% endif %}
 
-        {{ synth_distribution_discrete_probabilities(probabilities=synth_zip(values, probabilities), wrap=wrap) }} as {{name}}
+        {{ synth_distribution_discrete_probabilities(probabilities=synth_zip(values, probabilities)) }} as {{name}}
     {% endif %}
 {%- endmacro %}

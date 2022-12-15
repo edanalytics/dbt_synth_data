@@ -69,6 +69,21 @@
     {{ return(posthooks) }}
 {%- endmacro %}
 
+{%- macro synth_add_run_end_hook(query) -%}
+    {%- set runendhooks = builtins.get("runendhooks") or [] -%}
+    {{ runendhooks.append(query) or "" }}
+    {%- do builtins.update({"runendhooks": runendhooks}) -%}
+{%- endmacro %}
+
+{%- macro synth_do_run_end_hooks() -%}
+    {{ print(builtins.get("runendhooks")) }}
+    {% if builtins.get("runendhooks") %}
+    {% for runendhook in builtins.get("runendhooks") | unique %}
+        {{runendhook}};
+    {% endfor %}
+    {% endif %}
+{%- endmacro %}
+
 {%- macro synth_zip(list_a, list_b) -%}
     {% set dct = {} %}
     {% for i in range(list_a|length) %}

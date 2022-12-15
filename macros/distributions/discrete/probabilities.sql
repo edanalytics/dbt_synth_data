@@ -1,5 +1,6 @@
-{% macro synth_distribution_discrete_probabilities(probabilities, wrap="") %}
+{% macro synth_distribution_discrete_probabilities(probabilities) %}
     {# Set up some variables: #}
+    {%- set epsilon = 0.00001 -%}{# "close enough" to zero #}
     {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
     
     {# Set up probability cutoff values and return keys: #}
@@ -12,9 +13,19 @@
     {%- else -%}
         {{ exceptions.raise_compiler_error("`probabilities` must be a list or dict") }}
     {%- endif -%}
-    {%- if ns.values|sum!=1.0 -%}
+
+    {%- if (1.0 - ns.values|sum)|abs > epsilon -%}
         {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0") }}
     {%- endif -%}
+
+    {%- if ns.keys[0] is number -%}
+        {% set wrap = "" %}
+    {% elif ns.keys[0] is string %}
+        {% set wrap = "'" %}
+    {% else %}
+        {{ exceptions.raise_compiler_error("`probabilities` keys must be strings or numbers") }}
+    {% endif %}
+
     {%- set ns.curr_threshold = ns.values[0] -%}
     
     {# Find max number of digits in any specified probability: #}
@@ -28,7 +39,7 @@
     {%- endif -%}
     
     {# Case statement on uniformly-distributed range: #}
-    case {{ synth_distribution_discrete_uniform(min=0, max=(10**ns.max_prob_digits - 1)) }}
+    case {{ synth_discretize_floor( distribution=synth_distribution_continuous_uniform(min=0, max=10**ns.max_prob_digits) ) }}
         {% for i in range(0, 10**ns.max_prob_digits) %}
         {%- if i >= ((10**ns.max_prob_digits)*ns.curr_threshold)|int and ns.curr_idx<probabilities|length-1 -%}
             {%- set ns.curr_idx = ns.curr_idx + 1 -%}

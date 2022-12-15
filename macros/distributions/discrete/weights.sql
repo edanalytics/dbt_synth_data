@@ -13,7 +13,7 @@
         {{ exceptions.raise_compiler_error("`values` must be strings or numbers") }}
     {% endif %}
 
-    case {{ synth_distribution_discrete_uniform(min=0, max=weights|sum - 1) }}
+    case {{ synth_discretize_floor( distribution=synth_distribution_continuous_uniform(min=0, max=weights|sum) ) }}
     {% for v in range(0, values|length) %}
         {% for w in range(0, weights[v]) %}
         when {{ weights[:v]|sum + w }} then {{wrap}}{{values[v]}}{{wrap}}

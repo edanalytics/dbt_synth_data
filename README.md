@@ -96,38 +96,6 @@ Default `lambda` is `1.0`. Default `precision` is full precision.
 
 ### Discrete Distributions
 <details>
-<summary><code>uniform</code></summary>
-
-Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Discrete_uniform_distribution) integers.
-```python
-    synth_distribution_discrete_uniform(min=6, max=55)
-```
-Default `min` is `0`, default `max` is `1`. `min` and `max` are inclusive.
-</details>
-
-<details>
-<summary><code>normal</code></summary>
-
-Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) integers.
-```python
-    synth_distribution_discrete_normal(mean=5, stddev=0.5)
-```
-Default `mean` is `0`, default `stddev` is `1`.
-</details>
-
-<details>
-<summary><code>exponential</code></summary>
-
-Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) integers.
-```python
-    synth_distribution_discrete_exponential(lambda=5.0)
-```
-Default `lambda` is `1.0`.
-
-Note that this implementation simply takes `floor()` of the continuous exponential distribution, so `avg()` may not be close to `1 / lambda`.
-</details>
-
-<details>
 <summary><code>bernoulli</code></summary>
 
 Generates integers (`0` and `1`) according to a [Bernoulli distribution](https://en.wikipedia.org/wiki/Bernoulli_distribution).
@@ -239,7 +207,7 @@ Converts values from [continuous distributions](#continuous-distributions) to (d
 </details>
 
 <details>
-<summary><code>discretize_ceiling</code></summary>
+<summary><code>discretize_ceil</code></summary>
 
 Converts values from [continuous distributions](#continuous-distributions) to (discrete) integers by applying the `ceil()` function.
 ```python
@@ -263,25 +231,40 @@ Converts values from [continuous distributions](#continuous-distributions) to di
 </details>
 
 <details>
-<summary><code>discretize_bins</code></summary>
+<summary><code>discretize_width_bucket</code></summary>
 
-Converts values from [continuous distributions](#continuous-distributions) to discrete values by binning values into a target `count` of bins or a target `size`. Optionally map binned values to new `labels`, otherwise the lower bound of the bin is used as the value.
+Converts values from [continuous distributions](#continuous-distributions) to discrete values by bucketing them. Buckets are specified by `from` and `to` bounds and either `count` (the number of buckets) or `size` (the target bucket size).
+
+For some distributions (like `uniform`), the bounds may be strict - values outside the bounds are impossible. For other distributions (like exponential), specifying strict `from` and `to` bounds may be difficult. For this reason, if `strict_bounds` is `False`, the first bucket (index `0`) will represent values below `from`. Likewise the last bucket (index `count`) will represent values above `to`. (`strict_bounds` defaults to `True`.) It is up to you to chose reasonable/useful `from` and `to` bounds for discretization.
+
+`labels` may be 
+* unspecified, in which case values will be mapped to the (1-based) bucket index (0-based if `strict_bounds` is `False`)
+* the string "lower_bound", in which case values will be mapped to the lower bound of the bucket (or `-Infinity` for the first bucket, if `strict_bounds` is `False`)
+* the string "upper_bound", in which case values will be mapped to the upper bound of the bucket (or `+Infinity` for the last bucket, if `strict_bounds` is `False`)
+* the string "bucket_range", in which case values will be mapped to a string of the format "[lower_bound] - [upper_bound]" for each bucket (`lower_bound` may be `-Infinity` and `upper_bound` may be `Infinity` if `strict_bounds` is `False`)
+  * optionally specify the `bucket_range_separator` string that separates the upper and lower bucket bounds (default is " - ")
+* the string "bucket_average", in which case values will be mapped to bucket middle or average (or `from` for the first bucket and `to` for the last bucket, if `strict_bounds` is `False`)
+* a list of (string or numeric) bucket labels (the list must be equal in length to the number of buckets)
+
+For all but the last option, you may optionally specify a `label_precision`, which is the number of digits bounds get rounded to. (Default is `4`.)
+
+**Examples:**
 ```python
-    synth_discretize_bins(
+    synth_discretize_width_bucket(
         distribution=synth_distribution(class='...', type='...', ...),
-        from=0.0, to=1.5, count=20
+        from=0.0, to=1.5, count=20, labels='lower_bound'
     )
 ```
 ```python
-    synth_discretize_bins(
+    synth_discretize_width_bucket(
         distribution=synth_distribution(class='...', type='...', ...),
         from=0.0, to=1.5, size=0.1
     )
 ```
 ```python
-    synth_discretize_bins(
+    synth_discretize_width_bucket(
         distribution=synth_distribution(class='...', type='...', ...),
-        from=0.0, to=1.5, count=5, labels=['< 0.0', '0.0 - 0.5', '0.5 - 1.0', '1.0 - 1.5', '> 1.5']
+        from=0.0, to=1.5, count=5, strict_bounds=False, labels=['< 0.0', '0.0 to 0.5', '0.5 to 1.0', '1.0 to 1.5', '> 1.5']
     )
 ```
 </details>

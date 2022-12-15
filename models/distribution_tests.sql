@@ -1,12 +1,15 @@
-{{ config(materialized='table', custom_description='HEADER!') }}
+{{ config(materialized='table') }}
 {{ synth_table(
-  rows = 1000000,
+  rows = 100000,
   columns = [
-    synth_column_distribution(name='continuous_uniform_0_1',
+    synth_column_distribution(name='continuous_uniform',
         distribution=synth_distribution(class='continuous', type='uniform', min=0, max=1)
     ),
     synth_column_distribution(name='continuous_normal',
         distribution=synth_distribution(class='continuous', type='normal')
+    ),
+    synth_column_distribution(name='continuous_exponential',
+        distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
     ),
     synth_column_distribution(name='continuous_bimodal',
         distribution=synth_distribution_union(
@@ -46,27 +49,32 @@
             weights=[1,2,3]
         )
     ),
-    synth_column_distribution(name='continuous_exponential',
-        distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
+    synth_column_distribution(name='discretized_uniform',
+        distribution=synth_discretize_width_bucket(
+            distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),
+            from=0, to=10, strict_bounds=True, count=5, labels='bucket_range'
+        )
     ),
-    synth_column_distribution(name='discrete_uniform_0_10',
-        distribution=synth_distribution(class='discrete', type='uniform', min=0, max=9, precision=1)
+    synth_column_distribution(name='discretized_normal',
+        distribution=synth_discretize_width_bucket(
+            distribution=synth_distribution(class='continuous', type='normal', mean=0.0, stddev=1.0),
+            from=-2.2, to=2.2, strict_bounds=False, count=24, labels='bucket_range'
+        )
     ),
-    synth_column_distribution(name='discrete_normal',
-        distribution=synth_distribution(class='discrete', type='normal', mean=0, stddev=5)
-    ),
-    synth_column_distribution(name='discrete_exponential',
-        distribution=synth_distribution(class='discrete', type='exponential', lambda=0.5)
+    synth_column_distribution(name='discretized_exponential',
+        distribution=synth_discretize_floor(
+            distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
+        )
     ),
     synth_column_distribution(name='discrete_bernoulli',
         distribution=synth_distribution(class='discrete', type='bernoulli')
     ),
     synth_column_distribution(name='discrete_binomial',
-        distribution=synth_distribution(class='discrete', type='binomial', n=100000, p=0.02)
+        distribution=synth_distribution(class='discrete', type='binomial', n=10, p=0.03)
     ),
     synth_column_distribution(name='discrete_probability',
         distribution=synth_distribution(class='discrete', type='probabilities',
-            probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
+            probabilities={"cat":0.3, "dog":0.5, "parrot":0.2})
     ),
     synth_column_distribution(name='discrete_weights',
         distribution=synth_distribution(class='discrete', type='weights',
@@ -80,16 +88,24 @@
 {#-
     Test by wrapping compiled output in something like
     with rand_data as (
-        select * from [db.schema.]distribution_tests
+        select * from postgres.testschema.distribution_tests
     )
-    --select round(continuous_uniform_0_1::numeric, 1) as continuous_uniform_0_1, count(*)
+    select round(continuous_uniform::numeric, 1) as continuous_uniform_0_1, count(*)
     --select round(continuous_normal::numeric, 1) as continuous_normal, count(*)
-    --select discrete_uniform_0_10, count(*)
-    --select discrete_normal, count(*)
+    --select round(continuous_exponential::numeric, 1) as continuous_exponential, count(*)
+    --select round(continuous_bimodal::numeric, 1) as continuous_bimodal, count(*)
+    --select round(continuous_trimodal::numeric, 1) as continuous_trimodal, count(*)
+    --select round(continuous_average::numeric, 1) as continuous_intersection, count(*)
+    --select round(interesting_wave::numeric, 1) as interesting_wave, count(*)
+    --select round(steps::numeric, 1) as steps, count(*)
+    --select discretized_uniform, count(*)
+    --select discretized_normal, count(*)
+    --select discretized_exponential, count(*)
     --select discrete_bernoulli, count(*)
     --select discrete_binomial, count(*)
-    select discrete_probability, count(*)
-    from rand_data 
+    --select discrete_probability, count(*)
+    --select discrete_weights, count(*)
+    from rand_data
     group by 1
     order by 1;
 -#}

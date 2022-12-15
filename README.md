@@ -359,8 +359,19 @@ Generates boolean values.
 <summary><code>integer</code></summary>
 
 Generates integer values.
+
+For uniformly-distributed values, simply specify `min` and `max`:
 ```python
-    synth_column_integer(name='event_year', min=2000, max=2020, distribution='uniform'),
+    synth_column_integer(name='event_year', min=2000, max=2020),
+```
+
+Otherwise, specify the distribution to use:
+```python
+    synth_column_integer(name='event_year',
+        distribution=synth_discretize_floor(
+            distribution=synth_distribution_continuous_normal(mean=min=2010, stddev=2.5,)
+        )
+    ),
 ```
 </details>
 

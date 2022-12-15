@@ -297,8 +297,11 @@ More advanced distributions can be constructed from combinations of the above. F
 ```
 Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
 
-![Example of continuous bimodal distribution](/assets/continuous_union_normals.png)
+![Example of continuous bimodal distribution](/assets/continuous_bimodal.png)
 **Above:** Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).
+
+![Example of union of continuous normal distributions](/assets/continuous_union_normals.png)
+**Above:** Histogram of the union of three continuous normal distributions (1M values).
 
 This package provides the following mechanisms for composing several distributions:
 

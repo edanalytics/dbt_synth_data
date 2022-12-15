@@ -42,11 +42,7 @@ Consider the example model `orders.sql` below:
                 probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
             )
         ),
-        synth_column_integer(name='num_ordered',
-            distribution=synth_discretize_floor(
-                distribution=synth_distribution_continuous_uniform(min=1, max=11)
-            )
-        ),
+        synth_column_integer(name='num_ordered', min=1, max=10),
     ]
 ) }}
 {{ config(post_hook=synth_get_post_hooks())}}

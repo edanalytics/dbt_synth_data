@@ -66,9 +66,9 @@ This package provides the following distributions:
 
 Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Continuous_uniform_distribution) real numbers.
 ```python
-    synth_distribution_continuous_uniform(min=0.6, max=7.9, precision=4)
+    synth_distribution_continuous_uniform(min=0.6, max=7.9)
 ```
-Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. Default `precision` is full precision.
+Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive.
 </details>
 
 <details>
@@ -76,9 +76,9 @@ Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive. D
 
 Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal_distribution) real numbers.
 ```python
-    synth_distribution_continuous_normal(mean=5, stddev=0.5, precision=2)
+    synth_distribution_continuous_normal(mean=5, stddev=0.5)
 ```
-Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full precision.
+Default `mean` is `0.0`, default `stddev` is `1.0`.
 </details>
 
 <details>
@@ -86,9 +86,9 @@ Default `mean` is `0.0`, default `stddev` is `1.0`. Default `precision` is full 
 
 Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_distribution) real numbers.
 ```python
-    synth_distribution_continuous_exponential(lambda=5.0, precision=2)
+    synth_distribution_continuous_exponential(lambda=5.0)
 ```
-Default `lambda` is `1.0`. Default `precision` is full precision.
+Default `lambda` is `1.0`.
 </details>
 
 

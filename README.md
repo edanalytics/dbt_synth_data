@@ -131,7 +131,7 @@ This may artificially increase small values. However, the approximation is close
 <details>
 <summary><code>weights</code></summary>
 
-Generates integers according to a user-defined probability set.
+Generates discrete values according to a user-defined probability set.
 ```python
     synth_distribution_discrete_weights(values=[1,3,5,7,9], weights=[1,1,6,3,1])
 ```
@@ -145,7 +145,7 @@ Avoid using `weights` with a large sum; this will generate long `case` statement
 <details>
 <summary><code>probabilities</code></summary>
 
-Generates integers according to a user-defined probability set.
+Generates discrete values according to a user-defined probability set.
 ```python
     synth_distribution_discrete_probabilities(probabilities={"1":0.15, "5":0.5, "8": 0.35})
 ```
@@ -153,9 +153,9 @@ Generates integers according to a user-defined probability set.
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
 * or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }` with integer keys (specified as strings in order to be valud JSON), in which case the keys are the integers generated
 
-You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however string keys require an additional parameter `wrap="'"` so the database interprets the values as a string. For example:
+You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however you must specify the additional parameter `keys_type="varchar"` (or similar) so the the value types are correct. For example:
 ```python
-    synth_distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, wrap="'")
+    synth_distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, keys_type="varchar")
 ```
 
 `probabilities` must sum to `1.0`.
@@ -200,7 +200,7 @@ Really you should avoid specifiying `probabilities` of more than 4 digits at the
 
 ### Discretizing Continuous Distributions
 
-Any of the continuous distributions listed above can be made discrete using the following mechanisms:
+Any of the [continuous distributions](#continuous-distributions) listed above can be made discrete using the following mechanisms:
 
 <details>
 <summary><code>discretize_floor</code></summary>
@@ -242,15 +242,15 @@ Converts values from [continuous distributions](#continuous-distributions) to di
 
 Converts values from [continuous distributions](#continuous-distributions) to discrete values by bucketing them. Buckets are specified by `from` and `to` bounds and either `count` (the number of buckets) or `size` (the target bucket size).
 
-For some distributions (like `uniform`), the bounds may be strict - values outside the bounds are impossible. For other distributions (like exponential), specifying strict `from` and `to` bounds may be difficult. For this reason, if `strict_bounds` is `False`, the first bucket (index `0`) will represent values below `from`. Likewise the last bucket (index `count`) will represent values above `to`. (`strict_bounds` defaults to `True`.) It is up to you to chose reasonable/useful `from` and `to` bounds for discretization.
+For some distributions (like `uniform`), the bounds may be strict - values outside the bounds are impossible. For other distributions (like exponential), specifying strict `from` and `to` bounds may be difficult. For this reason, if `strict_bounds=False`, the first bucket (index `0`) will represent values below `from`. Likewise the last bucket (index `count`) will represent values above `to`. (`strict_bounds` defaults to `True`.) It is up to you to chose reasonable and useful `from` and `to` bounds for discretization.
 
 `labels` may be 
-* unspecified, in which case values will be mapped to the (1-based) bucket index (0-based if `strict_bounds` is `False`)
-* the string "lower_bound", in which case values will be mapped to the lower bound of the bucket (or `-Infinity` for the first bucket, if `strict_bounds` is `False`)
-* the string "upper_bound", in which case values will be mapped to the upper bound of the bucket (or `+Infinity` for the last bucket, if `strict_bounds` is `False`)
-* the string "bucket_range", in which case values will be mapped to a string of the format "[lower_bound] - [upper_bound]" for each bucket (`lower_bound` may be `-Infinity` and `upper_bound` may be `Infinity` if `strict_bounds` is `False`)
+* unspecified, in which case values will be mapped to the (1-based) bucket index (0-based if `strict_bounds=False`)
+* the string "lower_bound", in which case values will be mapped to the lower bound of the bucket (or `-Infinity` for the first bucket, if `strict_bounds=False`)
+* the string "upper_bound", in which case values will be mapped to the upper bound of the bucket (or `+Infinity` for the last bucket, if `strict_bounds=False`)
+* the string "bucket_range", in which case values will be mapped to a string of the format "[lower_bound] - [upper_bound]" for each bucket (`lower_bound` may be `-Infinity` and `upper_bound` may be `Infinity` if `strict_bounds=False`)
   * optionally specify the `bucket_range_separator` string that separates the upper and lower bucket bounds (default is " - ")
-* the string "bucket_average", in which case values will be mapped to bucket middle or average (or `from` for the first bucket and `to` for the last bucket, if `strict_bounds` is `False`)
+* the string "bucket_average", in which case values will be mapped to bucket middle or average (or `from` for the first bucket and `to` for the last bucket, if `strict_bounds=False`)
 * a list of (string or numeric) bucket labels (the list must be equal in length to the number of buckets)
 
 For all but the last option, you may optionally specify a `label_precision`, which is the number of digits bounds get rounded to. (Default is `4`.)
@@ -271,7 +271,8 @@ For all but the last option, you may optionally specify a `label_precision`, whi
 ```python
     synth_discretize_width_bucket(
         distribution=synth_distribution(class='...', type='...', ...),
-        from=0.0, to=1.5, count=5, strict_bounds=False, labels=['< 0.0', '0.0 to 0.5', '0.5 to 1.0', '1.0 to 1.5', '> 1.5']
+        from=0.0, to=1.5, count=5, strict_bounds=False,
+        labels=['< 0.0', '0.0 to 0.5', '0.5 to 1.0', '1.0 to 1.5', '> 1.5']
     )
 ```
 </details>
@@ -297,12 +298,6 @@ More advanced distributions can be constructed from combinations of the above. F
 ```
 Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
 
-![Example of continuous bimodal distribution](/assets/continuous_bimodal.png)
-**Above:** Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).
-
-![Example of union of continuous normal distributions](/assets/continuous_union_normals.png)
-**Above:** Histogram of the union of three continuous normal distributions (1M values).
-
 This package provides the following mechanisms for composing several distributions:
 
 <details>
@@ -317,6 +312,12 @@ Generates values from several distributions with optional `weights`. If `weights
     )
 ```
 Up to 10 distributions may be unioned. (Compose the macro to union more.)
+
+![Example of continuous bimodal distribution](/assets/continuous_bimodal.png)
+**Above:** Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).
+
+![Example of union of continuous normal distributions](/assets/continuous_union_normals.png)
+**Above:** Histogram of the union of three continuous normal distributions (1M values).
 </details>
 
 <details>

@@ -43,7 +43,9 @@ Consider the example model `orders.sql` below:
             )
         ),
         synth_column_integer(name='num_ordered',
-            distribution=synth_distribution_discrete_uniform(min=1, max=10)
+            distribution=synth_discretize_floor(
+                distribution=synth_distribution_continuous_uniform(min=1, max=11)
+            )
         ),
     ]
 ) }}

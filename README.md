@@ -71,7 +71,7 @@ Generates [uniformly-distributed](https://en.wikipedia.org/wiki/Continuous_unifo
 Default `min` is `0.0`. Default `max` is `1.0`. `min` and `max` are inclusive.
 
 ![Example of continuous uniform distribution](/assets/continuous_uniform.png)
-*Above:* Histogram of a continuous uniform distribution (1M values).
+**Above:** Histogram of a continuous uniform distribution (1M values).
 </details>
 
 <details>
@@ -84,7 +84,7 @@ Generates [normally-distributed (Gaussian)](https://en.wikipedia.org/wiki/Normal
 Default `mean` is `0.0`, default `stddev` is `1.0`.
 
 ![Example of continuous uniform distribution](/assets/continuous_normal.png)
-*Above:* Histogram of a continuous normal distribution (1M values).
+**Above:** Histogram of a continuous normal distribution (1M values).
 </details>
 
 <details>
@@ -97,7 +97,7 @@ Generates [exponentially-distributed](https://en.wikipedia.org/wiki/Exponential_
 Default `lambda` is `1.0`.
 
 ![Example of continuous uniform distribution](/assets/continuous_exponential.png)
-*Above:* Histogram of a continuous exponential distribution (1M values).
+**Above:** Histogram of a continuous exponential distribution (1M values).
 </details>
 
 
@@ -298,7 +298,7 @@ More advanced distributions can be constructed from combinations of the above. F
 Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
 
 ![Example of continuous bimodal distribution](/assets/continuous_union_normals.png)
-*Above:* Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).
+**Above:** Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).
 
 This package provides the following mechanisms for composing several distributions:
 
@@ -330,7 +330,7 @@ Generates values from the (optionally weighted) average of values from several d
 Up to 10 distributions may be averaged. (Compose the macro to average more.)
 
 ![Example of continuous average distribution](/assets/continuous_average_exponential_normal.png)
-*Above:* Histogram of a continuous average distribution composed of a normal and an exponential distribution (1M values).
+**Above:** Histogram of a continuous average distribution composed of a normal and an exponential distribution (1M values).
 </details>
 
 

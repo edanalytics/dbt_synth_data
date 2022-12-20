@@ -36,7 +36,7 @@ is_official_attendance_period
 select
         {{ synth_primary_key() }} as k_course_section,
         {{ synth_foreign_key(table='dim_course', column='k_course') }} as k_course,
-        
+
         {{ synth_foreign_key(table='dim_lea', column='k_lea') }} as k_lea,
         {{ synth_lookup(value_col='k_lea', lookup_table='dim_lea', from_col='k_lea', to_col='tenant_code') }} as tenant_code,
         {{ synth_integer_sequence(step=1, start=1000) }} as school_id,
@@ -55,11 +55,11 @@ select
         {{ synth_value(value=None) }} as magnet_type,
         {{ synth_value(value=None) }} as website,
         {{ synth_value(value='Physical') }} as address_type,
-        {{ synth_address(countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['street_address']) }} as street_address,
-        {{ synth_address(countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['city']) }} as city,
+        {{ synth_address(name='street_address', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['street_address']) }} as street_address,
+        {{ synth_address(name='city', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['city']) }} as city,
         {{ synth_value(value=None) }} as name_of_county,
-        {{ synth_address(countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['geo_region']) }} as state_code,
-        {{ synth_address(countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['postal_code']) }} as postal_code,
+        {{ synth_address(name='state_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['geo_region']) }} as state_code,
+        {{ synth_address(name='postal_code', countries=['United States'], geo_regions=[var('state_code')], address_types=['house'], parts=['postal_code']) }} as postal_code,
         {{ synth_value(value=None) }} as building_site_number,
         {{ synth_value(value=None) }} as locale,
         {{ synth_value(value=None) }} as congressional_district,

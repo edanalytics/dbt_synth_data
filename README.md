@@ -2,12 +2,15 @@
 
 This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/) and [Postgres](https://www.postgresql.org/). Other backends may be added eventually.
 
-See `models/*` for examples of usage, further documentation will come soon.
-
-`seeds/*` contains various files which are used to generate realistic random values of various types.
-
 All the magic happens in `macros/*`.
 
+
+## Installation
+1. add `dbt_synth_data` to your `packages.yml`
+1. run `dbt deps`
+1. add `"dbt_packages/dbt_synth/macros"` to your `dbt_project.yml`'s `macro-paths`
+1. build your synthetic models as documented below
+1. `dbt run`
 
 
 ## Architecture
@@ -23,7 +26,7 @@ These steps are handled using `dbt`'s [post hooks](https://docs.getdbt.com/refer
 ```
 {{ config(post_hook=synth_get_post_hooks())}}
 ```
-Hook queries (and other package data) are stored in the `dbt` [`builtins` object](https://docs.getdbt.com/reference/dbt-jinja-functions/builtins) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s.
+Hook queries (and other package data) are stored in the `dbt` [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s.
 
 
 
@@ -32,20 +35,16 @@ Consider the example model `orders.sql` below:
 ```sql
 -- depends_on: {{ ref('products') }}
 {{ config(materialized='table') }}
-{{ synth_table(
-    rows = 5000,
-    columns = [
-        synth_column_primary_key(name='order_id'),
-        synth_column_foreign_key(name='product_id', table='products', column='product_id'),
-        synth_column_distribution(name='status', 
-            distribution=synth_distribution(class='discrete', type='probabilities',
-                probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
-            )
-        ),
-        synth_column_integer(name='num_ordered', min=1, max=10),
-    ]
-) }}
-{{ config(post_hook=synth_get_post_hooks())}}
+select
+    {{ synth_primary_key() }} as order_id,
+    {{ synth_foreign_key(table='products', column='product_id') }} as product_id,
+    {{ synth_distribution(class='discrete', type='probabilities',
+        probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
+    ) }} as status,
+    {{ synth_integer(min=1, max=10) }} as num_ordered
+from {{ synth_table(rows=5000) }}
+
+{{ config(post_hook=synth_get_post_hooks()) }}
 ```
 The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, a new table is created with 5000 rows and several columns:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
@@ -282,18 +281,14 @@ For all but the last option, you may optionally specify a `label_precision`, whi
 
 More advanced distributions can be constructed from combinations of the above. For example, we can make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
 ```python
-{{ synth_table(
-  rows = 100000,
-  columns = [
-    synth_column_distribution(name='continuous_bimodal',
-        distribution=distribution_union(
-            synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
-            weights=[1, 2]
-        )
-    ),
-  ]
-) }}
+select
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+        weights=[1, 2]
+    ) }} as continuous_bimodal,
+from {{ synth_table(rows=100000) }}
+
 {{ config(post_hook=synth_get_post_hooks())}}
 ```
 Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
@@ -305,11 +300,11 @@ This package provides the following mechanisms for composing several distributio
 
 Generates values from several distributions with optional `weights`. If `weights` is omitted, each distribution is equally likely.
 ```python
-    synth_distribution_union(
+    {{ synth_distribution_union(
         synth_distribution(class='...', type='...', ...),
         synth_distribution(class='...', type='...', ...),
         weights=[1, 2, ...]
-    )
+    ) }} as ...
 ```
 Up to 10 distributions may be unioned. (Compose the macro to union more.)
 
@@ -325,11 +320,11 @@ Up to 10 distributions may be unioned. (Compose the macro to union more.)
 
 Generates values from the (optionally weighted) average of values from several distributions. If `weights` is omitted, each distribution contributes equally to the average.
 ```python
-    synth_distribution_average(
+    {{ synth_distribution_average(
         synth_distribution(class='...', type='...', ...),
         synth_distribution(class='...', type='...', ...),
         weights=[1, 2, ...]
-    )
+    ) }} as ...
 ```
 Up to 10 distributions may be averaged. (Compose the macro to average more.)
 
@@ -351,7 +346,7 @@ Basic column types, which are quite performant.
 
 Generates boolean values.
 ```python
-    synth_column_boolean(name='is_complete', pct_true=0.2),
+    {{ synth_boolean(pct_true=0.2) }} as is_complete,
 ```
 </details>
 
@@ -362,16 +357,14 @@ Generates integer values.
 
 For uniformly-distributed values, simply specify `min` and `max`:
 ```python
-    synth_column_integer(name='event_year', min=2000, max=2020),
+    {{ synth_integer(min=2000, max=2020) }} as event_year,
 ```
 
 Otherwise, specify the distribution to use:
 ```python
-    synth_column_integer(name='event_year',
-        distribution=synth_discretize_floor(
-            distribution=synth_distribution_continuous_normal(mean=min=2010, stddev=2.5,)
-        )
-    ),
+    {{ synth_discretize_floor(
+        distribution=synth_distribution_continuous_normal(mean=min=2010, stddev=2.5,)
+    ) }} as event_year,
 ```
 </details>
 
@@ -380,7 +373,7 @@ Otherwise, specify the distribution to use:
 
 Generates an integer sequence (value is incremented at each row).
 ```python
-    synth_column_integer_sequence(name='day_of_year', step=1, start=1),
+    {{ synth_integer_sequence(step=1, start=1) }} as day_of_year,
 ```
 </details>
 
@@ -389,7 +382,7 @@ Generates an integer sequence (value is incremented at each row).
 
 Generates numeric values.
 ```python
-    synth_column_numeric(name='price', min=1.99, max=999.99, precision=2),
+    {{ synth_numeric(min=1.99, max=999.99, precision=2) }} as price,
 ```
 </details>
 
@@ -398,7 +391,7 @@ Generates numeric values.
 
 Generates random strings.
 ```python
-    synth_column_string(name='password', min_length=10, max_length=20),
+    {{ synth_string(min_length=10, max_length=20) }} as password,
 ```
 String characters will include `A-Z`, `a-z`, and `0-9`.
 </details>
@@ -408,7 +401,7 @@ String characters will include `A-Z`, `a-z`, and `0-9`.
 
 Generates date values.
 ```python
-    synth_column_date(name='birth_date', min='1938-01-01', max='1994-12-31'),
+    {{ synth_date(min='1938-01-01', max='1994-12-31') }} as birth_date,
 ```
 </details>
 
@@ -417,7 +410,7 @@ Generates date values.
 
 Generates a date sequence.
 ```python
-    synth_column_date_sequence(name='calendar_date', start_date='2020-08-10', step=3),
+    {{ synth_date_sequence(start_date='2020-08-10', step=3) }} as calendar_date,
 ```
 </details>
 
@@ -426,7 +419,7 @@ Generates a date sequence.
 
 Generates a primary key column.
 ```python
-    synth_column_primary_key(name='product_id'),
+    {{} synth_primary_key() }} as product_id,
 ```
 </details>
 
@@ -435,7 +428,7 @@ Generates a primary key column.
 
 Generates a (single, static) value for every row.
 ```python
-    synth_column_value(name='is_registered', value='Yes'),
+    {{ synth_value(value='Yes') }} as is_registered,
 ```
 </details>
 
@@ -444,7 +437,10 @@ Generates a (single, static) value for every row.
 
 Generates values from a list of possible values, with optional probability weighting.
 ```python
-    synth_column_values(name='academic_subject', values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'], probabilities=[0.2, 0.3, 0.15, 0.35]),
+    {{ synth_values(
+        values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'],
+        probabilities=[0.2, 0.3, 0.15, 0.35]
+    ) }} as academic_subject,
 ```
 If `probabilities` are omitted, every value is equally likely.
 </details>
@@ -454,7 +450,8 @@ If `probabilities` are omitted, every value is equally likely.
 
 Generates values by mapping from an existing column or expresion to values in a dictionary.
 ```python
-    synth_column_mapping(name='day_type', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
+    {{ synth_mapping(name='day_type', expression='is_school_day',
+        mapping=({ true:'Instructional day', false:'Non-instructional day' })) }} as day_type,
 ```
 </details>
 
@@ -463,7 +460,9 @@ Generates values by mapping from an existing column or expresion to values in a 
 
 Generates values based on an expression (which may refer to other columns, or invoke SQL functions).
 ```python
-    synth_column_expression(name='week_of_calendar_year', expression="DATE_PART('week', calendar_date)::int", type='int'),
+    {{ synth_expression(name='week_of_calendar_year',
+        expression="DATE_PART('week', calendar_date)::int", type='int'
+    ) }} as week_of_calendar_year,
 ```
 </details>
 
@@ -494,15 +493,13 @@ Generates two or more columns with correlated values.
         })
     %}
     ...
-    {{ synth_table(
-        rows = var('num_students'),
-        columns = [
-            synth_column_primary_key(name='k_student'),
-            synth_column_correlation(data=birthyear_grade_correlations, column='birth_year'),
-            synth_column_correlation(data=birthyear_grade_correlations, column='grade'),
-            ...
-        ]
-    ) }}
+    select
+        {{ synth_primary_key() }} as k_student,
+        {{ synth_correlation(data=birthyear_grade_correlations, column='birth_year') }} as birth_year,
+        {{ synth_correlation(data=birthyear_grade_correlations, column='grade') }} as grade,
+        ...
+    from {{ synth_table(rows=var('num_students')) }}
+
     {{ config(post_hook=synth_get_post_hooks())}}
 ```
 To created correlated columns, you must specify a `data` object representing the correlation, which contains
@@ -521,7 +518,7 @@ Column types which reference values in another table.
 
 Generates values that are a primary key of another table.
 ```python
-    synth_column_foreign_key(name='product_id', table='products', column='id'),
+    {{ synth_foreign_key(name='product_id', table='products', column='id') }} as product_id,
 ```
 </details>
 
@@ -530,7 +527,7 @@ Generates values that are a primary key of another table.
 
 Generates values based on looking up values from one column in another table..
 ```python
-    synth_column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
+    {{ synth_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']) }} as gender,
 ```
 (`funcs` is an optional array of SQL functions to wrap the `from_col` value in prior to doing the lookup.)
 </details>
@@ -540,15 +537,15 @@ Generates values based on looking up values from one column in another table..
 
 Generates values by selecting them from another table, optionally weighted using a specified column of the other table.
 ```python
-    synth_column_select(
-            name='random_ajective'',
-            value_col="word",
-            lookup_table="synth_words",
-            distribution="weighted",
-            weight_col="prevalence",
-            filter="types like '%adjective%'",
-            funcs=["INITCAP"]
-        )
+    {{ synth_select(
+        name='random_ajective'',
+        value_col="word",
+        lookup_table="synth_words",
+        distribution="weighted",
+        weight_col="prevalence",
+        filter="types like '%adjective%'",
+        funcs=["INITCAP"]
+    ) }} as random_ajective
 ```
 The above will generate randomly-chosen adjectives (based on the specified `filter`), weighted by prevalence.
 </details>
@@ -578,7 +575,7 @@ AND synth_countries.geo_region_code=my_geo_region_col
 
 Generates a city, selected from the `synth_cities` seed table.
 ```python
-    synth_column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
+    {{ synth_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'") }} as city,
 ```
 </details>
 
@@ -587,7 +584,7 @@ Generates a city, selected from the `synth_cities` seed table.
 
 Generates a country, selected from the `synth_countries` seed table.
 ```python
-    synth_column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
+    {{ synth_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'") }} as country,
 ```
 </details>
 
@@ -596,7 +593,7 @@ Generates a country, selected from the `synth_countries` seed table.
 
 Generates a geo region (state, province, or territory), selected from the `synth_geo_regions` seed table.
 ```python
-    synth_column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
+    {{ synth_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'") }} as geo_region,
 ```
 </details>
 
@@ -605,7 +602,7 @@ Generates a geo region (state, province, or territory), selected from the `synth
 
 Generates a first name, selected from the `synth_firstnames` seed table.
 ```python
-    synth_column_firstname(name='first_name', filter="gender='Male'"),
+    {{ synth_firstname(name='first_name', filter="gender='Male'") }} as first_name,
 ```
 </details>
 
@@ -614,7 +611,7 @@ Generates a first name, selected from the `synth_firstnames` seed table.
 
 Generates a last name, selected from the `synth_lastnames` seed table.
 ```python
-    synth_column_lastname(name='last_name'),
+    {{ synth_lastname(name='last_name') }} as last_name,
 ```
 </details>
 
@@ -623,7 +620,7 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]),
+    {{ synth_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]) }} as random_word,
 ```
 The above generates a randomly-selected English noun or verb, weighted according to frequency.
 
@@ -635,16 +632,16 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates several words, selected from the `synth_words` seed table.
 ```python
-    synth_column_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]),
+    {{ synth_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]) }} as random_phrase,
 ```
 The above generates a random string of five words, uniformly districbuted, with the first letter of each word capitalized.
 
 Alternatively, you can generate words using format strings, for example
 ```python
-    synth_column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
+    {{ synth_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
         "{ADV} learning for {ADJ} {NOUN}s",
         "{ADV} {VERB} {NOUN} course"
-        ], funcs=["INITCAP"]),
+    ], funcs=["INITCAP"]) }} as course_title,
 ```
 This will generate sets of words according to one of the format strings you specify.
 
@@ -658,7 +655,7 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates a spoken language (name or 2- or 3-letter code), selected from the `synth_languages` seed table.
 ```python
-    synth_column_languages(name='random_lang', type="name", distribution="weighted"),
+    {{ synth_languages(name='random_lang', type="name", distribution="weighted") }} as random_lang,
 ```
 The optional `type` (which defaults to `name`) can take values `name` (the full English name of the language, e.g. *Spanish*), `code2` (the ISO 693-2 two-letter code for the langage, e.g. `es`), or `code3` (the ISO 693-3 three-letter code for the language, e.g. `spa`).
 </details>
@@ -674,21 +671,19 @@ Generates an address, based on `city`, `geo region`, `country`, `words`, and oth
 
 Creating a column `myaddress` using this macro will also create intermediate columns `myaddress__street_address`, `myaddress__city`, `myaddress__geo_region`, and `myaddress__postal_code` (or whatever `parts` you specify). You can then `add_update_hook()`s that reference these intermediate columns if you'd like. For example:
 ```python
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name='k_person'),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_address(name='home_address', countries=['United States'],
-            parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
-        synth_column_expression(name='home_address_street', expression="home_address__street_address"),
-        synth_column_expression(name='home_address_city', expression="home_address__city"),
-        synth_column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
-        synth_column_expression(name='home_address_country', expression="home_address__country"),
-        synth_column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
-    ]
-) }}
+select
+    {{ synth_primary_key() }} as k_person,
+    {{ synth_firstname(name='first_name') }} as first_name,
+    {{ synth_lastname(name='last_name') }} as last_name,
+    {{ synth_address(name='home_address', countries=['United States'] }} as ,
+        parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
+    {{ synth_expression(name='home_address_street', expression="home_address__street_address") }} as home_address_street,
+    {{ synth_expression(name='home_address_city', expression="home_address__city") }} as home_address_city,
+    {{ synth_expression(name='home_address_geo_region', expression="home_address__geo_region") }} as home_address_geo_region,
+    {{ synth_expression(name='home_address_country', expression="home_address__country") }} as home_address_country,
+    {{ synth_expression(name='home_address_postal_code', expression="home_address__postal_code") }} as home_address_postal_code,
+from {{ synth_table(rows=100) }}
+
 {{ synth_add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
 {{ config(post_hook=synth_get_post_hooks())}}
 ```
@@ -696,19 +691,17 @@ Creating a column `myaddress` using this macro will also create intermediate col
 Alternatively, you may use something like
 
 ```python
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name='k_person'),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_address(name='home_address_street', countries=['United States'], parts=['street_address']),
-        synth_column_address(name='home_address_city', countries=['United States'], parts=['city']),
-        synth_column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']),
-        synth_column_address(name='home_address_country', countries=['United States'], parts=['country']),
-        synth_column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']),
-    ]
-) }}
+select
+    {{ synth_primary_key() }} as k_person,
+    {{ synth_firstname(name='first_name') }} as first_name,
+    {{ synth_lastname(name='last_name') }} as last_name,
+    {{ synth_address(name='home_address_street', countries=['United States'], parts=['street_address']) }} as home_address_street,
+    {{ synth_address(name='home_address_city', countries=['United States'], parts=['city']) }} as home_address_city,
+    {{ synth_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']) }} as home_address_geo_region,
+    {{ synth_address(name='home_address_country', countries=['United States'], parts=['country']) }} as home_address_country,
+    {{ synth_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']) }} as home_address_postal_code,
+from {{ synth_table(rows=100) }}
+
 {{ config(post_hook=synth_get_post_hooks())}}
 ```
 </details>
@@ -717,16 +710,13 @@ Alternatively, you may use something like
 ## Advanced Usage
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
 ```python
-{{ config(materialized='table') }}
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name='k_person'),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_expression(name='full_name', expression="first_name || ' ' || last_name"),
-    ]
-) }}
+select
+    {{ synth_primary_key() }} as k_person,
+    {{ synth_firstname(name='first_name') }} as first_name,
+    {{ synth_lastname(name='last_name') }} as last_name,
+    {{ synth_expression(name='full_name', expression="first_name || ' ' || last_name") }} as full_name,
+from {{ synth_table(rows=100) }}
+
 {{ synth_add_cleanup_hook("alter table {{this}} drop column first_name") or "" }}
 {{ synth_add_cleanup_hook("alter table {{this}} drop column last_name") or "" }}
 {{ config(post_hook=synth_get_post_hooks())}}
@@ -798,6 +788,5 @@ In Postgres, using an AWS RDS small instance:
 
 ## Todo
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
-- [ ] implement methods for combining distributions
 - [ ] update various column types to use new distribution macros
 - [ ] flesh out more seeds, data columns, and composite columns

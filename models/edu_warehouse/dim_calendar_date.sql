@@ -8,42 +8,51 @@
 {% set calendar_event_array_expression = '???' %}
 {% endif %}
 
-with 
-{% for i in range(var('max_school_year')-var('min_school_year')+1) %}
-{% set year = (var('min_school_year') + i)|string %}
-synth{{year}} as (
-    {{ synth_table(
-    rows = 296,
-    columns = [
-        synth_column_primary_key(name='k_calendar_date'),
-        synth_column_value(name='k_school_calendar', value='ComingSoon'),
-        synth_column_foreign_key(name='k_lea', table='dim_lea', column='k_lea'),
-        synth_column_values(name='tenant_code', values=var('tenant_codes')),
-        synth_column_value(name='calendar_code', value='Normal'),
-        synth_column_date_sequence(name='calendar_date', start_date=year+'-08-10'),
-        synth_column_value(name='school_year', value=year|int),
-        synth_column_expression(name='week_day', expression="case extract(dow from calendar_date) when 0 then 'Sun' when 1 then 'Mon' when 2 then 'Tue' when 3 then 'Wed' when 4 then 'Thu' when 5 then 'Fri' when 6 then 'Sat' end"),
-        synth_column_boolean(name='is_school_day', pct_true=0.96),
-        synth_column_mapping(name='calendar_event', expression='is_school_day', mapping=({ true:'Instructional day', false:'Non-instructional day' })),
-        synth_column_expression(name='calendar_event_array', expression=calendar_event_array_expression, type='array'),
-        synth_column_integer_sequence(name='day_of_school_year', step=1),
-        synth_column_expression(name='week_of_calendar_year', type='int', expression="DATE_PART('week', calendar_date)::int"),
-        synth_column_expression(name='week_of_school_year', type='int', expression='case when not is_school_day then null when week_of_calendar_year::int >= 33 then week_of_calendar_year::int - 33 else week_of_calendar_year::int + 52 - 33 end'),
-        synth_column_geopoint(name='lat_long'),
-    ]
-    ) }}
+with dim_school_calendar as (
+  select * from {{ ref('dim_school_calendar') }}
+),
+{% for d in range(296) %}
+synth{{d}} as (
+    select 
+        md5(k_school_calendar || '{{d}}') as k_calendar_date,
+        k_school_calendar,
+        k_school,
+        tenant_code,
+        calendar_code,
+        dateadd(day, {{d}}, (school_year||'-08-10')::date) as calendar_date,
+        school_year,
+        (
+            case extract(dow from calendar_date)
+                when 0 then 'Sun'
+                when 1 then 'Mon'
+                when 2 then 'Tue'
+                when 3 then 'Wed'
+                when 4 then 'Thu'
+                when 5 then 'Fri'
+                when 6 then 'Sat'
+            end
+        ) as week_day,
+        case when RANDOM({{synth_get_randseed()}})<0.96 then true else false end as is_school_day,
+        case when is_school_day then 'Instructional day' else 'Non-instructional day' end as calendar_event,
+        {{calendar_event_array_expression}} as calendar_event_array,
+        {{d + 1}} as day_of_school_year,
+        DATE_PART('week', calendar_date)::int as week_of_calendar_year,
+        (
+            case
+                when not is_school_day then null
+                when week_of_calendar_year::int >= 33 then week_of_calendar_year::int - 33
+                else week_of_calendar_year::int + 52 - 33
+            end
+        ) as week_of_school_year
+    from dim_school_calendar
 ),
 {% endfor %}
 
-{# synth_column_foreign_key(name='k_school_calendar', table='dim_school_calendar', column='k_school_calendar'), #}
-{# synth_column_foreign_key(name='k_school', table='dim_school', column='k_school'), #}
-
 stacked as (
-    {% for i in range(var('max_school_year')-var('min_school_year')+1) %}
-    {% set year = var('min_school_year') + i %}
-    select * from synth{{year}}
-    {% if not loop.last %}union{% endif %}
-{% endfor %}
+    {% for d in range(296) %}
+    select * from synth{{d}}
+    {% if not loop.last %}union all{% endif %}
+    {% endfor %}
 )
 select *
 from stacked

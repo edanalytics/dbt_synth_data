@@ -1,87 +1,58 @@
 {{ config(materialized='table') }}
-{{ synth_table(
-  rows = 1000000,
-  columns = [
-    synth_column_distribution(name='continuous_uniform',
-        distribution=synth_distribution(class='continuous', type='uniform', min=0, max=1)
-    ),
-    synth_column_distribution(name='continuous_normal',
-        distribution=synth_distribution(class='continuous', type='normal')
-    ),
-    synth_column_distribution(name='continuous_exponential',
+
+select
+    {{ synth_distribution(class='continuous', type='uniform', min=0, max=1) }} as continuous_uniform,
+    {{ synth_distribution(class='continuous', type='normal') }} as continuous_normal,
+    {{ synth_distribution(class='continuous', type='exponential', lambda=0.1) }} as continuous_exponential,
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+        weights=[1, 2]
+    ) }} as continuous_bimodal,
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=10.0, stddev=2.0),
+        synth_distribution(class='continuous', type='normal', mean=15.0, stddev=1.0),
+        weights=[1, 2, 3]
+    ) }} as continuous_trimodal,
+    {{ synth_distribution_average(
+        synth_distribution(class='continuous', type='exponential', lambda=0.1),
+        synth_distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
+        weights=[1,4]
+    ) }} as continuous_average,
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=4.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=6.0, stddev=1.0),
+        weights=[1,2,3]
+    ) }} as interesting_wave,
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='uniform', min=0, max=1),
+        synth_distribution(class='continuous', type='uniform', min=1, max=2),
+        synth_distribution(class='continuous', type='uniform', min=2, max=3),
+        weights=[1,2,3]
+    ) }} as steps,
+    {{ synth_discretize_width_bucket(
+        distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),
+        from=0, to=10, strict_bounds=True, count=5, labels='bucket_range'
+    ) }} as discretized_uniform,
+    {{ synth_discretize_width_bucket(
+        distribution=synth_distribution(class='continuous', type='normal', mean=0.0, stddev=1.0),
+        from=-2.2, to=2.2, strict_bounds=False, count=24, labels='bucket_range'
+    ) }} as discretized_normal,
+    {{ synth_discretize_floor(
         distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
-    ),
-    synth_column_distribution(name='continuous_bimodal',
-        distribution=synth_distribution_union(
-            synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
-            weights=[1, 2]
-        )
-    ),
-    synth_column_distribution(name='continuous_trimodal',
-        distribution=synth_distribution_union(
-            synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-            synth_distribution(class='continuous', type='normal', mean=10.0, stddev=2.0),
-            synth_distribution(class='continuous', type='normal', mean=15.0, stddev=1.0),
-            weights=[1, 2, 3]
-        )
-    ),
-    synth_column_distribution(name='continuous_average',
-        distribution=synth_distribution_average(
-            synth_distribution(class='continuous', type='exponential', lambda=0.1),
-            synth_distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
-            weights=[1,4]
-        )
-    ),
-    synth_column_distribution(name='interesting_wave',
-        distribution=synth_distribution_union(
-            synth_distribution(class='continuous', type='normal', mean=2.0, stddev=1.0),
-            synth_distribution(class='continuous', type='normal', mean=4.0, stddev=1.0),
-            synth_distribution(class='continuous', type='normal', mean=6.0, stddev=1.0),
-            weights=[1,2,3]
-        )
-    ),
-    synth_column_distribution(name='steps',
-        distribution=synth_distribution_union(
-            synth_distribution(class='continuous', type='uniform', min=0, max=1),
-            synth_distribution(class='continuous', type='uniform', min=1, max=2),
-            synth_distribution(class='continuous', type='uniform', min=2, max=3),
-            weights=[1,2,3]
-        )
-    ),
-    synth_column_distribution(name='discretized_uniform',
-        distribution=synth_discretize_width_bucket(
-            distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),
-            from=0, to=10, strict_bounds=True, count=5, labels='bucket_range'
-        )
-    ),
-    synth_column_distribution(name='discretized_normal',
-        distribution=synth_discretize_width_bucket(
-            distribution=synth_distribution(class='continuous', type='normal', mean=0.0, stddev=1.0),
-            from=-2.2, to=2.2, strict_bounds=False, count=24, labels='bucket_range'
-        )
-    ),
-    synth_column_distribution(name='discretized_exponential',
-        distribution=synth_discretize_floor(
-            distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
-        )
-    ),
-    synth_column_distribution(name='discrete_bernoulli',
-        distribution=synth_distribution(class='discrete', type='bernoulli')
-    ),
-    synth_column_distribution(name='discrete_binomial',
-        distribution=synth_distribution(class='discrete', type='binomial', n=10, p=0.03)
-    ),
-    synth_column_distribution(name='discrete_probability',
-        distribution=synth_distribution(class='discrete', type='probabilities',
-            probabilities={"cat":0.3, "dog":0.5, "parrot":0.2})
-    ),
-    synth_column_distribution(name='discrete_weights',
-        distribution=synth_distribution(class='discrete', type='weights',
-            values=["cat", "dog", "parrot"], weights=[3, 6, 1])
-    ),
-  ]
-) }}
+    ) }} as discretized_exponential,
+    {{ synth_distribution(class='discrete', type='bernoulli') }} as discrete_bernoulli,
+    {{ synth_distribution(class='discrete', type='binomial', n=10, p=0.03) }} as discrete_binomial,
+    {{ synth_distribution(class='discrete', type='probabilities',
+        probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}
+    ) }} as discrete_probability,
+    {{ synth_distribution(class='discrete', type='weights',
+        values=["cat", "dog", "parrot"], weights=[3, 6, 1]
+    ) }} as discrete_weights
+from {{ synth_table(rows=1000000) }}
+
 {# { "5":0.05, "7":0.15, "11":0.25, "13":0.35, "17":0.2} #}
 {# [0.05, 0.15, 0.25, 0.35, 0.2] #}
 {{ config(post_hook=synth_get_post_hooks())}}

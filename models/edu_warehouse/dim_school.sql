@@ -25,12 +25,14 @@ select
     {{ synth_value(value=None) }} as website,
     {{ synth_value(value='Physical') }} as address_type,
     {{ synth_address(
+        name='street_address',
         countries=['United States'],
         geo_region_abbrs=[var('state_code')],
         address_types=['house'],
         parts=['street_address']
     ) }} as street_address,
     {{ synth_address(
+        name='city',
         countries=['United States'],
         geo_region_abbrs=[var('state_code')],
         address_types=['house'],
@@ -39,6 +41,7 @@ select
     ) }} as city,
     {{ synth_value(value=None) }} as name_of_county,
     {{ synth_address(
+        name='state_code',
         countries=['United States'],
         geo_region_abbrs=[var('state_code')],
         address_types=['house'],
@@ -46,6 +49,7 @@ select
         distribution="uniform"
     ) }} as state_code,
     {{ synth_address(
+        name='postal_code',
         countries=['United States'],
         geo_region_abbrs=[var('state_code')],
         address_types=['house'],

@@ -11,5 +11,5 @@
 {% endmacro %}
 
 {% macro snowflake__synth_distribution_continuous_uniform(min, max) %}
-    UNIFORM({{min}}::float, {{max}}::float, RANDOM( synth_get_randseed() ))
+    UNIFORM({{min}}::float, {{max}}::float, RANDOM( {{ synth_get_randseed() }} ))
 {% endmacro %}

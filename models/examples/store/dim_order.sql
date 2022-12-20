@@ -4,10 +4,8 @@ select
         {{ synth_primary_key() }} as k_order,
         {{ synth_select(lookup_table="dim_product", 
             value_col="k_product", distribution="weighted", weight_col="popularity") }} as k_product,
-        {{ synth_distribution( 
-            distribution=synth_distribution(class='discrete', type='probabilities',
-                probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
-            )
+        {{ synth_distribution(class='discrete', type='probabilities',
+            probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
         ) }} as status,
         {{ synth_integer(min=1, max=10) }} as num_ordered
 from {{ synth_table(rows=5000) }}

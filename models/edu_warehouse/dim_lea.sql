@@ -1,5 +1,4 @@
 {{ config(materialized='table') }}
-
 select
     {{ synth_primary_key() }} as k_lea,
     {{ synth_value(value='c3203005af9e98e33a2cd94f030a2a89') }} as k_lea__parent,
@@ -15,12 +14,14 @@ select
     {{ synth_value(value=None) }} as charter_status,
     {{ synth_value(value='Mailing') }} as address_type,
     {{ synth_address(
+        name='street_address',
         countries=['United States'],
         geo_regions=[var('state_code')],
         address_types=['house'],
         parts=['street_address']
     ) }} as street_address,
     {{ synth_address(
+        name='city',
         countries=['United States'],
         geo_regions=[var('state_code')],
         address_types=['house'],
@@ -28,12 +29,14 @@ select
     ) }} as city,
     {{ synth_value(value=None) }} as name_of_county,
     {{ synth_address(
+        name='state_code',
         countries=['United States'],
         geo_regions=[var('state_code')],
         address_types=['house'],
         parts=['geo_region']
     ) }} as state_code,
     {{ synth_address(
+        name='postal_code',
         countries=['United States'],
         geo_regions=[var('state_code')],
         address_types=['house'],

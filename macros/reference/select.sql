@@ -30,7 +30,7 @@
     {{ synth_add_cleanup_hook(postgres__synth_select_cleanup(name)) or "" }}
     
     RANDOM() as {{name}}_rand,
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro %}
 
 {% macro postgres__synth_select_uniform_update(name, value_col, lookup_table, filter, funcs) %}
@@ -51,7 +51,7 @@ update {{ this }} set {{name}}=y.{{value_col}} from (
     {{ synth_add_cleanup_hook(postgres__synth_select_cleanup(name)) or "" }}
     
     RANDOM() as {{name}}_rand,
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro %}
 
 {% macro postgres__synth_select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs) %}
@@ -80,7 +80,7 @@ alter table {{ this }} drop column {{name}}_rand
     {{ synth_add_cleanup_hook(snowflake__synth_select_cleanup(name)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro %}
 
 {% macro snowflake__synth_select_uniform_update(name, value_col, lookup_table, filter, funcs) %}
@@ -101,7 +101,7 @@ update {{ this }} x set x.{{name}}=y.{{value_col}} from (
     {{ synth_add_cleanup_hook(snowflake__synth_select_cleanup(name)) or "" }}
     
     UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro %}
 
 {% macro snowflake__synth_select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs) %}

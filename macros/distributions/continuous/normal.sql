@@ -12,5 +12,5 @@
 {% endmacro %}
 
 {% macro snowflake__synth_distribution_continuous_normal(mean, stddev) %}
-    NORMAL({{mean}}::float, {{stddev}}::float, RANDOM( synth_get_randseed() ))
+    NORMAL({{mean}}::float, {{stddev}}::float, RANDOM( {{ synth_get_randseed() }} ))
 {% endmacro %}

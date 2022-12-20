@@ -9,13 +9,13 @@
 {% macro postgres__synth_expression(name, expression, type='varchar') %}
     {{ synth_add_update_hook(synth_expression_update(name, expression)) or "" }}
     
-    NULL AS {{name}}
+    NULL
 {% endmacro %}
 
 {% macro snowflake__synth_expression(name, expression, type='varchar') %}
     {{ synth_add_update_hook(synth_expression_update(name, expression)) or "" }}
     
-    NULL::{{type}} AS {{name}}
+    NULL::{{type}}
 {% endmacro%}
 
 {% macro synth_expression_update(name, expression) %}

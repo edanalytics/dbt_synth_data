@@ -1,4 +1,4 @@
-{% macro synth_column_address(
+{% macro synth_address(
     name,
     address_types=['house','apartment','pobox'],
     street_types=['St.', 'Rd.', 'Dr.', 'Ln.', 'Ave.', 'Pl.', 'Blvd.', 'Ct.', 'Trl.', 'Pkwy.'],
@@ -93,16 +93,16 @@
             end
         {% endset %}
 
-        {{ synth_column_integer(name=name+'__address_type', min=1, max=address_types|length, distribution='uniform') }},
-        {{ synth_column_integer(name=name+'__number1', min=10, max=9999, distribution='uniform') }},
-        {{ synth_column_words(name=name+'__street_name', language_code='en', distribution="uniform", format_strings=[
+        {{ synth_integer(min=1, max=address_types|length) }} as {{name}}__address_type,
+        {{ synth_integer(min=10, max=9999) }} as {{name}}__number1,
+        {{ synth_words(name=name+'__street_name', language_code='en', distribution="uniform", format_strings=[
             "{NOUN}",
             "{ADJ} {NOUN}"
-            ], funcs=["INITCAP"]) }},
-        {{ synth_column_integer(name=name+'__street_type', min=1, max=street_types|length, distribution='uniform') }},
-        {{ synth_column_integer(name=name+'__unit_type', min=1, max=2, distribution='uniform') }},
-        {{ synth_column_integer(name=name+'__number2', min=1, max=999, distribution='uniform') }},
-        {{ synth_column_expression(name=name+'__street_address', expression=street_address_expression) }}
+        ], funcs=["INITCAP"]) }} as {{name}}__street_name,
+        {{ synth_integer(min=1, max=street_types|length) }} as {{name}}__street_type,
+        {{ synth_integer(min=1, max=2) }} as {{name}}__unit_type,
+        {{ synth_integer(min=1, max=999) }} as {{name}}__number2,
+        {{ synth_expression(name=name+'__street_address', expression=street_address_expression) }} as {{name}}__street_address
         
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'address_type')) or "" }}
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'number1')) or "" }}
@@ -129,7 +129,7 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_city(name=name+'__city', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ synth_city(name=name+'__city', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__city
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'city')) or "" }}
     {% endif %}
 
@@ -149,7 +149,7 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_geo_region(name=name+'__geo_region', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ synth_geo_region(name=name+'__geo_region', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__geo_region
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'geo_region')) or "" }}
     {% elif 'geo_region_abbr' in parts %}
         {% set filter_pieces = [] %}
@@ -167,12 +167,12 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_geo_region(name=name+'__geo_region_abbr', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ synth_geo_region(name=name+'__geo_region_abbr', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__geo_region_abbr
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'geo_region_abbr')) or "" }}
     {% endif %}
 
     {% if 'postal_code' in parts %}
-        {{ synth_column_integer(name=name+'__postal_code', min=postal_code_min, max=postal_code_max, distribution='uniform') }}
+        {{ synth_integer(min=postal_code_min, max=postal_code_max) }} as {{name}}__postal_code
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'postal_code')) or "" }}
     {% endif %}
 
@@ -182,12 +182,12 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_country(name=name+'__country', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ synth_country(name=name+'__country', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__country
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'country')) or "" }}
     {% endif %}
 
     {% if parts|length > 0 %}
-        , {{ synth_column_expression(name=name, expression=address_expression) }}
+        , {{ synth_expression(name=name, expression=address_expression) }}
     {% endif %}
 {%- endmacro %}
 

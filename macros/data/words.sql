@@ -38,9 +38,9 @@
         {% endset %}
 
         {% set query %}
-        {{ synth_integer(min=1, max=format_strings|length, distribution='uniform') }} as {{name}}_format_idx,
+        {{ synth_integer(min=1, max=format_strings|length) }} as {{name}}_format_idx,
         {% for col_name,pos in token_set.items() %}
-        {{ synth_word(language=language, language_code=language_code, pos=[pos], distribution=distribution) }} as {{col_name}},
+        {{ synth_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }} as {{col_name}},
         {% endfor %}
         {{ synth_expression(name=name, expression=words_expression, type='varchar') }}
         {% endset %}
@@ -63,7 +63,7 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ synth_word(language=language, language_code=language_code, distribution=distribution) }} as {{name}}_word{{i}},
+        {{ synth_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }} as {{name}}_word{{i}},
         {% endfor %}
         {{ synth_expression(name=name, expression=words_expression, type='varchar') }}
         {% for col in cleanup_cols %}

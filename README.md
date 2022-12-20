@@ -709,7 +709,7 @@ from {{ synth_table(rows=100) }}
 
 ## Advanced Usage
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
-```python
+```sql
 select
     {{ synth_primary_key() }} as k_person,
     {{ synth_firstname(name='first_name') }} as first_name,
@@ -722,6 +722,36 @@ from {{ synth_table(rows=100) }}
 {{ config(post_hook=synth_get_post_hooks())}}
 ```
 Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `synth_add_cleanup_hook()` calls in the example above.
+
+You may also want to modify another table *only after this one is built*. This is possible using cleanup hooks.
+
+For example, suppose you want to create `products` and `orders`, but you want some `products` to be exponentially more popular (more `orders` for) than others. This is possible by
+1. creating a `products` model with an extra popularity column
+    ```sql
+    select
+        {{ synth_primary_key() }} as k_product,
+        {{ synth_string(min_length=10, max_length=20) }} as name,
+        {{ synth_distribution(class='continuous', type='exponential', lambda=0.05) }} as popularity
+    from {{ synth_table(rows=50) }}
+    ```
+1. creating an `orders` model with a `synth_select()` to `products` using your popularity column
+    ```sql
+    select
+        {{ synth_primary_key() }} as k_order,
+        {{ synth_select(lookup_table="products", 
+            value_col="k_product", distribution="weighted", weight_col="popularity") }} as k_product,
+        {{ synth_distribution(class='discrete', type='probabilities',
+            probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
+        ) }} as status,
+        {{ synth_integer(min=1, max=10) }} as num_ordered
+    from {{ synth_table(rows=5000) }}
+    ```
+1. at the bottom of the `orders` model, clean up by dropping the exponential weight column from `products`:
+```sql
+{{ synth_add_cleanup_hook('alter table {{target.database}}.{{target.schema}}.products drop column popularity') }}
+
+
+```
 
 
 ## Datasets

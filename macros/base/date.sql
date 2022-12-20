@@ -11,5 +11,5 @@
 {% endmacro %}
 
 {% macro snowflake__synth__date(min, max, distribution) %}
-    UNIFORM({{min}}, {{max}}, RANDOM( synth_get_randseed() ))
+    UNIFORM({{min}}, {{max}}, RANDOM( {{ synth_get_randseed() }} ))
 {% endmacro%}

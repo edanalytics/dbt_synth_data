@@ -167,7 +167,7 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_geo_region(name=name+'__geo_region_abbr', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__geo_region_abbr
+        {{ synth_geo_region_abbr(name=name+'__geo_region_abbr', distribution=distribution, weight_col="population", filter=filter) }} as {{name}}__geo_region_abbr
         {{ synth_add_cleanup_hook(synth_address_cleanup(name, 'geo_region_abbr')) or "" }}
     {% endif %}
 

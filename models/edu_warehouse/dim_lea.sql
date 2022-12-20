@@ -16,14 +16,14 @@ select
     {{ synth_address(
         name='street_address',
         countries=['United States'],
-        geo_regions=[var('state_code')],
+        geo_region_abbrs=[var('state_code')],
         address_types=['house'],
         parts=['street_address']
     ) }} as street_address,
     {{ synth_address(
         name='city',
         countries=['United States'],
-        geo_regions=[var('state_code')],
+        geo_region_abbrs=[var('state_code')],
         address_types=['house'],
         parts=['city']
     ) }} as city,
@@ -31,14 +31,14 @@ select
     {{ synth_address(
         name='state_code',
         countries=['United States'],
-        geo_regions=[var('state_code')],
+        geo_region_abbrs=[var('state_code')],
         address_types=['house'],
-        parts=['geo_region']
+        parts=['geo_region_abbr']
     ) }} as state_code,
     {{ synth_address(
         name='postal_code',
         countries=['United States'],
-        geo_regions=[var('state_code')],
+        geo_region_abbrs=[var('state_code')],
         address_types=['house'],
         parts=['postal_code']
     ) }} as postal_code,

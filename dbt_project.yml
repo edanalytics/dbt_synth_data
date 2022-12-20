@@ -38,35 +38,3 @@ models:
   tenant_sharding:
     # Config indicated by + and applies to all files under models/example/
 
-vars:
-  tenant_codes: ['SomeTenant']
-  state_code: 'PA'
-  min_school_year: 2020
-  max_school_year: 2022
-  
-  num_leas: 50
-  num_schools: 1200
-  
-  num_staffs: 20000
-  staff_min_birthdate: '1938-01-01'
-  staff_max_birthdate: '1994-12-31'
-  
-  num_students: 500000
-  # min_students_per_school?
-  # max_students_per_school?
-  students_pct_lep: 0.1733
-  students_pct_is_special_education_annual: 0.02
-  students_pct_is_special_education_active: 0.015
-  students_pct_is_economic_disadvantaged: 0.5
-  students_pct_is_immigrant: 0.00026
-  
-  session_types: ['YR', 'S1', 'S2', 'Q1', 'Q2', 'Q3', 'Q4']
-  
-  avg_classrooms_per_school: 20
-  avg_periods_per_school: 8
-  classroom_min_seating: 15
-  classroom_max_seating: 75
-
-  num_courses: 5000
-  
-  num_course_sections: 70000

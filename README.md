@@ -8,6 +8,7 @@ All the magic happens in `macros/*`.
 ## Installation
 1. add `dbt_synth_data` to your `packages.yml`
 1. run `dbt deps`
+1. run `dbt seed`
 1. add `"dbt_packages/dbt_synth/macros"` to your `dbt_project.yml`'s `macro-paths`
 1. build your synthetic models as documented below
 1. `dbt run`

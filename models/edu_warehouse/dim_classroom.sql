@@ -4,7 +4,7 @@
 select
     {{ synth_primary_key() }} as k_classroom,
     {{ synth_foreign_key(table='dim_school', column='k_school') }} as k_school,
-    {{ synth_values(values=var('tenant_codes')) }} as tenant_code,
+    {{ synth_values(values=(var('tenant_codes') or ["test"])) }} as tenant_code,
     {{ synth_value(value='Room        ') }} as classroom_id_code,
     {{ synth_integer(min=100, max=800, distribution='uniform') }} as classroom_id_num,
     {{ synth_value(value=100) }} as maximum_seating,

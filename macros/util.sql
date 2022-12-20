@@ -8,17 +8,17 @@
     not what we want.
 
     This is implemented with sort of a hack, where we add a `rand_seed` key to
-    the `builtins` object and then  increment it every time another column is
-    added. The `builtins` object is one of few dbt objects that are *not*
+    the `target` object and then  increment it every time another column is
+    added. The `target` object is one of few dbt objects that are *not*
     read-only, so we can store, read, and increment a key value on it.
 #}
 {% macro synth_get_randseed() %}
-    {%- if not builtins.get("rand_seed") -%}
-    {%- do builtins.update({"rand_seed": 10000}) -%}
+    {%- if not target.get("rand_seed") -%}
+    {%- do target.update({"rand_seed": 10000}) -%}
     {%- set next_rand_seed = 10000 -%}
     {%- else -%}
-    {%- set next_rand_seed = builtins.get("rand_seed")|int + 1 -%}
-    {%- do builtins.update({"rand_seed": next_rand_seed}) -%}
+    {%- set next_rand_seed = target.get("rand_seed")|int + 1 -%}
+    {%- do target.update({"rand_seed": next_rand_seed}) -%}
     {%- endif -%}
     {{ return(next_rand_seed) }}
 {% endmacro%}
@@ -38,28 +38,28 @@
     which will first run the update hooks and then run the cleanup hooks.
 #}
 {%- macro synth_add_update_hook(query) -%}
-    {%- set updatehooks = builtins.get("updatehooks") or [] -%}
+    {%- set updatehooks = target.get("updatehooks") or [] -%}
     {{ updatehooks.append(query) or "" }}
-    {%- do builtins.update({"updatehooks": updatehooks}) -%}
+    {%- do target.update({"updatehooks": updatehooks}) -%}
 {%- endmacro %}
 
 {%- macro synth_add_cleanup_hook(query) -%}
-    {%- set cleanuphooks = builtins.get("cleanuphooks") or [] -%}
+    {%- set cleanuphooks = target.get("cleanuphooks") or [] -%}
     {{ cleanuphooks.append(query) or "" }}
-    {%- do builtins.update({"cleanuphooks": cleanuphooks}) -%}
+    {%- do target.update({"cleanuphooks": cleanuphooks}) -%}
 {%- endmacro %}
 
 {%- macro synth_get_post_hooks() -%}
     {% set posthooks %}
     
-    {% if builtins.get("updatehooks") %}
-    {% for updatehook in builtins.get("updatehooks") | unique %}
+    {% if target.get("updatehooks") %}
+    {% for updatehook in target.get("updatehooks") | unique %}
         {{ updatehook }};
     {% endfor %}
     {% endif %}
 
-    {% if builtins.get("cleanuphooks") %}
-    {% for cleanuphook in builtins.get("cleanuphooks") | unique %}
+    {% if target.get("cleanuphooks") %}
+    {% for cleanuphook in target.get("cleanuphooks") | unique %}
         {{ cleanuphook }};
     {% endfor %}
     {% endif %}
@@ -70,15 +70,15 @@
 {%- endmacro %}
 
 {%- macro synth_add_run_end_hook(query) -%}
-    {%- set runendhooks = builtins.get("runendhooks") or [] -%}
+    {%- set runendhooks = target.get("runendhooks") or [] -%}
     {{ runendhooks.append(query) or "" }}
-    {%- do builtins.update({"runendhooks": runendhooks}) -%}
+    {%- do target.update({"runendhooks": runendhooks}) -%}
 {%- endmacro %}
 
 {%- macro synth_do_run_end_hooks() -%}
-    {{ print(builtins.get("runendhooks")) }}
-    {% if builtins.get("runendhooks") %}
-    {% for runendhook in builtins.get("runendhooks") | unique %}
+    {{ print(target.get("runendhooks")) }}
+    {% if target.get("runendhooks") %}
+    {% for runendhook in target.get("runendhooks") | unique %}
         {{runendhook}};
     {% endfor %}
     {% endif %}

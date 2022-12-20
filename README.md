@@ -747,11 +747,11 @@ For example, suppose you want to create `products` and `orders`, but you want so
     from {{ synth_table(rows=5000) }}
     ```
 1. at the bottom of the `orders` model, clean up by dropping the exponential weight column from `products`:
-```sql
-{{ synth_add_cleanup_hook('alter table {{target.database}}.{{target.schema}}.products drop column popularity') }}
-
-
-```
+    ```sql
+    {{ synth_add_cleanup_hook(
+        'alter table {{target.database}}.{{target.schema}}.products drop column popularity'
+    ) }}
+    ```
 
 
 ## Datasets

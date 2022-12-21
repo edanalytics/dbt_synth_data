@@ -12,8 +12,8 @@
     {{ synth_add_update_hook(postgres__synth_foreign_key_update(name, table, column)) or "" }}
     {{ synth_add_cleanup_hook(postgres__synth_foreign_key_cleanup(name)) or "" }}
     
-    ''::varchar AS {{name}},
-    RANDOM() AS {{name}}_rand
+    RANDOM() AS {{name}}_rand,
+    ''::varchar
 {% endmacro %}
 
 {% macro postgres__synth_foreign_key_update(name, table, column) %}
@@ -37,8 +37,8 @@ alter table {{ this }} drop column {{name}}_rand
     {{ synth_add_update_hook(snowflake__synth_foreign_key_update(name, table, column)) or "" }}
     {{ synth_add_cleanup_hook(snowflake__synth_foreign_key_cleanup(name)) or "" }}
     
-    ''::varchar AS {{name}},
-    UNIFORM(0::float, 1::float, RANDOM( {{synth_get_randseed()}} )) AS {{name}}_rand
+    UNIFORM(0::float, 1::float, RANDOM( {{synth_get_randseed()}} )) AS {{name}}_rand,
+    ''::varchar
 {% endmacro%}
 
 {% macro snowflake__synth_foreign_key_update(name, table, column) %}

@@ -8,8 +8,7 @@
 
 {% macro postgres__synth_value(value) %}
     {% if value is string %} '{{value}}'
-    {% elif value is integer %}{{value}}
-    {% elif value is float %}{{value}}
+    {% elif value is numeric %}{{value}}
     {% elif not value %}NULL
     {% else %}{{value}}
     {% endif %}
@@ -17,8 +16,7 @@
 
 {% macro snowflake__synth_value(value) %}
     {% if value is string %} '{{value}}'
-    {% elif value is integer %}{{value}}
-    {% elif value is float %}{{value}}
+    {% elif value is numeric %}{{value}}
     {% elif not value %}NULL
     {% else %}{{value}}
     {% endif %}

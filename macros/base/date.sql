@@ -11,5 +11,12 @@
 {% endmacro %}
 
 {% macro snowflake__synth__date(min, max, distribution) %}
-    UNIFORM({{min}}, {{max}}, RANDOM( {{ synth_get_randseed() }} ))
+    dateadd(
+        day,
+        UNIFORM(
+            0,
+            datediff(day, '{{min}}'::date, '{{max}}'::date),
+            RANDOM( {{ synth_get_randseed() }} )),
+        '{{min}}'::date
+    )
 {% endmacro%}

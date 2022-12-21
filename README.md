@@ -334,12 +334,12 @@ Up to 10 distributions may be averaged. (Compose the macro to average more.)
 
 
 
-## Column types
-This package provides the following column types:
+## Data types
+This package provides the following data types:
 
 
-### Base column types
-Basic column types, which are quite performant.
+### Basic data types
+Basic data types, which are quite performant.
 
 <details>
 <summary><code>boolean</code></summary>
@@ -360,7 +360,7 @@ For uniformly-distributed values, simply specify `min` and `max`:
     {{ synth_integer(min=2000, max=2020) }} as event_year,
 ```
 
-Otherwise, specify the distribution to use:
+Otherwise, specify a discretized distribution:
 ```python
     {{ synth_discretize_floor(
         distribution=synth_distribution_continuous_normal(mean=min=2010, stddev=2.5,)
@@ -467,8 +467,8 @@ Generates values based on an expression (which may refer to other columns, or in
 </details>
 
 
-### Statistical column types
-Statistical column types can be used to make advanced statistical relationships between tables and columns.
+### Statistical data types
+Statistical data types can be used to make advanced statistical relationships between tables and columns.
 
 <details>
 <summary><code>correlation</code></summary>
@@ -510,8 +510,8 @@ Constructing a `probabilities` hypercube of dimension more than two or three can
 </details>
 
 
-### Reference column types
-Column types which reference values in another table.
+### Reference data types
+Data types which reference values in another table.
 
 <details>
 <summary><code>foreign key</code></summary>
@@ -551,12 +551,12 @@ The above will generate randomly-chosen adjectives (based on the specified `filt
 </details>
 
 
-### Data column types
-Data column types use real-world data which is maintained in the `seeds/` directory. Some effort has been made to make these data sets
+### Advanced data types
+Advanced data types use real-world data which is maintained in the `seeds/` directory. Some effort has been made to make these data sets
 * **Generalized**, rather than specific to a particular country, region, language, etc. For example, the *words* dictionary contains common words from many common languages, not just English.
 * **Statistically rich**, with associated metadata which makes the data more useful by capturing various distributions embedded in the data. For example, the *countries* list includes the (approximate) population and land area of each country, which facilitates generating country lists weighted according to these features. Likewise, the *cities* list has the latitude and longitude coordinates for each city, which facilitates generating fairly realistic coordinates for synthetic addresses.
 
-Data column types may all specify a `distribution="weighted"` and `weight_col="population"` (or similar) to skew value distributions. They may also specify `filter`, which is a SQL `where` expression narrowing down the pool of data values that will be used. Finally, they may specify a `filter_expressions` dictionary which allows dynamic filtering based on expressions which can involve row values from other columns. If, for example, we are creating a country column and pass `filter_expressions` as
+Advanced data types may all specify a `distribution="weighted"` and `weight_col="population"` (or similar) to skew value distributions. They may also specify `filter`, which is a SQL `where` expression narrowing down the pool of data values that will be used. Finally, they may specify a `filter_expressions` dictionary which allows dynamic filtering based on expressions which can involve row values from other columns. If, for example, we are creating a country column and pass `filter_expressions` as
 ```json
 {
     "country_name": "INITCAP(my_country_col)",
@@ -661,8 +661,8 @@ The optional `type` (which defaults to `name`) can take values `name` (the full 
 </details>
 
 
-### Composite column types
-Composite column types put together several other column types into a more complex data type.
+### Composite data types
+Composite data types put together several other column types into a more complex data type.
 
 <details>
 <summary><code>address</code></summary>
@@ -723,7 +723,7 @@ from {{ synth_table(rows=100) }}
 ```
 Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `synth_add_cleanup_hook()` calls in the example above.
 
-You may also want to modify another table *only after this one is built*. This is possible using cleanup hooks.
+You may also want to modify another table *only after this one is built*. This is also possible using cleanup hooks.
 
 For example, suppose you want to create `products` and `orders`, but you want some `products` to be exponentially more popular (more `orders` for) than others. This is possible by
 1. creating a `products` model with an extra popularity column

@@ -17,7 +17,7 @@
     {% elif data.columns[column][0] is integer %}0::int
     {% elif data.columns[column][0] is float %}0::float
     {% else %}NULL
-    {% endif %} AS {{column}}
+    {% endif %}
 {% endmacro %}
 
 {% macro postgres__synth_correlation_update(data, column) %}
@@ -73,7 +73,7 @@ alter table {{ this }} drop column {{column}}_rand
     {% elif data.columns[column][0] is integer %}0::int
     {% elif data.columns[column][0] is float %}0::float
     {% else %}NULL
-    {% endif %} AS {{column}}
+    {% endif %}
 {% endmacro%}
 
 {% macro snowflake__synth_correlation_update(data, column) %}

@@ -279,21 +279,6 @@ For all but the last option, you may optionally specify a `label_precision`, whi
 
 
 ### Constructing Complex Distributions
-
-More advanced distributions can be constructed from combinations of the above. For example, we can make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
-```python
-select
-    {{ synth_distribution_union(
-        synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
-        synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
-        weights=[1, 2]
-    ) }} as continuous_bimodal,
-from {{ synth_table(rows=100000) }}
-
-{{ config(post_hook=synth_get_post_hooks())}}
-```
-Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
-
 This package provides the following mechanisms for composing several distributions:
 
 <details>
@@ -308,6 +293,20 @@ Generates values from several distributions with optional `weights`. If `weights
     ) }} as ...
 ```
 Up to 10 distributions may be unioned. (Compose the macro to union more.)
+
+For example, make a [bimodal distribution](https://en.wikipedia.org/wiki/Multimodal_distribution) as follows:
+```python
+select
+    {{ synth_distribution_union(
+        synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),
+        synth_distribution(class='continuous', type='normal', mean=8.0, stddev=1.0),
+        weights=[1, 2]
+    ) }} as continuous_bimodal,
+from {{ synth_table(rows=100000) }}
+
+{{ config(post_hook=synth_get_post_hooks())}}
+```
+Here, values will come from the union of the two normal distributions, with the second distribution twice as likely as the first.
 
 ![Example of continuous bimodal distribution](/assets/continuous_bimodal.png)
 **Above:** Histogram of a continuous bimodal distribution composed of the union of two normal distributions (1M values).

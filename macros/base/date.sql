@@ -10,7 +10,7 @@
     date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int
 {% endmacro %}
 
-{% macro snowflake__synth__date(min, max, distribution) %}
+{% macro snowflake__synth_date(min, max, distribution) %}
     dateadd(
         day,
         UNIFORM(

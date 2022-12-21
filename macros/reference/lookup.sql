@@ -9,7 +9,7 @@
 {% macro postgres__synth_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
     {{ synth_add_update_hook(postgres__synth_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
     
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro %}
 
 {% macro postgres__synth_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs) %}
@@ -22,7 +22,7 @@ update {{ this }} x set {{name}}=y.{{to_col}} from (
 {% macro snowflake__synth_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
     {{ synth_add_update_hook(snowflake__synth_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
     
-    ''::varchar AS {{name}}
+    ''::varchar
 {% endmacro%}
 
 {% macro snowflake__synth_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs) %}

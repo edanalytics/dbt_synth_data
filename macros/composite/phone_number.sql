@@ -13,7 +13,7 @@
 {% endmacro %}
 
 {% macro snowflake__synth_phone_number() %}
-    '(' || LPAD(UNIFORM(100, 999, RANDOM( {{get_randseed()}} )), 3, '0')
-    || ') ' || LPAD(UNIFORM(1, 999, RANDOM( {{get_randseed()}} )), 3, '0')
-    || '-' || LPAD(UNIFORM(1, 9999, RANDOM( {{get_randseed()}} )), 4, '0')
+    '(' || LPAD(UNIFORM(100, 999, RANDOM( {{synth_get_randseed()}} )), 3, '0')
+    || ') ' || LPAD(UNIFORM(1, 999, RANDOM( {{synth_get_randseed()}} )), 3, '0')
+    || '-' || LPAD(UNIFORM(1, 9999, RANDOM( {{synth_get_randseed()}} )), 4, '0')
 {% endmacro%}

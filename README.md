@@ -706,6 +706,21 @@ from {{ synth_table(rows=100) }}
 ```
 </details>
 
+<details>
+<summary><code>phone_number</code></summary>
+
+Generates a phone number in the format `(123) 456-7890`.
+
+```python
+select
+    {{ synth_phone_number() }} as phone_number,
+    ...
+from {{ synth_table(rows=100) }}
+
+{{ config(post_hook=synth_get_post_hooks())}}
+```
+</details>
+
 
 ## Advanced Usage
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example

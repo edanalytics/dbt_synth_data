@@ -69,6 +69,28 @@
     {{ return(posthooks) }}
 {%- endmacro %}
 
+{%- macro synth_add_cte(query) -%}
+    {%- set ctes = target.get("ctes") or [] -%}
+    {{ ctes.append(query) or "" }}
+    {%- do target.update({"ctes": ctes}) -%}
+{%- endmacro %}
+
+{%- macro synth_get_ctes() -%}
+    {% set ctes %}
+    
+    {% if target.get("ctes") %}
+    with 
+    {% for cte in target.get("ctes") | unique %}
+        {{ cte }}
+        {% if not loop.last %},{% endif %}
+    {% endfor %}
+    {% endif %}
+    
+    {% endset %}
+    
+    {{ return(ctes) }}
+{%- endmacro %}
+
 {%- macro synth_zip(list_a, list_b) -%}
     {% set dct = {} %}
     {% for i in range(list_a|length) %}

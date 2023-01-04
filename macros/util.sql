@@ -69,6 +69,8 @@
     {{ return(posthooks) }}
 {%- endmacro %}
 
+
+
 {%- macro synth_add_cte(query) -%}
     {%- set ctes = target.get("ctes") or [] -%}
     {{ ctes.append(query) or "" }}
@@ -90,6 +92,32 @@
     
     {{ return(ctes) }}
 {%- endmacro %}
+
+
+
+{%- macro synth_add_join(query) -%}
+    {%- set joins = target.get("joins") or [] -%}
+    {{ joins.append(query) or "" }}
+    {%- do target.update({"joins": joins}) -%}
+{%- endmacro %}
+
+{%- macro synth_get_joins() -%}
+    {% set joins %}
+    
+    {% if target.get("joins") %}
+    with 
+    {% for join in target.get("joins") | unique %}
+        {{ join }}
+        {% if not loop.last %},{% endif %}
+    {% endfor %}
+    {% endif %}
+    
+    {% endset %}
+    
+    {{ return(joins) }}
+{%- endmacro %}
+
+
 
 {%- macro synth_zip(list_a, list_b) -%}
     {% set dct = {} %}

@@ -1,16 +1,16 @@
-{% macro synth_discretize_floor(distribution) %}
+{% macro synth_distribution_discretize_floor(distribution) %}
     floor( {{distribution}} )
 {% endmacro %}
 
-{% macro synth_discretize_ceil(distribution) %}
+{% macro synth_distribution_discretize_ceil(distribution) %}
     ceil( {{distribution}} )
 {% endmacro %}
 
-{% macro synth_discretize_round(distribution, precision=0) %}
+{% macro synth_distribution_discretize_round(distribution, precision=0) %}
     round( ( {{distribution}} )::numeric , {{precision}})
 {% endmacro %}
 
-{% macro synth_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
+{% macro synth_distribution_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
     {# Either `size` or `count` must be specified #}
     {%- if size is none and count is none -%}
         {{ exceptions.raise_compiler_error("`either `count` (number of bins) or `size` (of each bin) must be specified for bin discretization") }}

@@ -39,7 +39,7 @@
     {%- endif -%}
     
     {# Case statement on uniformly-distributed range: #}
-    case {{ synth_discretize_floor( distribution=synth_distribution_continuous_uniform(min=0, max=10**ns.max_prob_digits) ) }}
+    case {{ synth_distribution_discretize_floor( distribution=synth_distribution_continuous_uniform(min=0, max=10**ns.max_prob_digits) ) }}
         {% for i in range(0, 10**ns.max_prob_digits) %}
         {%- if i >= ((10**ns.max_prob_digits)*ns.curr_threshold)|int and ns.curr_idx<probabilities|length-1 -%}
             {%- set ns.curr_idx = ns.curr_idx + 1 -%}

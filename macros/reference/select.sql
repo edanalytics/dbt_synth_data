@@ -79,7 +79,7 @@ alter table {{ this }} drop column {{name}}_rand
     {{ synth_add_update_hook(snowflake__synth_select_uniform_update(name, value_col, lookup_table, filter, funcs)) or "" }}
     {{ synth_add_cleanup_hook(snowflake__synth_select_cleanup(name)) or "" }}
     
-    UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
+    UNIFORM(0::double, 1::double, RANDOM({{synth_get_randseed()}})) as {{name}}_rand,
     ''::varchar
 {% endmacro %}
 
@@ -100,7 +100,7 @@ update {{ this }} x set x.{{name}}=y.{{value_col}} from (
     {{ synth_add_update_hook(snowflake__synth_select_weighted_update(name, value_col, lookup_table, weight_col, filter, funcs)) or "" }}
     {{ synth_add_cleanup_hook(snowflake__synth_select_cleanup(name)) or "" }}
     
-    UNIFORM(0::double, 1::double, RANDOM({{randseed}})) as {{name}}_rand,
+    UNIFORM(0::double, 1::double, RANDOM({{synth_get_randseed()}})) as {{name}}_rand,
     ''::varchar
 {% endmacro %}
 

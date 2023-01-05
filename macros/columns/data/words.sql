@@ -40,7 +40,7 @@
         {% set query %}
         {{ synth_column_integer(min=1, max=format_strings|length) }} as {{name}}_format_idx,
         {% for col_name,pos in token_set.items() %}
-        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }} as {{col_name}},
+        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
         {% endfor %}
         {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
         {% endset %}
@@ -63,7 +63,7 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }} as {{name}}_word{{i}},
+        {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }}
         {% endfor %}
         {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
         {% for col in cleanup_cols %}

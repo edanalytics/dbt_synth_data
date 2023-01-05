@@ -38,7 +38,7 @@
         {% endset %}
 
         {% set query %}
-        {{ synth_column_integer(min=1, max=format_strings|length) }},
+        {{ synth_column_integer(name=name+"_format_idx", min=1, max=format_strings|length) }},
         {% for col_name,pos in token_set.items() %}
         {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
         {% endfor %}

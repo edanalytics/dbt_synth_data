@@ -1,15 +1,11 @@
 {% macro synth_column_primary_key(name) -%}
-    {{ return(adapter.dispatch('synth_column_primary_key')(name)) }}
+    {% set base_field %}
+        MD5( '{{this}}' || __row_number::varchar ) as {{name}}
+    {% endset %}
+    {{ synth_store('base_fields', name, base_field) }}
+
+    {% set final_field %}
+        {{name}}
+    {% endset %}
+    {{ synth_store('final_fields', name, final_field) }}
 {%- endmacro %}
-
-{% macro default__synth_column_primary_key(name) -%}
-    {# NOT YET IMPLEMENTED #}
-{%- endmacro %}
-
-{% macro postgres__synth_column_primary_key(name) %}
-    MD5( s.idx::varchar ) as {{name}}
-{% endmacro %}
-
-{% macro snowflake__synth_column_primary_key(name) %}
-    MD5( seq8() ) as {{name}}
-{% endmacro%}

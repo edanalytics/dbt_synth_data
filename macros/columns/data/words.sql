@@ -31,26 +31,31 @@
         {% for f in funcs %}{{f}}({% endfor %}
         (CASE
         {% for i in range(tokenized_format_strings|length) %}
-            WHEN {{name}}_format_idx={{i+1}} THEN {{tokenized_format_strings[i]["expression"]}}
+            WHEN ___PREVIOUS_CTE___.{{name}}__format_idx={{i+1}} THEN {{tokenized_format_strings[i]["expression"]}}
         {% endfor %}
         END)
         {% for f in funcs %}){% endfor %}
         {% endset %}
 
-        {% set query %}
-        {{ synth_column_integer(name=name+"_format_idx", min=1, max=format_strings|length) }},
         {% for col_name,pos in token_set.items() %}
-        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }},
+        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }}
+        {{ synth_remove("final_fields", col_name) }}
         {% endfor %}
-        {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
+        
+        {% set base_field %}
+            {{ synth_distribution_discretize_floor(synth_distribution_continuous_uniform(min=1, max=format_strings|length+1)) }} as {{name}}__format_idx
         {% endset %}
+        {{ synth_store('base_fields', name+"__format_idx", base_field) }}
 
-        {% set cleanup_cols = [] %}
-        {% for col_name in token_set.keys() %}{{ cleanup_cols.append(col_name) or "" }}{% endfor %}
-        {{ cleanup_cols.append(name + "_format_idx") or "" }}
-        {% for col in cleanup_cols %}
-        {{ synth_add_cleanup_hook(synth_column_words_cleanup(col)) or "" }}
-        {% endfor %}
+        {% set join_fields %}
+            {{ words_expression }} as {{name}}
+        {% endset %}
+        {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
+        
+        {% set final_field %}
+            {{name}}
+        {% endset %}
+        {{ synth_store('final_fields', name, final_field) }}
 
     {% elif n|int>0 %}
 
@@ -58,29 +63,19 @@
         {% for i in range(n) %}{{name}}_word{{i}} {% if not loop.last %} || ' ' || {% endif %}{% endfor %}
         {% endset %}
 
-        {% set cleanup_cols = [] %}
-        {% for i in range(n) %}{{ cleanup_cols.append(name + "_word" + i|string) or "" }}{% endfor %}
-
         {% set query %}
         {% for i in range(n) %}
         {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }},
         {% endfor %}
         {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
-        {% for col in cleanup_cols %}
-        {{ synth_add_cleanup_hook(synth_column_words_cleanup(col)) or "" }}
-        {% endfor %}
         {% endset %}
 
     {% else %}
         {{ exceptions.raise_compiler_error("Words column `" ~ name ~ "` must specify either `n`>0 or a `format_string`.") }}
     {% endif %}
 
-    {{ return(query) }}
+    {{ return("") }}
 {%- endmacro %}
-
-{% macro synth_column_words_cleanup(col) %}
-alter table {{ this }} drop column {{col}}
-{% endmacro %}
 
 
 {% macro synth_column_words_tokenize_format_string(name, format_string) %}
@@ -105,16 +100,16 @@ alter table {{ this }} drop column {{col}}
     {% for pos in poss %}
         {% if pos in type_counts %}
         {% do type_counts.update({pos: type_counts[pos] + 1}) %}
-        {{ tokens.update({ name + "_" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
+        {{ tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
         {% else %}
         {% do type_counts.update({pos: 1}) %}
-        {{ tokens.update({ name + "_" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
+        {{ tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
         {% endif %}
     {% endfor %}
 
     {% set expression = {"value": "'" + format_string + "'"} %}
     {% for col_name,pos in tokens.items() %}
-        {% do expression.update({ "value": expression["value"].replace('{'+pos+'}', "' || "+col_name+" || '", 1) }) %}
+        {% do expression.update({ "value": expression["value"].replace('{'+pos+'}', "' || ___PREVIOUS_CTE___."+col_name+" || '", 1) }) %}
     {% endfor %}
     {% if expression["value"][:6]=="'' || " %}
     {% do expression.update({ "value": expression["value"][6:] }) %}

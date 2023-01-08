@@ -1,15 +1,11 @@
 {% macro synth_column_integer_sequence(name, step=1, start=0) -%}
-    {{ return(adapter.dispatch('synth_column_integer_sequence')(name, step, start)) }}
+    {% set base_field %}
+        ( {{start}} + (__row_number - 1) * {{step}} ) as {{name}}
+    {% endset %}
+    {{ synth_store('base_fields', name, base_field) }}
+
+    {% set final_field %}
+        {{name}}
+    {% endset %}
+    {{ synth_store('final_fields', name, final_field) }}
 {%- endmacro %}
-
-{% macro default__synth_column_integer_sequence(name, step, start) -%}
-    {# NOT YET IMPLEMENTED #}
-{%- endmacro %}
-
-{% macro postgres__synth_column_integer_sequence(name, step, start) %}
-    ( {{start}} + s.idx * {{step}} ) as {{name}}
-{% endmacro %}
-
-{% macro snowflake__synth_column_integer_sequence(name, step, start) %}
-    ( {{start}} + seq8() * {{step}} ) as {{name}}
-{% endmacro%}

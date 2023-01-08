@@ -5,6 +5,21 @@ This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. 
 All the magic happens in `macros/*`.
 
 
+## Data Generation Philosophy
+There are generally two approaches to creating synthetic or "fake" data:
+1. start with real data, de-identify it, and possibly "fuzz" or "jitter" some values
+1. start with nothing and synthesize data by describing it, including and distributions and correlations in the data
+(Recent research has proposed a hybrid approach, where a "nearby" or similar synthetic data row (2) is selected for each row of a real, de-dentified row (1).)
+
+We believe approach (1) is dangerous, suscpetible to re-identification attacks and other adversarial activity. This tool implements approac (2) *8*only*.
+
+
+## Intended Use and Limitations
+This package generates synthetic data, which can be useful for testing user interfaces, demo-ing applications, performance-tuning operational systems, preparing training and other materials with realistic data, and potentially other uses.
+
+However, synthetic data created using this package should not be mistaken as being realistic in every way, reflecting all correlations that may be present in the real world. Therefore **please do not use data generated using this package to train ML models!**
+
+
 ## Installation
 1. add `dbt_synth_data` to your `packages.yml`
 1. run `dbt deps`
@@ -17,47 +32,67 @@ All the magic happens in `macros/*`.
 ## Architecture
 Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generating random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package emulate.
 
-However, creating more realistic synthetic data requires more complex data types, advanced random distributions, seed data, and correlated subqueries or lookups on other tables. Unfortunately, due to how database engines are designed, *subqueries of expressions based on or derived from* a `RANDOM()` value are "optimized" so that <ins>every row has the same value</ins>. Therefore advanced column types in this package use a (slower) multi-step process to generate distinct values for each row:
+However, creating more realistic synthetic data requires more complex data types, advanced random distributions, seed data, and correlated subqueries or lookups on other tables. This package provides many macros to facilitate building out realistic synthetic data.
 
-1. an intermediate column is added to the table containing a `RANDOM()` number
-1. an `update` query is run on the table which populates a new column with values based on the `RANDOM()` value from the intermediate column
-1. finally, the table is "cleaned up" by removing the intermediate column (and any other temporary columns that were created to build up a more complex value)
-
-These steps are handled using `dbt`'s [post hooks](https://docs.getdbt.com/reference/resource-configs/pre-hook-post-hook) feature, which is why you *must* include the following at the bottom of every model you build with this package:
+CTEs, joins, and fields defined by `synth_column_*()` are stored in `dbt`'s [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s. Finally, `synth_table()` stitches everything together into query of the form
+```sql
+-- CTEs as required for selecting seed data or random values from another table
+...
+base as (
+    select
+        -- base table includes a row_number, which facilitates generating integer or date sequences
+        row_number() over (order by 1) as __row_number
+    from table(generator( rowcount => [rows] )) -- snowflake
+    -- from generate_series( 1, [rows] ) as s(idx) -- postgres
+),
+join0 as (
+     select
+        base.__row_number,
+        -- randomness source fields, such as
+        UNIFORM(0::float, 1::float, RANDOM()) as field1__rand, -- snowflake
+        RANDOM() as field2__rand, -- postgres
+        ...
+    from base
+),
+-- arbitrarily many further joins to the CTEs defined above
+joinN as (
+    select
+        join[N-1].*,
+        CTEx.field3,
+        CTEx.field4
+    from join[N-1]
+        left join CTEx on ... -- something involving join[N-1].*__rand
+),
+final as (
+    select
+        -- only the fields we actually want to keep in the final table
+    from joinN
+)
+select * from final
 ```
-{{ config(post_hook=synth_get_post_hooks())}}
-```
-Hook queries (and other package data) are stored in the `dbt` [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s.
-
 
 
 ## Simple Example
 Consider the example model `orders.sql` below:
 ```sql
 -- depends_on: {{ ref('products') }}
-{{ synth_table(
-    rows = 5000,
-    columns = [
-        synth_column_primary_key(name='order_id'),
-        synth_column_foreign_key(name='product_id', table='products', column='product_id'),
-        synth_column_distribution(name='status', 
-            distribution=synth_distribution(class='discrete', type='probabilities',
-                probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
-            )
-        ),
-        synth_column_integer(name='num_ordered', min=1, max=10),
-    ]
+{{ synth_column_primary_key(name='order_id') }}
+{{ synth_column_foreign_key(name='product_id', table='products', column='product_id') }}
+{{ synth_column_distribution(name='status', 
+    distribution=synth_distribution(class='discrete', type='probabilities',
+        probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
+    )
 ) }}
-
-{{ config(post_hook=synth_get_post_hooks()) }}
+{{ synth_column_integer(name='num_ordered', min=1, max=10) }}
+{{ synth_table(rows = 5000) }}
 ```
-The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, a new table is created with 5000 rows and several columns:
+The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, we define the columns we want in the table, including:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
 * `product_id` is a foreign key to the `products` table - values in this column will be uniformly-distributed, valid primary keys of the `products` table
 * each order has a `status` with several possible values, whose prevalence/likelihoods are given by a discrete probability distribution
 * `num_ordered` is the count of how many of the product were ordered, a uniformly-distributed integer from 1-10
 
-Finally, the model adds the post hooks required to finish building and clean up the new table.
+Finally, we materialize the table with 5000 rows of synthetic data.
 
 
 
@@ -354,7 +389,7 @@ Basic column types, which are quite performant.
 
 Generates boolean values.
 ```python
-    synth_column_boolean(name="is_complete", pct_true=0.2),
+{{ synth_column_boolean(name="is_complete", pct_true=0.2) }}
 ```
 </details>
 
@@ -365,16 +400,16 @@ Generates integer values.
 
 For uniformly-distributed values, simply specify `min` and `max`:
 ```python
-    synth_column_integer(name="event_year", min=2000, max=2020),
+{{ synth_column_integer(name="event_year", min=2000, max=2020) }}
 ```
 
-Otherwise, specify a discretized distribution:
+For non-uniformly-distributed values, specify a discretized distribution:
 ```python
-    synth_column_distribution(name="event_year",
-        distribution=synth_distribution_discretize_floor(
-            distribution=synth_distribution_continuous_normal(mean=min=2010, stddev=2.5,)
-        )
-    ),
+{{ synth_column_distribution(name="event_year",
+    distribution=synth_distribution_discretize_floor(
+        distribution=synth_distribution_continuous_normal(mean=2010, stddev=2.5,)
+    )
+) }}
 ```
 </details>
 
@@ -383,7 +418,7 @@ Otherwise, specify a discretized distribution:
 
 Generates an integer sequence (value is incremented at each row).
 ```python
-    synth_column_integer_sequence(name="day_of_year", step=1, start=1),
+{{ synth_column_integer_sequence(name="day_of_year", step=1, start=1) }}
 ```
 </details>
 
@@ -392,7 +427,17 @@ Generates an integer sequence (value is incremented at each row).
 
 Generates numeric values.
 ```python
-    synth_column_numeric(name="price", min=1.99, max=999.99, precision=2),
+{{ synth_column_numeric(name="price", min=1.99, max=999.99, precision=2) }}
+```
+
+For non-uniformly-distributed values, specify a distribution rounded to the desired `precision`:
+```python
+{{ synth_column_distribution(name="event_year",
+    distribution=synth_distribution_discretize_round(
+        distribution=synth_distribution_continuous_normal(mean=500, stddev=180,),
+        precision=2
+    )
+) }}
 ```
 </details>
 
@@ -401,7 +446,7 @@ Generates numeric values.
 
 Generates random strings.
 ```python
-    synth_column_string(name="password", min_length=10, max_length=20),
+{{ synth_column_string(name="password", min_length=10, max_length=20) }}
 ```
 String characters will include `A-Z`, `a-z`, and `0-9`.
 </details>
@@ -411,7 +456,7 @@ String characters will include `A-Z`, `a-z`, and `0-9`.
 
 Generates date values.
 ```python
-    synth_column_date(name="birth_date", min='1938-01-01', max='1994-12-31'),
+{{ synth_column_date(name="birth_date", min='1938-01-01', max='1994-12-31') }}
 ```
 </details>
 
@@ -420,25 +465,25 @@ Generates date values.
 
 Generates a date sequence.
 ```python
-    synth_column_date_sequence(name="calendar_date", start_date='2020-08-10', step=3),
+{{ synth_column_date_sequence(name="calendar_date", start_date='2020-08-10', step=3)}}
 ```
 </details>
 
 <details>
 <summary><code>primary key</code></summary>
 
-Generates a primary key column.
+Generates a primary key column. (Values are distinct hash strings.)
 ```python
-    synth_column_primary_key(name="product_id"),
+{{ synth_column_primary_key(name="product_id") }}
 ```
 </details>
 
 <details>
 <summary><code>value</code></summary>
 
-Generates a (single, static) value for every row.
+Generates the same (single, static) value for every row.
 ```python
-    synth_column_value(name="is_registered", value='Yes'),
+{{ synth_column_value(name="is_registered", value='Yes') }}
 ```
 </details>
 
@@ -447,34 +492,14 @@ Generates a (single, static) value for every row.
 
 Generates values from a list of possible values, with optional probability weighting.
 ```python
-    synth_column_values(name="academic_subject",
-        values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'],
-        probabilities=[0.2, 0.3, 0.15, 0.35]
-    ),
+{{ synth_column_values(name="academic_subject",
+    values=['Mathematics', 'Science', 'English Language Arts', 'Social Studies'],
+    probabilities=[0.2, 0.3, 0.15, 0.35]
+) }}
 ```
 If `probabilities` are omitted, every value is equally likely.
-</details>
 
-<details>
-<summary><code>mapping</code></summary>
-
-Generates values by mapping from an existing column or expresion to values in a dictionary.
-```python
-    synth_column_mapping(name='day_type', expression='is_school_day',
-        mapping=({ true:'Instructional day', false:'Non-instructional day' })
-    ),
-```
-</details>
-
-<details>
-<summary><code>expression</code></summary>
-
-Generates values based on an expression (which may refer to other columns, or invoke SQL functions).
-```python
-    synth_column_expression(name='week_of_calendar_year',
-        expression="DATE_PART('week', calendar_date)::int", type='int'
-    ),
-```
+(Uses `synth_distribution_discrete_probabilities()` under the hood.)
 </details>
 
 
@@ -524,7 +549,29 @@ Constructing a `probabilities` hypercube of dimension more than two or three can
 
 
 ### Reference column types
-Column types which reference values in another table.
+Column types which reference values in other columns of the same or different table.
+
+<details>
+<summary><code>expression</code></summary>
+
+Generates values based on an expression (which may refer to other columns, or invoke SQL functions).
+```python
+{{ synth_column_expression(name='week_of_calendar_year',
+    expression="DATE_PART('week', calendar_date)::int"
+) }}
+```
+</details>
+
+<details>
+<summary><code>mapping</code></summary>
+
+Generates values by mapping from an `expression` involving existing columns to values in a dictionary.
+```python
+{{ synth_column_mapping(name='day_type', expression='is_school_day',
+    mapping=({ true:'Instructional day', false:'Non-instructional day' })
+) }}
+```
+</details>
 
 <details>
 <summary><code>foreign key</code></summary>
@@ -684,42 +731,33 @@ Generates an address, based on `city`, `geo region`, `country`, `words`, and oth
 
 Creating a column `myaddress` using this macro will also create intermediate columns `myaddress__street_address`, `myaddress__city`, `myaddress__geo_region`, and `myaddress__postal_code` (or whatever `parts` you specify). You can then `add_update_hook()`s that reference these intermediate columns if you'd like. For example:
 ```python
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name='k_person'),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_address(name='home_address', countries=['United States'],
-            parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']),
-        synth_column_expression(name='home_address_street', expression="home_address__street_address"),
-        synth_column_expression(name='home_address_city', expression="home_address__city"),
-        synth_column_expression(name='home_address_geo_region', expression="home_address__geo_region"),
-        synth_column_expression(name='home_address_country', expression="home_address__country"),
-        synth_column_expression(name='home_address_postal_code', expression="home_address__postal_code"),
-    ]
-) }}
+{{ synth_column_primary_key(name='k_person') }}
+{{ synth_column_firstname(name='first_name') }}
+{{ synth_column_lastname(name='last_name') }}
+{{ synth_column_address(name='home_address', countries=['United States'],
+    parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']) }}
+{{ synth_column_expression(name='home_address_street', expression="home_address__street_address") }}
+{{ synth_column_expression(name='home_address_city', expression="home_address__city") }}
+{{ synth_column_expression(name='home_address_geo_region', expression="home_address__geo_region") }}
+{{ synth_column_expression(name='home_address_country', expression="home_address__country") }}
+{{ synth_column_expression(name='home_address_postal_code', expression="home_address__postal_code") }}
+
+{{ synth_table(rows = 100) }}
 {{ synth_add_cleanup_hook("alter table {{this}} drop column home_address") or "" }}
-{{ config(post_hook=synth_get_post_hooks())}}
 ```
 
 Alternatively, you may use something like
 
 ```python
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name='k_person'),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_address(name='home_address_street', countries=['United States'], parts=['street_address']),
-        synth_column_address(name='home_address_city', countries=['United States'], parts=['city']),
-        synth_column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']),
-        synth_column_address(name='home_address_country', countries=['United States'], parts=['country']),
-        synth_column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']),
-    ]
-) }}
-{{ config(post_hook=synth_get_post_hooks())}}
+{{ synth_column_primary_key(name='k_person') }}
+{{ synth_column_firstname(name='first_name') }}
+{{ synth_column_lastname(name='last_name') }}
+{{ synth_column_address(name='home_address_street', countries=['United States'], parts=['street_address']) }}
+{{ synth_column_address(name='home_address_city', countries=['United States'], parts=['city']) }}
+{{ synth_column_address(name='home_address_geo_region', countries=['United States'], parts=['geo_region']) }}
+{{ synth_column_address(name='home_address_country', countries=['United States'], parts=['country']) }}
+{{ synth_column_address(name='home_address_postal_code', countries=['United States'], parts=['postal_code']) }}
+{{ synth_table(rows = 100) }}
 ```
 </details>
 
@@ -729,15 +767,7 @@ Alternatively, you may use something like
 Generates a phone number in the format `(123) 456-7890`.
 
 ```python
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_phone_number(name="phone_number"),
-    ...
-    ]
-) }}
-
-{{ config(post_hook=synth_get_post_hooks())}}
+{{ synth_column_phone_number(name="phone_number") }}
 ```
 </details>
 
@@ -745,60 +775,47 @@ Generates a phone number in the format `(123) 456-7890`.
 ## Advanced Usage
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
 ```sql
-{{ synth_table(
-    rows = 100,
-    columns = [
-        synth_column_primary_key(name="k_person"),
-        synth_column_firstname(name='first_name'),
-        synth_column_lastname(name='last_name'),
-        synth_column_expression(name='full_name', expression="first_name || ' ' || last_name"),
-    ]
-) }}
-{{ synth_add_cleanup_hook("alter table {{this}} drop column first_name") or "" }}
-{{ synth_add_cleanup_hook("alter table {{this}} drop column last_name") or "" }}
-{{ config(post_hook=synth_get_post_hooks())}}
+{{ synth_column_primary_key(name="k_person") }}
+{{ synth_column_firstname(name='first_name') }}
+{{ synth_column_lastname(name='last_name') }}
+{{ synth_column_expression(name='full_name', expression="first_name || ' ' || last_name") }}
+{{ synth_remove(collection="final_fields", key="first_name") }}
+{{ synth_remove(collection="final_fields", key="last_name") }}
+{{ synth_table(rows = 100) }}
 ```
-Note that you may want to "clean up" by dropping some of your intermediate columns, as shown with the `synth_add_cleanup_hook()` calls in the example above.
+Note that you may want to "clean up" by supressing some of your intermediate columns, as shown with the `synth_remove()` calls in the example above.
 
 You may also want to modify another table *only after this one is built*. This is also possible using cleanup hooks.
 
 For example, suppose you want to create `products` and `orders`, but you want some `products` to be exponentially more popular (more `orders` for) than others. This is possible by
-1. creating a `products` model with an extra popularity column
+1. creating a `products` model with an extra popularity column:
     ```sql
-    {{ synth_table(
-        rows = 50,
-        columns = [
-            synth_column_primary_key(name="k_product"),
-            synth_column_string(name="name", min_length=10, max_length=20),
-            synth_column_distribution(name="popularity",
-                distribution=synth_distribution(class='continuous', type='exponential', lambda=0.05)
-            ),
-        ]
+    {{ synth_column_primary_key(name="k_product") }}
+    {{ synth_column_string(name="name", min_length=10, max_length=20) }}
+    {{ synth_column_distribution(name="popularity",
+        distribution=synth_distribution(class='continuous', type='exponential', lambda=0.05)
     ) }}
+    {{ synth_table(rows=50) }}
     ```
-1. creating an `orders` model with a `synth_select()` to `products` using your popularity column
+1. creating an `orders` model with a `synth_column_select()` to `products` using your popularity column, then use a cleanup hook to drop the `popularity` column:
     ```sql
-    {{ synth_table(
-        rows = 5000,
-        columns = [
-            synth_column_primary_key(name="k_order"),
-            synth_column_select(name="k_product", lookup_table="products", 
-                value_col="k_product", distribution="weighted", weight_col="popularity"),
-            synth_column_distribution(name="status",
-                distribution=synth_distribution(class='discrete', type='probabilities',
-                    probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
-                )
-            ),
-            synth_column_integer(name="num_ordered", min=1, max=10),
-        ]
+    {{ synth_column_primary_key(name="k_order") }}
+    {{ synth_column_select(name="k_product", lookup_table="products", 
+        value_col="k_product", distribution="weighted", weight_col="popularity") }}
+    {{ synth_column_distribution(name="status",
+        distribution=synth_distribution(class='discrete', type='probabilities',
+            probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
+        )
     ) }}
-    ```
-1. at the bottom of the `orders` model, clean up by dropping the exponential weight column from `products`:
-    ```sql
+    {{ synth_column_integer(name="num_ordered", min=1, max=10) }}
+
     {{ synth_add_cleanup_hook(
         'alter table {{target.database}}.{{target.schema}}.products drop column popularity'
     ) }}
+
+    {{ synth_table(rows=5000) }}
     ```
+    Note that the cleanup hook *must* go after any column definitions that rely on it, and before the `synth_table()` call.
 
 
 ## Datasets
@@ -850,17 +867,68 @@ The dataset is assembled primarily from Wikipedia, including [this list of offic
 
 
 ## Performance
-In Snowflake, using a single Xsmall warehouse:
+Here we provide benchmarks in Snowflake and AWS RDS Postgres for synthetic data generation, using the models found in `example_models/*.sql`..
 
-* Creating `models/dim_student.sql` with 100M rows takes 16 minutes
+### Snowflake
+Using a single Xsmall warehouse:
 
-* Creating 100K `dim_student`s takes 20 secs; 100K `dim_guardian`s takes 30 secs; 200K `fct_family_relationship`s takes around 14 mins.
+| Model         | Columns |   Rows | Runtime | Data size |
+| ------------- | ------- | ------ | ------- | --------- |
+| distributions |      15 |    10k |  11.48s |    646 KB |
+| distributions |      15 |     1M |  19.03s |   57.8 MB |
+| distributions |      15 |   100M |  64.61s |    5.7 GB |
+| distributions |      15 |    10B |  81 min |  614.7 GB |
+
+| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
+| ------------- | ------- | ------ | ----------- | -------------- |
+| customers     |       8 |    100 |      15.67s |        32.5 KB |
+| products      |       3 |     50 |      12.68s |        16.0 KB |
+| stores        |       5 |      2 |      14.45s |         2.0 KB |
+| orders        |       4 |   1000 |      11.52s |        59.0 KB |
+| inventory     |       4 |    100 |      15.62s |        22.0 KB |
+
+| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
+| ------------- | ------- | ------ | ----------- | -------------- |
+| customers     |       8 |    10k |      15.70s |       958.5 KB |
+| products      |       3 |     5k |      13.13s |       267.5 KB |
+| stores        |       5 |    200 |      15.66s |        32.0 KB |
+| orders        |       4 |   100k |      14.58s |         5.3 MB |
+| inventory     |       4 |     1M |      13.59s |         6.1 MB |
+
+| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
+| ------------- | ------- | ------ | ----------- | -------------- |
+| customers     |       8 |     1M |      41.93s |        53.0 MB |
+| products      |       3 |    50k |      21.04s |         2.4 MB |
+| stores        |       5 |    20k |      23.19s |         1.3 MB |
+| orders        |       4 |    50M |     114 min |         1.0 GB |
+| inventory     |       4 |   100M |     325 min |         2.5 GB |
+
+(Note that **orders** and **inventory** are significantly slower at scale because they rely on **products** - and so many products are partitioned, slowing the query.)
+
 
 In Postgres, using an AWS RDS small instance:
 
-* Creating `models/dim_student.sql` with 10M rows didn't finish in 3 hours...
+| Model         | Columns |   Rows | Runtime |
+| ------------- | ------- | ------ | ------- |
+| distributions |      15 |    10k |  19.71s |
+| distributions |      15 |     1M |  35.78s |
+| distributions |      15 |   100M |  17 min |
 
-* Creating 100K `dim_student`s takes 43 secs; 100K `dim_guardian`s takes 30 secs; 200K `fct_family_relationship`s takes around 76 minutes.
+| Model         | Columns |   Rows | Runtime (s) |
+| ------------- | ------- | ------ | ----------- |
+| customers     |       8 |    100 |      26.29s |
+| products      |       3 |     50 |      22.35s |
+| stores        |       5 |      2 |      26.45s |
+| orders        |       4 |   1000 |      22.58s |
+| inventory     |       4 |    100 |      22.12s |
+
+| Model         | Columns |   Rows | Runtime (s) |
+| ------------- | ------- | ------ | ----------- |
+| customers     |       8 |    10k |      18.77s |
+| products      |       3 |     5k |      17.16s |
+| stores        |       5 |    200 |      19.82s |
+| orders        |       4 |   100k |     414.38s |
+| inventory     |       4 |     1M |     396.10s |
 
 
 ## Todo

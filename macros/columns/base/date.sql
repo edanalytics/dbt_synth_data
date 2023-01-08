@@ -1,16 +1,24 @@
 {% macro synth_column_date(name, min='1990-01-01', max='', distribution='uniform') -%}
-    {{ return(adapter.dispatch('synth_column_date')(name, min, max, distribution)) }}
+    {% set base_field %}
+        {{ adapter.dispatch('synth_column_date_base')(min, max, distribution) }} AS {{name}}
+    {% endset %}
+    {{ synth_store('base_fields', name, base_field) }}
+
+    {% set final_field %}
+        {{name}}
+    {% endset %}
+    {{ synth_store('final_fields', name, final_field) }}
 {%- endmacro %}
 
-{% macro default__synth_column_date(name, min, max, distribution) -%}
+{% macro default__synth_column_date_base(min, max, distribution) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro postgres__synth_column_date(name, min, max, distribution) %}
-    date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int as {{name}}
+{% macro postgres__synth_column_date_base(min, max, distribution) %}
+    date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int
 {% endmacro %}
 
-{% macro snowflake__synth_column_date(name, min, max, distribution) %}
+{% macro snowflake__synth_column_date_base(min, max, distribution) %}
     dateadd(
         day,
         UNIFORM(
@@ -18,5 +26,5 @@
             datediff(day, '{{min}}'::date, '{{max}}'::date),
             RANDOM( {{ synth_get_randseed() }} )),
         '{{min}}'::date
-    ) as {{name}}
+    )
 {% endmacro%}

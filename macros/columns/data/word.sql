@@ -3,27 +3,26 @@
         (
             {% for p in pos %}
                 part_of_speech='{{p}}'
-                {% if not loop.last %}OR {% endif %}
-            {% endfor %}
+                {%- if not loop.last %}OR {% endif %}
+            {% endfor -%}
         ) and (
-            {% if language %}
+            {%- if language %}
                 language='{{language}}'
-            {% elif language_code %}
+            {%- elif language_code %}
                 language_code='{{language_code}}'
-            {% else %}
+            {%- else %}
                 {{ exceptions.raise_compiler_error("Word column `" ~ name ~ "` must specify either `language` or `language_code`.") }}
-            {% endif %}
+            {% endif -%}
         )
     {% endset %}
-    {{ return(
-        synth_column_select(
-            name=name,
-            value_col="word",
-            lookup_table="synth_words",
-            distribution=distribution,
-            weight_col="frequency",
-            filter=filter,
-            funcs=["INITCAP"]
-        )
+    {{ synth_column_select(
+        name=name,
+        value_col="word",
+        lookup_table="synth_words",
+        distribution=distribution,
+        weight_col="frequency",
+        filter=filter,
+        funcs=[]
     ) }}
+    {{ return("") }}
 {%- endmacro %}

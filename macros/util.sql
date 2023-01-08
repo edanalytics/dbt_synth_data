@@ -71,51 +71,22 @@
 
 
 
-{%- macro synth_add_cte(query) -%}
-    {%- set ctes = target.get("ctes") or [] -%}
-    {{ ctes.append(query) or "" }}
-    {%- do target.update({"ctes": ctes}) -%}
+{%- macro synth_store(collection, key, value) -%}
+    {%- set data = target.get(collection) or {} -%}
+    {{ data.update({key: value}) or "" }}
+    {%- do target.update({collection: data}) -%}
 {%- endmacro %}
 
-{%- macro synth_get_ctes() -%}
-    {% set ctes %}
-    
-    {% if target.get("ctes") %}
-    with 
-    {% for cte in target.get("ctes") | unique %}
-        {{ cte }}
-        {% if not loop.last %},{% endif %}
-    {% endfor %}
-    {% endif %}
-    
-    {% endset %}
-    
-    {{ return(ctes) }}
+{%- macro synth_remove(collection, key) -%}
+    {%- set data = target.get(collection) or {} -%}
+    {{ data.pop(key) or "" }}
+    {%- do target.update({collection: data}) -%}
 {%- endmacro %}
 
-
-
-{%- macro synth_add_join(query) -%}
-    {%- set joins = target.get("joins") or [] -%}
-    {{ joins.append(query) or "" }}
-    {%- do target.update({"joins": joins}) -%}
+{%- macro synth_retrieve(collection) -%}
+    {{ return( target.get(collection) or {} ) }}
 {%- endmacro %}
 
-{%- macro synth_get_joins() -%}
-    {% set joins %}
-    
-    {% if target.get("joins") %}
-    with 
-    {% for join in target.get("joins") | unique %}
-        {{ join }}
-        {% if not loop.last %},{% endif %}
-    {% endfor %}
-    {% endif %}
-    
-    {% endset %}
-    
-    {{ return(joins) }}
-{%- endmacro %}
 
 
 

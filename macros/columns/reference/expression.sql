@@ -1,23 +1,11 @@
-{% macro synth_column_expression(name, expression, type='varchar') -%}
-    {{ return(adapter.dispatch('synth_column_expression')(name, expression, type)) }}
-{%- endmacro %}
-
-{% macro default__synth_column_expression(name, expression, type) -%}
-    {# NOT YET IMPLEMENTED #}
-{%- endmacro %}
-
-{% macro postgres__synth_column_expression(name, expression, type) %}
-    {{ synth_add_update_hook(synth_column_expression_update(name, expression)) or "" }}
+{% macro synth_column_expression(name, expression) -%}
+    {% set join_fields %}
+      {{expression}} as {{name}}
+    {% endset %}
+    {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
     
-    NULL as {{name}}
-{% endmacro %}
-
-{% macro snowflake__synth_column_expression(name, expression, type) %}
-    {{ synth_add_update_hook(synth_column_expression_update(name, expression)) or "" }}
-    
-    NULL::{{type}} as {{name}}
-{% endmacro%}
-
-{% macro synth_column_expression_update(name, expression) %}
-update {{ this }} set {{name}} = {{expression}}
-{% endmacro %}
+    {% set final_field %}
+      {{name}}
+    {% endset %}
+    {{ synth_store("final_fields", name, final_field) }}
+{%- endmacro %}

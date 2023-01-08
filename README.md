@@ -12,7 +12,7 @@ There are generally two approaches to creating synthetic or "fake" data:
 
 (Recent research has proposed a hybrid approach, where a "nearby" or similar synthetic data row (2) is selected for each row of a real, de-dentified row (1)... but adequately defining "nearby" is difficult.)
 
-We believe approach (1) is dangerous, suscpetible to re-identification attacks and other adversarial activity. This tool implements approac (2) *8*only*.
+We believe approach (1) is dangerous, suscpetible to re-identification attacks and other adversarial activity. This tool implements approach (2) *only*.
 
 
 ## Intended Use and Limitations

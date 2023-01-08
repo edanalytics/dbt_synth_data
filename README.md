@@ -10,7 +10,7 @@ There are generally two approaches to creating synthetic or "fake" data:
 1. start with real data, de-identify it, and possibly "fuzz" or "jitter" some values
 1. start with nothing and synthesize data by describing it, including and distributions and correlations in the data
 
-(Recent research has proposed a hybrid approach, where a "nearby" or similar synthetic data row (2) is selected for each row of a real, de-dentified row (1).)
+(Recent research has proposed a hybrid approach, where a "nearby" or similar synthetic data row (2) is selected for each row of a real, de-dentified row (1)... but adequately defining "nearby" is difficult.)
 
 We believe approach (1) is dangerous, suscpetible to re-identification attacks and other adversarial activity. This tool implements approac (2) *8*only*.
 

@@ -1,5 +1,4 @@
 {% macro synth_table(rows=1000) -%}
-    with
     {% set ctes = synth_retrieve('ctes') %}
     {{ ctes.values() | list | join(",") }}
     {% if ctes|length > 0%},{% endif %}
@@ -20,13 +19,14 @@
     {% for counter in range(1,joins|length+1) %}
         join{{counter}} as (
             select
-                join{{counter-1}}.*,
+                join{{counter-1}}.*
+                {% if joins[counter-1]['fields']|length>0 %},{% endif %}
                 {{ joins[counter-1]['fields'] | replace("___PREVIOUS_CTE___", "join"+(counter-1)|string) }}
             from join{{counter-1}}
                 {{ joins[counter-1]['clause'] | replace("___PREVIOUS_CTE___", "join"+(counter-1)|string) }}
         ),
     {% endfor %}
-    final as (
+    synth_table as (
         select
             {% set final_fields = synth_retrieve('final_fields').values() | list %}
             {% for final_field in final_fields %}
@@ -35,7 +35,6 @@
             {% endfor %}
         from join{{joins|length}}
     )
-    select * from final
     {{ config(post_hook=synth_get_post_hooks())}}
 {%- endmacro %}
 
@@ -43,6 +42,10 @@
 {% macro default__synth_table_generator(rows) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
+
+{% macro sqlite__synth_table_generator(rows) %}
+    generate_series( 1, {{rows}} ) as s
+{% endmacro %}
 
 {% macro postgres__synth_table_generator(rows) %}
     generate_series( 1, {{rows}} ) as s(idx)

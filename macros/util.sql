@@ -23,6 +23,12 @@
     {{ return(next_rand_seed) }}
 {% endmacro%}
 
+{% macro synth_sqlite_random() %}
+    {# convert SQLite RANDOM() int to 0.0-1.0 range #}
+    {{ return('((RANDOM()+9223372036854775808)/2.0/9223372036854775808)') }}
+{% endmacro%}
+
+
 {#
     The next two functions, `add_update_hook()` and `add_cleanup_hook()`, both
     allow you to add "hook" queries that will run after the initial table

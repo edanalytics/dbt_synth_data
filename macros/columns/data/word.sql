@@ -17,12 +17,11 @@
     {% endset %}
     {{ synth_column_select(
         name=name,
-        value_col="word",
-        lookup_table="synth_words",
+        model_name="synth_words",
+        value_cols="word",
         distribution=distribution,
         weight_col="frequency",
-        filter=filter,
-        funcs=[]
+        filter=filter
     ) }}
     {{ return("") }}
 {%- endmacro %}

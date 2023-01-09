@@ -1,12 +1,14 @@
 {% macro synth_column_lastname(name, distribution="weighted", filter="") -%}
     {{ synth_column_select(
-        name=name,
-        value_col="name",
-        lookup_table="synth_lastnames",
+        name=name+'__int',
+        model_name="synth_lastnames",
+        value_cols="name",
         distribution=distribution,
         weight_col="frequency",
-        filter=filter,
-        funcs=["INITCAP"]
+        filter=filter
     ) }}
+    {# Wrap name with INITCAP() to capitalize name: #}
+    {{ synth_column_expression(name=name, expression="INITCAP("+name+"__int)" ) }}
+    {{ synth_remove('final_fields', name+'__int') }}
     {{ return("") }}
 {%- endmacro %}

@@ -1,5 +1,6 @@
 {{ config(materialized='table') }}
 
+with
 {{ synth_column_distribution(name="continuous_uniform",
     distribution=synth_distribution(class='continuous', type='uniform', min=0, max=1)
 ) }}
@@ -80,15 +81,15 @@
         values=["cat", "dog", "parrot"], weights=[3, 6, 1]
     )
 ) }}
-
 {{ synth_table(rows=10000) }}
 
-{# { "5":0.05, "7":0.15, "11":0.25, "13":0.35, "17":0.2} #}
-{# [0.05, 0.15, 0.25, 0.35, 0.2] #}
+select * from synth_table
+
 {#-
-    Test by wrapping compiled output in something like
+    Test this data with something like
+    ```sql
     with rand_data as (
-        select * from postgres.testschema.distribution_tests
+        select * from [database].[schema].distributions
     )
     select round(continuous_uniform::numeric, 1) as continuous_uniform_0_1, count(*)
     --select round(continuous_normal::numeric, 1) as continuous_normal, count(*)
@@ -108,4 +109,5 @@
     from rand_data
     group by 1
     order by 1;
+    ```
 -#}

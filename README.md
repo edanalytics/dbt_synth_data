@@ -1,27 +1,45 @@
-# dbt_synth_data
-
-This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/) and [Postgres](https://www.postgresql.org/). Other backends may be added eventually.
+This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
 
 All the magic happens in `macros/*`.
 
+# Table of Contents  
+* [About](#about)
+* [Installation](#installation)
+* [Architecture](#architecture)
+* [Simple example](#simple-example)
+* [Distributions](#distributions)
+* [Column types](#column-types)
+* [Advanced usage](#advanced-usage)
+* [Datasets](#datasets)
+* [Performance](#performance)
+* [Changelog](#changelog)
+* [License](#license)
 
-## Data Generation Philosophy
+
+# About
+Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generating random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package emulate.
+
+However, creating more realistic synthetic data requires more complex data [column types](#column-types), advanced random [distributions](#distributions), supporting [datasets](#datasets), and [references](#reference-column-types) to other models.
+
+`dbt_synth_data` provides many macros to facilitate building out realistic synthetic data. It builds up a series of CTEs and joins from a base of randomly-generated values - see [Architecture](#architecture) for details.
+
+## Philosophy
 There are generally two approaches to creating synthetic or "fake" data:
 1. start with real data, de-identify it, and possibly "fuzz" or "jitter" some values
 1. start with nothing and synthesize data by describing it, including and distributions and correlations in the data
 
 (Recent research has proposed a hybrid approach, where a "nearby" or similar synthetic data row (2) is selected for each row of a real, de-dentified row (1)... but adequately defining "nearby" is difficult.)
 
-We believe approach (1) is dangerous, suscpetible to re-identification attacks and other adversarial activity. This tool implements approach (2) *only*.
+Approach (1) can be dangerous, suscpetible to re-identification and other adversarial attacks. `dbt_synth_data` implements approach (2) *only*.
+
+## Intended Use
+Synthetic data generated with `dbt_synth_data` can be useful for testing user interfaces, demoing applications, performance-tuning operational systems, preparing training and other materials with realistic data, and potentially other uses.
+
+## Limitations
+The synthetic data created using `dbt_synth_data` should not be mistaken as being fully realistic, reflecting all correlations that may be present in the real world. Therefore **please do not use data generated using this package to train ML models!**
 
 
-## Intended Use and Limitations
-This package generates synthetic data, which can be useful for testing user interfaces, demo-ing applications, performance-tuning operational systems, preparing training and other materials with realistic data, and potentially other uses.
-
-However, synthetic data created using this package should not be mistaken as being realistic in every way, reflecting all correlations that may be present in the real world. Therefore **please do not use data generated using this package to train ML models!**
-
-
-## Installation
+# Installation
 1. add `dbt_synth_data` to your `packages.yml`
 1. run `dbt deps`
 1. run `dbt seed`
@@ -30,53 +48,53 @@ However, synthetic data created using this package should not be mistaken as bei
 1. `dbt run`
 
 
-## Architecture
-Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generating random integers and strings](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-1/) or [dates and times](https://www.snowflake.com/blog/synthetic-data-generation-at-scale-part-2/) in Snowflake, which the [base column types](#base-column-types) in this package emulate.
+# Architecture
 
-However, creating more realistic synthetic data requires more complex data types, advanced random distributions, seed data, and correlated subqueries or lookups on other tables. This package provides many macros to facilitate building out realistic synthetic data.
-
-CTEs, joins, and fields defined by `synth_column_*()` are stored in `dbt`'s [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s. Finally, `synth_table()` stitches everything together into query of the form
+CTEs, joins, and fields defined by `synth_column_*()` are temporarily stored in `dbt`'s [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s. Finally, `synth_table()` stitches everything together into query of the general form
 ```sql
--- CTEs as required for selecting seed data or random values from another table
-...
+-- [CTEs as required for selecting seed data or values from other models]
 base as (
     select
-        -- base table includes a row_number, which facilitates generating integer or date sequences
+        -- base CTE includes a row_number, which facilitates generating integer or date sequences, primary keys, and more
         row_number() over (order by 1) as __row_number
     from table(generator( rowcount => [rows] )) -- snowflake
-    -- from generate_series( 1, [rows] ) as s(idx) -- postgres
+    -- from generate_series( 1, [rows] ) as s(idx) -- postgres, sqlite
 ),
 join0 as (
      select
         base.__row_number,
         -- randomness source fields, such as
         UNIFORM(0::float, 1::float, RANDOM()) as field1__rand, -- snowflake
-        RANDOM() as field2__rand, -- postgres
-        ...
+        -- RANDOM() as field1__rand, -- postgres
+        -- [similar *__rand fields for other columns as required]
     from base
 ),
 -- arbitrarily many further joins to the CTEs defined above
 joinN as (
     select
-        join[N-1].*,
-        CTEx.field3,
-        CTEx.field4
+        join[N-1].*, -- all fields from prior joins, plus:
+        CTEx.field2,
+        CTEx.field3
     from join[N-1]
         left join CTEx on ... -- something involving join[N-1].*__rand
 ),
-final as (
+synth_table as (
     select
+        field1,
+        field2,
+        field3
         -- only the fields we actually want to keep in the final table
+        -- (intermediate fields, including *__rand, are dropped)
     from joinN
 )
-select * from final
 ```
 
 
-## Simple Example
+# Simple example
 Consider the example model `orders.sql` below:
 ```sql
 -- depends_on: {{ ref('products') }}
+with
 {{ synth_column_primary_key(name='order_id') }}
 {{ synth_column_foreign_key(name='product_id', table='products', column='product_id') }}
 {{ synth_column_distribution(name='status', 
@@ -86,18 +104,21 @@ Consider the example model `orders.sql` below:
 ) }}
 {{ synth_column_integer(name='num_ordered', min=1, max=10) }}
 {{ synth_table(rows = 5000) }}
+select * from synth_table
 ```
-The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. The model is also materialized as a table, to persist the new data in the database. Next, we define the columns we want in the table, including:
+The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. Next, we define the columns we want in the table, including:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
 * `product_id` is a foreign key to the `products` table - values in this column will be uniformly-distributed, valid primary keys of the `products` table
 * each order has a `status` with several possible values, whose prevalence/likelihoods are given by a discrete probability distribution
 * `num_ordered` is the count of how many of the product were ordered, a uniformly-distributed integer from 1-10
 
-Finally, we materialize the table with 5000 rows of synthetic data.
+Finally, we materialize the table with 5000 rows of synthetic data and select the result.
+
+Note that the user must provide the opening `with` for CTEs and a final `select * from synth_table` - this allows flexibility to add your own CTEs at the top or bottom of the model, as well as arbitrary post-processing of columns produced by `dbt_synth_data` - see [Advanced Usage](#advanced-usage) for more details.
 
 
 
-## Distributions
+# Distributions
 This package provides the following distributions:
 
 ### Continuous Distributions
@@ -238,7 +259,7 @@ which takes longer for the database engine to evaluate.
 Really you should avoid specifiying `probabilities` of more than 4 digits at the most.
 </details>
 
-### Discretizing Continuous Distributions
+## Discretizing Continuous Distributions
 
 Any of the [continuous distributions](#continuous-distributions) listed above can be made discrete using the following mechanisms:
 
@@ -318,7 +339,7 @@ For all but the last option, you may optionally specify a `label_precision`, whi
 </details>
 
 
-### Constructing Complex Distributions
+## Constructing Complex Distributions
 This package provides the following mechanisms for composing several distributions:
 
 <details>
@@ -378,11 +399,11 @@ Up to 10 distributions may be averaged. (Compose the macro to average more.)
 
 
 
-## Column types
+# Column types
 This package provides the following data types:
 
 
-### Basic column types
+## Basic column types
 Basic column types, which are quite performant.
 
 <details>
@@ -411,15 +432,6 @@ For non-uniformly-distributed values, specify a discretized distribution:
         distribution=synth_distribution_continuous_normal(mean=2010, stddev=2.5,)
     )
 ) }}
-```
-</details>
-
-<details>
-<summary><code>integer sequence</code></summary>
-
-Generates an integer sequence (value is incremented at each row).
-```python
-{{ synth_column_integer_sequence(name="day_of_year", step=1, start=1) }}
 ```
 </details>
 
@@ -458,6 +470,15 @@ String characters will include `A-Z`, `a-z`, and `0-9`.
 Generates date values.
 ```python
 {{ synth_column_date(name="birth_date", min='1938-01-01', max='1994-12-31') }}
+```
+</details>
+
+<details>
+<summary><code>integer sequence</code></summary>
+
+Generates an integer sequence (value is incremented at each row).
+```python
+{{ synth_column_integer_sequence(name="day_of_year", step=1, start=1) }}
 ```
 </details>
 
@@ -503,55 +524,6 @@ If `probabilities` are omitted, every value is equally likely.
 (Uses `synth_distribution_discrete_probabilities()` under the hood.)
 </details>
 
-
-### Statistical column types
-Statistical column types can be used to make advanced statistical relationships between tables and columns.
-
-<details>
-<summary><code>correlation</code></summary>
-
-Generates two or more columns with correlated values.
-```python
-    {% set birthyear_grade_correlations = ({
-        "randseed": synth_get_randseed(),
-        "columns": {
-            "birth_year": [ 2010, 2009, 2008, 2007, 2006, 2005, 2004 ],
-            "grade": [ 'Eighth grade', 'Ninth grade', 'Tenth grade', 'Eleventh grade', 'Twelfth grade' ]
-        },
-        "probabilities": [
-            [ 0.02, 0.00, 0.00, 0.00, 0.00 ],
-            [ 0.15, 0.02, 0.00, 0.00, 0.00 ],
-            [ 0.03, 0.15, 0.02, 0.00, 0.00 ],
-            [ 0.00, 0.03, 0.15, 0.02, 0.00 ],
-            [ 0.00, 0.00, 0.03, 0.15, 0.02 ],
-            [ 0.00, 0.00, 0.00, 0.03, 0.15 ],
-            [ 0.00, 0.00, 0.00, 0.00, 0.03 ]
-        ]
-        })
-    %}
-    ...
-    {{ synth_table(
-        rows = var('num_students'),
-        columns = [
-            synth_column_primary_key(name='k_student'),
-            synth_column_correlation(data=birthyear_grade_correlations, column='birth_year'),
-            synth_column_correlation(data=birthyear_grade_correlations, column='grade'),
-            ...
-        ]
-    ) }}
-    {{ config(post_hook=synth_get_post_hooks())}}
-```
-To created correlated columns, you must specify a `data` object representing the correlation, which contains
-* `columns` is a list of column names and possible values.
-* `probabilities` is a hypercube, with dimension equal to the number of `columns`, the elements of which sum to `1.0`, indicating the probability of each possible combination of values for the `columns`. The outermost elements of the `probabilities` hypercube corresond to the values of the first column; the innermost elements of the hypercube correspond to the values of the last column. Each dimension of the hypercube must have the same size as the number of values for its corresponding column.
-
-Constructing a `probabilities` hypercube of dimension more than two or three can be difficult &ndash; we recommend adding (temporary) comments and using indentation to keep track of columns, values, and dimensions.
-</details>
-
-
-### Reference column types
-Column types which reference values in other columns of the same or different table.
-
 <details>
 <summary><code>expression</code></summary>
 
@@ -574,12 +546,55 @@ Generates values by mapping from an `expression` involving existing columns to v
 ```
 </details>
 
+
+## Statistical column types
+Statistical column types can be used to make advanced statistical relationships between tables and columns.
+
+<details>
+<summary><code>correlation</code></summary>
+
+Generates two or more columns with correlated values.
+```python
+{% set birthyear_grade_correlations = ({
+    "columns": {
+        "birth_year": [ 2010, 2009, 2008, 2007, 2006, 2005, 2004 ],
+        "grade": [ 'Eighth grade', 'Ninth grade', 'Tenth grade', 'Eleventh grade', 'Twelfth grade' ]
+    },
+    "probabilities": [
+        [ 0.02, 0.00, 0.00, 0.00, 0.00 ],
+        [ 0.15, 0.02, 0.00, 0.00, 0.00 ],
+        [ 0.03, 0.15, 0.02, 0.00, 0.00 ],
+        [ 0.00, 0.03, 0.15, 0.02, 0.00 ],
+        [ 0.00, 0.00, 0.03, 0.15, 0.02 ],
+        [ 0.00, 0.00, 0.00, 0.03, 0.15 ],
+        [ 0.00, 0.00, 0.00, 0.00, 0.03 ]
+    ]
+    })
+%}
+with
+{{ synth_column_primary_key(name='k_student') }}
+{{ synth_column_correlation(data=birthyear_grade_correlations, column='birth_year') }}
+{{ synth_column_correlation(data=birthyear_grade_correlations, column='grade') }}
+{{ synth_table(rows=var('num_students')) }}
+select * from synth_table
+```
+To created correlated columns, you must specify a `data` object representing the correlation, which contains
+* `columns` is a list of column names and possible values.
+* `probabilities` is a hypercube, with dimension equal to the number of `columns`, the elements of which sum to `1.0`, indicating the probability of each possible combination of values for the `columns`. The outermost elements of the `probabilities` hypercube corresond to the values of the first column; the innermost elements of the hypercube correspond to the values of the last column. Each dimension of the hypercube must have the same size as the number of values for its corresponding column.
+
+Constructing a `probabilities` hypercube of dimension more than two or three can be difficult &ndash; we recommend adding (temporary) comments and using indentation to keep track of columns, values, and dimensions.
+</details>
+
+
+## Reference column types
+Column types which reference values in other columns of the same or different table.
+
 <details>
 <summary><code>foreign key</code></summary>
 
 Generates values that are a primary key of another table.
 ```python
-    synth_column_foreign_key(name='product_id', table='products', column='id'),
+{{ synth_column_foreign_key(name='product_id', model_name='products', column='id') }}
 ```
 </details>
 
@@ -588,9 +603,8 @@ Generates values that are a primary key of another table.
 
 Generates values based on looking up values from one column in another table..
 ```python
-    synth_column_lookup(name='gender', value_col='first_name', lookup_table='synth_firstnames', from_col='name', to_col='gender', funcs=['UPPER']),
+{{ synth_column_lookup(name='gender', model_name='synth_firstnames', value_cols='first_name', from_col='name', to_col='gender') }}
 ```
-(`funcs` is an optional array of SQL functions to wrap the `from_col` value in prior to doing the lookup.)
 </details>
 
 <details>
@@ -598,21 +612,20 @@ Generates values based on looking up values from one column in another table..
 
 Generates values by selecting them from another table, optionally weighted using a specified column of the other table.
 ```python
-    synth_column_select(
-        name='random_ajective'',
-        value_col="word",
-        lookup_table="synth_words",
-        distribution="weighted",
-        weight_col="prevalence",
-        filter="types like '%adjective%'",
-        funcs=["INITCAP"]
-    ),
+{{ synth_column_select(
+    name='random_ajective',
+    model_name="synth_words",
+    value_cols="word",
+    distribution="weighted",
+    weight_col="prevalence",
+    filter="part_of_speech like '%ADJ%'"
+) }}
 ```
 The above will generate randomly-chosen adjectives (based on the specified `filter`), weighted by prevalence.
 </details>
 
 
-### Advanced column types
+## Advanced column types
 Advanced column types use real-world data which is maintained in the `seeds/` directory. Some effort has been made to make these data sets
 * **Generalized**, rather than specific to a particular country, region, language, etc. For example, the *words* dictionary contains common words from many common languages, not just English.
 * **Statistically rich**, with associated metadata which makes the data more useful by capturing various distributions embedded in the data. For example, the *countries* list includes the (approximate) population and land area of each country, which facilitates generating country lists weighted according to these features. Likewise, the *cities* list has the latitude and longitude coordinates for each city, which facilitates generating fairly realistic coordinates for synthetic addresses.
@@ -636,16 +649,7 @@ AND synth_countries.geo_region_code=my_geo_region_col
 
 Generates a city, selected from the `synth_cities` seed table.
 ```python
-    synth_column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'"),
-```
-</details>
-
-<details>
-<summary><code>country</code></summary>
-
-Generates a country, selected from the `synth_countries` seed table.
-```python
-    synth_column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'"),
+{{ synth_column_city(name='city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'") }}
 ```
 </details>
 
@@ -654,7 +658,16 @@ Generates a country, selected from the `synth_countries` seed table.
 
 Generates a geo region (state, province, or territory), selected from the `synth_geo_regions` seed table.
 ```python
-    synth_column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'"),
+{{ synth_column_geo_region(name='geo_region', distribution="weighted", weight_col="population", filter="country='United States'") }}
+```
+</details>
+
+<details>
+<summary><code>country</code></summary>
+
+Generates a country, selected from the `synth_countries` seed table.
+```python
+{{ synth_column_country(name='country', distribution="weighted", weight_col="population", filter="continent='Europe'") }}
 ```
 </details>
 
@@ -663,7 +676,7 @@ Generates a geo region (state, province, or territory), selected from the `synth
 
 Generates a first name, selected from the `synth_firstnames` seed table.
 ```python
-    synth_column_firstname(name='first_name', filter="gender='Male'"),
+{{ synth_column_firstname(name='first_name', filter="gender='Male'") }}
 ```
 </details>
 
@@ -672,7 +685,7 @@ Generates a first name, selected from the `synth_firstnames` seed table.
 
 Generates a last name, selected from the `synth_lastnames` seed table.
 ```python
-    synth_column_lastname(name='last_name'),
+{{ synth_column_lastname(name='last_name') }}
 ```
 </details>
 
@@ -681,7 +694,7 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-    synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]),
+{{ synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]) }}
 ```
 The above generates a randomly-selected English noun or verb, weighted according to frequency.
 
@@ -693,16 +706,16 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates several words, selected from the `synth_words` seed table.
 ```python
-    {{ synth_words(name='random_phrase', language_code="en", distribution="uniform", n=5, funcs=["INITCAP"]) }} as random_phrase,
+{{ synth_column_words(name='random_phrase', language_code="en", distribution="uniform", n=5) }}
 ```
 The above generates a random string of five words, uniformly districbuted, with the first letter of each word capitalized.
 
 Alternatively, you can generate words using format strings, for example
 ```python
-    synth_column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
-        "{ADV} learning for {ADJ} {NOUN}s",
-        "{ADV} {VERB} {NOUN} course"
-    ], funcs=["INITCAP"]),
+{{ synth_column_words(name='course_title', language_code="en", distribution="uniform", format_strings=[
+    "{ADV} learning for {ADJ} {NOUN}s",
+    "{ADV} {VERB} {NOUN} course"
+]) }}
 ```
 This will generate sets of words according to one of the format strings you specify.
 
@@ -716,13 +729,13 @@ Rather than `language_code` you may specify `language` (such as `language="Engli
 
 Generates a spoken language (name or 2- or 3-letter code), selected from the `synth_languages` seed table.
 ```python
-    synth_column_languages(name='random_lang', type="name", distribution="weighted"),
+{{ synth_column_language(name='random_lang', type="name", distribution="weighted") }}
 ```
 The optional `type` (which defaults to `name`) can take values `name` (the full English name of the language, e.g. *Spanish*), `code2` (the ISO 693-2 two-letter code for the langage, e.g. `es`), or `code3` (the ISO 693-3 three-letter code for the language, e.g. `spa`).
 </details>
 
 
-### Composite column types
+## Composite column types
 Composite column types put together several other column types into a more complex data type.
 
 <details>
@@ -773,7 +786,7 @@ Generates a phone number in the format `(123) 456-7890`.
 </details>
 
 
-## Advanced Usage
+# Advanced usage
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
 ```sql
 {{ synth_column_primary_key(name="k_person") }}
@@ -819,9 +832,9 @@ For example, suppose you want to create `products` and `orders`, but you want so
     Note that the cleanup hook *must* go after any column definitions that rely on it, and before the `synth_table()` call.
 
 
-## Datasets
+# Datasets
 
-### Words
+## Words
 The word list in `seeds/synth_words.csv` contains 70k words &ndash; the top 5k most common words from each of the following 14 languages:
 * Bulgarian (`bg`)
 * Czech (`cs`)
@@ -861,16 +874,16 @@ Some words may functionally belong to multiple parts of speech; this dataset use
 
 The dataset is constructed based on word lists and frequencies from [`wordfreq`](https://github.com/rspeer/wordfreq) and part-of-speech tagging from [`polyglot`](https://polyglot.readthedocs.io/en/latest/POS.html). Language availability is based on the set intersection of the languages supported by these two libraries.
 
-### Languages
+## Languages
 The language list in `seeds/synth_languages.csv` contains 222 commonly-spoken (living) languages, with, for each, the ISO 693-2 and ISO 693-3 language codes, the approximate number of speakers, and a list of countries in which the language is predominantly spoken. Country names are consistent with those in the countries dataset at `seeds/synth_countries.csv`.
 
 The dataset is assembled primarily from Wikipedia, including [this list of official languages by country](https://en.wikipedia.org/wiki/List_of_official_languages_by_country_and_territory), and the specific pages for each individual language.
 
 
-## Performance
+# Performance
 Here we provide benchmarks in Snowflake and AWS RDS Postgres for synthetic data generation, using the models found in `example_models/*.sql`..
 
-### Snowflake
+## Snowflake
 Using a single Xsmall warehouse:
 
 | Model         | Columns |   Rows | Runtime | Data size |
@@ -880,34 +893,35 @@ Using a single Xsmall warehouse:
 | distributions |      15 |   100M |  64.61s |    5.7 GB |
 | distributions |      15 |    10B |  81 min |  614.7 GB |
 
-| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
-| ------------- | ------- | ------ | ----------- | -------------- |
-| customers     |       8 |    100 |      15.67s |        32.5 KB |
-| products      |       3 |     50 |      12.68s |        16.0 KB |
-| stores        |       5 |      2 |      14.45s |         2.0 KB |
-| orders        |       4 |   1000 |      11.52s |        59.0 KB |
-| inventory     |       4 |    100 |      15.62s |        22.0 KB |
+| Model         | Columns |   Rows | Runtime | Data size |
+| ------------- | ------- | ------ | ------- | --------- |
+| customers     |       8 |    100 |   4.32s |   32.5 KB |
+| products      |       3 |     50 |   1.28s |   16.0 KB |
+| stores        |       5 |      2 |   1.63s |    2.0 KB |
+| orders        |       4 |   1000 |   1.36s |   59.0 KB |
+| inventory     |       4 |    100 |   1.46s |   22.0 KB |
 
-| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
-| ------------- | ------- | ------ | ----------- | -------------- |
-| customers     |       8 |    10k |      15.70s |       958.5 KB |
-| products      |       3 |     5k |      13.13s |       267.5 KB |
-| stores        |       5 |    200 |      15.66s |        32.0 KB |
-| orders        |       4 |   100k |      14.58s |         5.3 MB |
-| inventory     |       4 |     1M |      13.59s |         6.1 MB |
+| Model         | Columns |   Rows | Runtime | Data size |
+| ------------- | ------- | ------ | ------- | --------- |
+| customers     |       8 |    10k |   3.77s |  958.5 KB |
+| products      |       3 |     5k |   2.14s |  267.5 KB |
+| stores        |       5 |    200 |   1.71s |   32.0 KB |
+| orders        |       4 |   100k |   3.60s |    5.3 MB |
+| inventory     |       4 |     1M |  16.74s |    6.1 MB |
 
-| Model         | Columns |   Rows | Runtime (s) | Data size (MB) |
-| ------------- | ------- | ------ | ----------- | -------------- |
-| customers     |       8 |     1M |      41.93s |        53.0 MB |
-| products      |       3 |    50k |      21.04s |         2.4 MB |
-| stores        |       5 |    20k |      23.19s |         1.3 MB |
-| orders        |       4 |    50M |     114 min |         1.0 GB |
-| inventory     |       4 |   100M |     325 min |         2.5 GB |
+| Model         | Columns |   Rows | Runtime | Data size |
+| ------------- | ------- | ------ | ------- | --------- |
+| customers     |       8 |     1M |  21.43s |   53.0 MB |
+| products      |       3 |    50k |  21.04s |    2.4 MB |
+| stores        |       5 |    20k |   1.85s |    1.3 MB |
+| orders        |       4 |    50M | 114 min |    1.0 GB |
+| inventory     |       4 |   100M | 325 min |    2.5 GB |
 
 (Note that **orders** and **inventory** are significantly slower at scale because they rely on **products** - and so many products are partitioned, slowing the query.)
 
 
-In Postgres, using an AWS RDS small instance:
+## Postgres
+Using an AWS RDS small instance:
 
 | Model         | Columns |   Rows | Runtime |
 | ------------- | ------- | ------ | ------- |
@@ -936,3 +950,4 @@ In Postgres, using an AWS RDS small instance:
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
 - [ ] update various column types to use new distribution macros
 - [ ] flesh out more seeds, data columns, and composite columns
+- [ ] SQLite support for random strings (needs CTE!)

@@ -9,8 +9,8 @@
 {% macro synth_column_geo_region_type(name, type, distribution, weight_col, filter) -%}
     {{ synth_column_select(
         name=name,
-        value_col=("abbr" if type=="abbr" else "name"),
-        lookup_table="synth_geo_regions",
+        model_name="synth_geo_regions",
+        value_cols=("abbr" if type=="abbr" else "name"),
         distribution=distribution,
         weight_col=weight_col,
         filter=filter,

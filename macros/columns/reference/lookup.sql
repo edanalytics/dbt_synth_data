@@ -1,33 +1,26 @@
-{% macro synth_column_lookup(name, value_col, lookup_table, from_col, to_col, funcs=[]) -%}
-    {{ return(adapter.dispatch('synth_column_lookup')(name, value_col, lookup_table, from_col, to_col, funcs)) }}
-{%- endmacro %}
-
-{% macro default__synth_column_lookup(name, value_col, lookup_table, from_col, to_col, funcs) -%}
-    {# NOT YET IMPLEMENTED #}
-{%- endmacro %}
-
-{% macro postgres__synth_column_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
-    {{ synth_add_update_hook(postgres__synth_column_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
+{% macro synth_column_lookup(name, model_name, value_cols, from_col, to_col) -%}
+    {# Allow for `value_cols` to be a single (string) column name: #}
+    {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
     
-    ''::varchar as {{name}}
-{% endmacro %}
-
-{% macro postgres__synth_column_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs) %}
-update {{ this }} x set {{name}}=y.{{to_col}} from (
-  select {{from_col}}, {{to_col}}
-  from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
-) as y where {% for f in funcs %}{{f}}({% endfor %}x.{{value_col}}{% for f in funcs %}){% endfor %}=y.{{from_col}}
-{% endmacro %}
-
-{% macro snowflake__synth_column_lookup(name, value_col, lookup_table, from_col, to_col, funcs) %}
-    {{ synth_add_update_hook(snowflake__synth_column_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs)) or "" }}
+    {% set join_fields %}
+        {% for value_col in value_cols %}
+        {{name}}_lookup.{{value_col}} as {{name}}
+        {% if not loop.last %},{% endif %}
+        {% endfor%}
+    {% endset %}
+    {% set join_clause %}
+        left join {{ref(model_name)}} {{name}}_lookup on ___PREVIOUS_CTE___.{{from_col}}={{name}}__lookup.to_col
+    {% endset %}
+    {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
-    ''::varchar as {{name}}
-{% endmacro%}
-
-{% macro snowflake__synth_column_lookup_update(name, value_col, lookup_table, from_col, to_col, funcs) %}
-update {{ this }} x set x.{{name}}=y.{{to_col}} from (
-  select {{from_col}}, {{to_col}}
-  from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
-) as y where {% for f in funcs %}{{f}}({% endfor %}x.{{value_col}}{% for f in funcs %}){% endfor %}=y.{{from_col}}
-{% endmacro %}
+    {% set final_field %}
+        {% if value_cols|length==1 %}
+            {{name}}
+        {% else %}
+            {% for value_col in value_cols %}
+            {{name}}__{{value_col}}
+            {% endfor %}
+        {% endif %}
+    {% endset %}
+    {{ synth_store("final_fields", name, final_field) }}
+{%- endmacro %}

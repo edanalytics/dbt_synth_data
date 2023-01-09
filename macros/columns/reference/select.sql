@@ -1,26 +1,28 @@
-{% macro synth_column_select(name, value_col, lookup_table, distribution="uniform", weight_col="", filter="", funcs=[]) -%}
+{% macro synth_column_select(name, model_name, value_cols=[], distribution="uniform", weight_col="", filter="") -%}
+    {# Allow for `value_cols` to be a single (string) column name: #}
+    {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
+    
     {% if distribution=='uniform' %}
-        {{ synth_column_select_uniform(name, value_col, lookup_table, filter, funcs) }}
+        {{ synth_column_select_uniform(name, model_name, value_cols, filter) }}
     
     {% elif distribution=='weighted' %}
-        {% if weight_col=='' %}
-            {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
-        {% endif %}
-        {{ synth_column_select_weighted(name, value_col, lookup_table, weight_col, filter, funcs) }}
+        {{ synth_column_select_weighted(name, model_name, value_cols, weight_col, filter) }}
     
     {% else %}
         {{ exceptions.raise_compiler_error("Invalid `distribution` " ~ distribution ~ " for select column `" ~ name ~ "`: should be `uniform` (default) or `weighted`.") }}
     {% endif %}
 {%- endmacro %}
 
-{% macro synth_column_select_uniform(name, value_col, lookup_table, filter, funcs, final_expression="") %}
+{% macro synth_column_select_uniform(name, model_name, value_cols, filter) %}
     {% set cte %}
         {{name}}__cte as (
             select
+                {% for value_col in value_cols %}
                 {{value_col}},
-                ( (row_number() over (order by {{value_col}} asc)) - 1 )::double precision / count(*) over () as from_val,
-                ( (row_number() over (order by {{value_col}} asc))     )::double precision / count(*) over () as to_val
-            from {{ref(lookup_table)}}
+                {% endfor %}
+                1.0*( (row_number() over (order by {{value_cols[0]}} asc)) - 1 ) / count(*) over () as from_val,
+                1.0*( (row_number() over (order by {{value_cols[0]}} asc))     ) / count(*) over () as to_val
+            from {{ref(model_name)}}
             {% if filter|trim|length %}
             where {{filter}}
             {% endif %}
@@ -30,33 +32,53 @@
     {{ synth_store("ctes", name+"__cte", cte) }}
 
     {% set base_field %}
-      {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
+        {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
     {% endset %}
     {{ synth_store("base_fields", name+"__rand", base_field) }}
 
     {% set join_fields %}
-      {{name}}__cte.{{value_col}} as {{name}}
+        {% if value_cols|length==1 %}
+            {{name}}__cte.{{value_cols[0]}} as {{name}}
+        {% else %}
+            {% for value_col in value_cols %}
+            {{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
+            {% if not loop.last %},{% endif %}
+            {% endfor%}
+        {% endif %}
     {% endset %}
     {% set join_clause %}
-      left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
+        left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
     {% endset %}
     {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
     {% set final_field %}
-      {{name}}
+        {% if value_cols|length==1 %}
+            {{name}}
+        {% else %}
+            {% for value_col in value_cols %}
+            {{name}}__{{value_col}}
+            {% if not loop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
     {% endset %}
     {{ synth_store("final_fields", name, final_field) }}
 {% endmacro %}
 
-{% macro synth_column_select_weighted(name, value_col, lookup_table, weight_col, filter, funcs) %}
+{% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter) %}
+    {% if not weight_col %}
+        {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
+    {% endif %}
+    
     {% set cte %}
         {{name}}__cte as (
             select
-                {% for f in funcs %}{{f}}({% endfor %}{{value_col}}{% for f in funcs %}){% endfor %} as {{value_col}},
+                {% for value_col in value_cols %}
+                {{value_col}},
+                {% endfor %}
                 {{weight_col}},
-                ( (sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc)) - {{weight_col}}::double precision) / sum({{weight_col}}::double precision) over () as from_val,
-                ( (sum({{weight_col}}::double precision) over (order by {{weight_col}} desc, {{value_col}} asc))                                   ) / sum({{weight_col}}::double precision) over () as to_val
-            from {{ this.database }}.{{ this.schema }}.{{lookup_table}}
+                ( (1.0*sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc)) - 1.0*{{weight_col}}) / 1.0*sum({{weight_col}}) over () as from_val,
+                ( (1.0*sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc))                     ) / 1.0*sum({{weight_col}}) over () as to_val
+            from {{ref(model_name)}}
             {% if filter|trim|length %}
             where {{filter}}
             {% endif %}
@@ -71,15 +93,29 @@
     {{ synth_store("base_fields", name+"__rand", base_field) }}
 
     {% set join_fields %}
-      {{name}}__cte.{{value_col}} as {{name}}
+        {% if value_cols|length==1 %}
+            {{name}}__cte.{{value_cols[0]}} as {{name}}
+        {% else %}
+            {% for value_col in value_cols %}
+            {{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
+            {% if not loop.last %},{% endif %}
+            {% endfor%}
+        {% endif %}
     {% endset %}
     {% set join_clause %}
-      left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
+        left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
     {% endset %}
     {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
     {% set final_field %}
-      {{name}}
+        {% if value_cols|length==1 %}
+            {{name}}
+        {% else %}
+            {% for value_col in value_cols %}
+            {{name}}__{{value_col}}
+            {% if not loop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
     {% endset %}
     {{ synth_store("final_fields", name, final_field) }}
 {% endmacro %}

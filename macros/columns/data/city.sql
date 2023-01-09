@@ -1,8 +1,8 @@
 {% macro synth_column_city(name, distribution="weighted", weight_col="population", filter="") -%}
     {{ synth_column_select(
         name=name,
-        value_col="name",
-        lookup_table="synth_cities",
+        model_name="synth_cities",
+        value_cols="name",
         distribution=distribution,
         weight_col=weight_col,
         filter=filter,

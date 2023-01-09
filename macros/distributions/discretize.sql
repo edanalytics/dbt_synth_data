@@ -1,14 +1,68 @@
 {% macro synth_distribution_discretize_floor(distribution) %}
+    {{ return(adapter.dispatch('synth_distribution_discretize_floor')(distribution)) }}
+{% endmacro %}
+
+{% macro default__synth_distribution_discretize_floor(distribution) -%}
+    {# NOT YET IMPLEMENTED #}
+{%- endmacro %}
+
+{% macro sqlite__synth_distribution_discretize_floor(distribution) %}
+    cast(floor( {{distribution}} ) as int)
+{% endmacro %}
+
+{% macro postgres__synth_distribution_discretize_floor(distribution) %}
     floor( {{distribution}} )
 {% endmacro %}
 
+{% macro snowflake__synth_distribution_discretize_floor(distribution) %}
+    floor( {{distribution}} )
+{% endmacro%}
+
+
+
 {% macro synth_distribution_discretize_ceil(distribution) %}
+    {{ return(adapter.dispatch('synth_distribution_discretize_ceil')(distribution)) }}
+{% endmacro %}
+
+{% macro default__synth_distribution_discretize_ceil(distribution) -%}
+    {# NOT YET IMPLEMENTED #}
+{%- endmacro %}
+
+{% macro sqlite__synth_distribution_discretize_ceil(distribution) %}
+    cast(ceil( {{distribution}} ) as int)
+{% endmacro %}
+
+{% macro postgres__synth_distribution_discretize_ceil(distribution) %}
     ceil( {{distribution}} )
 {% endmacro %}
 
+{% macro snowflake__synth_distribution_discretize_ceil(distribution) %}
+    ceil( {{distribution}} )
+{% endmacro%}
+
+
+
 {% macro synth_distribution_discretize_round(distribution, precision=0) %}
+    {{ return(adapter.dispatch('synth_distribution_discretize_round')(distribution, precision)) }}
+{% endmacro %}
+
+{% macro default__synth_distribution_discretize_round(distribution, precision) -%}
+    {# NOT YET IMPLEMENTED #}
+{%- endmacro %}
+
+{% macro sqlite__synth_distribution_discretize_round(distribution, precision) %}
+    round( ( {{distribution}} ) , {{precision}})
+{% endmacro %}
+
+{% macro postgres__synth_distribution_discretize_round(distribution, precision) %}
     round( ( {{distribution}} )::numeric , {{precision}})
 {% endmacro %}
+
+{% macro snowflake__synth_distribution_discretize_round(distribution, precision) %}
+    round( ( {{distribution}} )::numeric , {{precision}})
+{% endmacro%}
+
+
 
 {% macro synth_distribution_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
     {# Either `size` or `count` must be specified #}

@@ -1,4 +1,4 @@
-{% macro synth_column_words(name, language="", language_code="", distribution="weighted", n=3, format_strings=[], funcs=[]) -%}
+{% macro synth_column_words(name, language="", language_code="", distribution="weighted", n=3, format_strings=[]) -%}
 
     {% if not language and not language_code %}
         {{ exceptions.raise_compiler_error("Words column `" ~ name ~ "` must specify either `language` or `language_code`.") }}
@@ -28,13 +28,11 @@
         {% endfor %}
         
         {% set words_expression %}
-        {% for f in funcs %}{{f}}({% endfor %}
         (CASE
         {% for i in range(tokenized_format_strings|length) %}
             WHEN ___PREVIOUS_CTE___.{{name}}__format_idx={{i+1}} THEN {{tokenized_format_strings[i]["expression"]}}
         {% endfor %}
         END)
-        {% for f in funcs %}){% endfor %}
         {% endset %}
 
         {% for col_name,pos in token_set.items() %}
@@ -67,7 +65,7 @@
         {% for i in range(n) %}
         {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }},
         {% endfor %}
-        {{ synth_column_expression(name=name, expression=words_expression, type='varchar') }}
+        {{ synth_column_expression(name=name, expression=words_expression) }}
         {% endset %}
 
     {% else %}

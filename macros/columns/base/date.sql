@@ -14,6 +14,13 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
+{% macro sqlite__synth_column_date_base(min, max, distribution) %}
+    date('{{min}}',
+        '+' ||
+        ROUND({{synth_sqlite_random()}} * ({% if max|length > 0 %}JULIANDAY('{{max}}'){% else %}JULIANDAY(DATE()){% endif %} - JULIANDAY('{{min}}'))) ||
+        ' days')
+{% endmacro %}
+
 {% macro postgres__synth_column_date_base(min, max, distribution) %}
     date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int
 {% endmacro %}

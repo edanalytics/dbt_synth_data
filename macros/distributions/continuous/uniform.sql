@@ -6,6 +6,10 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
+{% macro sqlite__synth_distribution_continuous_uniform(min, max) %}
+    ({{synth_sqlite_random()}} * ({{max}}-{{min}}) + {{min}})
+{% endmacro %}
+
 {% macro postgres__synth_distribution_continuous_uniform(min, max) %}
     (random() * ({{max}}-{{min}}) + {{min}})
 {% endmacro %}

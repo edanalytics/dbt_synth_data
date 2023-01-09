@@ -32,7 +32,7 @@
 
         {% if 'postal_code' in parts %}
             {% if parts.index('postal_code') > 0 %} || ' ' || {% endif %}
-            {{name}}__postal_code
+            cast({{name}}__postal_code as int)
         {% endif %}
 
         {% if 'country' in parts %}
@@ -49,7 +49,7 @@
                 when {{i+1}} then
                 {% if address_types[i]=='house' %}
 
-                    {{name}}__number1
+                    cast({{name}}__number1 as int)
                     || ' '
                     || {{name}}__street_name
                     || ' '
@@ -62,7 +62,7 @@
                 
                 {% elif address_types[i]=='apartment' %}
                 
-                    {{name}}__number1
+                    cast({{name}}__number1 as int)
                     || ' '
                     || {{name}}__street_name
                     || ' '
@@ -76,7 +76,7 @@
                         when 1 then 'No. '
                         else '#'
                     end)
-                    || {{name}}__number2
+                    || cast({{name}}__number2 as int)
                 
                 {% elif address_types[i]=='pobox' %}
                 
@@ -85,7 +85,7 @@
                         else 'P.O. '
                     end)
                     || ' Box '
-                    || {{name}}__number2
+                    || cast({{name}}__number2 as int)
                 
                 {% endif %}
 
@@ -98,7 +98,7 @@
         {{ synth_column_words(name=name+"__street_name", language_code='en', distribution="uniform", format_strings=[
             "{NOUN}",
             "{ADJ} {NOUN}"
-        ], funcs=["INITCAP"]) }}
+        ]) }}
         {{ synth_column_integer(name=name+"__street_type", min=1, max=street_types|length) }}
         {{ synth_column_integer(name=name+"__unit_type", min=1, max=2) }}
         {{ synth_column_integer(name=name+"__number2", min=1, max=999) }}

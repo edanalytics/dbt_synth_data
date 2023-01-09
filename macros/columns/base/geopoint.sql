@@ -14,6 +14,10 @@
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
+{% macro sqlite__synth_column_geopoint_base() %}
+   {{ exceptions.raise_compiler_error("Error for column column `" ~ name ~ "`: geopoint is unavailable for SQLite.") }}
+{% endmacro %}
+
 {% macro postgres__synth_column_geopoint_base() %}
     ST_MAKEPOINT(
         RANDOM()*360.0 - 180.0,

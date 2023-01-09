@@ -5,8 +5,8 @@
     
     {{ synth_column_select(
         name=name,
-        value_col=type,
-        lookup_table="synth_languages",
+        model_name="synth_languages",
+        value_cols=type,
         distribution=distribution,
         weight_col=weight_col,
         filter=filter,

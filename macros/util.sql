@@ -87,6 +87,7 @@
     {%- set data = target.get(collection) or {} -%}
     {{ data.pop(key) or "" }}
     {%- do target.update({collection: data}) -%}
+    {{ return("") }}
 {%- endmacro %}
 
 {%- macro synth_retrieve(collection) -%}

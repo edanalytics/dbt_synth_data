@@ -979,6 +979,7 @@ Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
 
 
 # Todo
+- [ ] fix SQLite bug where joins seem to blow up rows (row counts in resulting table are potentially much larger than you specified) - strange issue, because the same joins all seem to work fine on Snowflake and Postgres...
 - [ ] fix address so it selects a city, then uses the country (and geo_region) for that city, rather than a (different) random country (and geo_region)
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
 - [ ] update various column types to use new distribution macros

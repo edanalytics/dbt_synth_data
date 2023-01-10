@@ -37,7 +37,7 @@ with
 {{ synth_column_expression(name='column_expression', expression="lower(column_string)" ) }}
 {{ synth_column_mapping(name='column_mapping', expression='column_boolean', mapping=({ true:'Afghanistan', false:'United States' }) ) }}
 {{ synth_column_foreign_key(name='column_fkey', model_name='stores', column='k_store') }}
-{# synth_column_lookup(name='column_lookup', model_name='synth_countries', value_cols='column_mapping', from_col='name', to_col='population') #}
+{{ synth_column_lookup(name='column_lookup', model_name='synth_countries', value_col='column_mapping', from_col='name', to_col='population') }}
 {{ synth_column_select(name='column_select',
     model_name="synth_words",
     value_cols="word",
@@ -46,7 +46,7 @@ with
     filter="part_of_speech like '%ADJ%'"
 ) }}
 {{ synth_column_city(name='column_city', distribution="weighted", weight_col="population", filter="timezone like 'Europe/%'") }}
-{{ synth_column_geo_region(name='column_georegion', distribution="weighted", weight_col="population", filter="country='United States'") }}
+{{ synth_column_geo_region(name='column_georegion', distribution="weighted", weight_col="population", filter="country_name='United States'") }}
 {{ synth_column_country(name='column_country', distribution="weighted", weight_col="population", filter="continent='Europe'") }}
 {{ synth_column_firstname(name='column_firstname') }}
 {{ synth_column_lastname(name='column_lastname') }}

@@ -1,11 +1,14 @@
 {% macro synth_column_word(name, language="English", language_code="en", distribution="weighted", pos=[]) -%}
     {% set filter %}
+        {% if pos and pos|length>1 %}
         (
             {% for p in pos %}
                 part_of_speech='{{p}}'
                 {%- if not loop.last %}OR {% endif %}
             {% endfor -%}
-        ) and (
+        ) and 
+        {% endif %}
+        (
             {%- if language %}
                 language='{{language}}'
             {%- elif language_code %}

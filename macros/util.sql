@@ -103,3 +103,11 @@
     {% endfor %}
     {{ return(dct) }}
 {%- endmacro %}
+
+{%- macro synth_initcap_word(word) -%}
+    {% set expression = "INITCAP(" + word + ")" %}
+    {% if target.type =='sqlite' %}
+        {% set expression = "UPPER(SUBSTR(" + word + ", 1, 1)) || SUBSTR(" + word + ", 2)" %}
+    {% endif %}
+    {{ return(expression) }}
+{%- endmacro %}

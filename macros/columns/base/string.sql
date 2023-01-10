@@ -46,7 +46,7 @@
         '/+=', ''),
         0,
         floor(RANDOM() * ({{max_length}}-{{min_length}}) + {{min_length}})::int
-    )
+    ) as {{name}}
     {% endset %}
     {{ synth_store('base_fields', name, base_field) }}
 
@@ -61,7 +61,7 @@
     randstr(
         uniform({{min_length}}, {{max_length}}, RANDOM({{synth_get_randseed()}}) ),
         uniform(1, 1000000000, RANDOM({{synth_get_randseed()}}) )
-    )::varchar({{max_length}})
+    )::varchar({{max_length}}) as {{name}}
     {% endset %}
     {{ synth_store('base_fields', name, base_field) }}
 

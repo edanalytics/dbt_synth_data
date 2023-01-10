@@ -2,7 +2,7 @@
     {% set join_fields %}
       {{expression}} as {{name}}
     {% endset %}
-    {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
+    {{ synth_store("joins", name+"__expression", {"fields": join_fields, "clause": ""} ) }}
     
     {% set final_field %}
       {{name}}

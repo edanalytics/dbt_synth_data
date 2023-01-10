@@ -63,7 +63,8 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }},
+        {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }}
+        {{ synth_remove("final_fields", name+'_word'+i|string) }}
         {% endfor %}
         {{ synth_column_expression(name=name, expression=words_expression) }}
         {% endset %}

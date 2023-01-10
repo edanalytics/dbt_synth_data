@@ -301,6 +301,8 @@ Converts values from [continuous distributions](#continuous-distributions) to di
 <details>
 <summary><code>discretize_width_bucket</code></summary>
 
+**Note** that SQLite doesn't support `width_bucket()`; you will get an error if you try to use this function on SQLite.
+
 Converts values from [continuous distributions](#continuous-distributions) to discrete values by bucketing them. Buckets are specified by `from` and `to` bounds and either `count` (the number of buckets) or `size` (the target bucket size).
 
 For some distributions (like `uniform`), the bounds may be strict - values outside the bounds are impossible. For other distributions (like exponential), specifying strict `from` and `to` bounds may be difficult. For this reason, if `strict_bounds=False`, the first bucket (index `0`) will represent values below `from`. Likewise the last bucket (index `count`) will represent values above `to`. (`strict_bounds` defaults to `True`.) It is up to you to chose reasonable and useful `from` and `to` bounds for discretization.
@@ -874,6 +876,8 @@ Some words may functionally belong to multiple parts of speech; this dataset use
 
 The dataset is constructed based on word lists and frequencies from [`wordfreq`](https://github.com/rspeer/wordfreq) and part-of-speech tagging from [`polyglot`](https://polyglot.readthedocs.io/en/latest/POS.html). Language availability is based on the set intersection of the languages supported by these two libraries.
 
+You may run into an error when loading this data using `dbt seed` on SQLite - [an issue](https://github.com/codeforkjeff/dbt-sqlite/issues/35) has been raised with the `dbt-sqlite` adapter to solve this, in the meantime, you'd have to manually edit the seed batch size (make it smaller) to load `synth_words` in SQLite.
+
 ## Languages
 The language list in `seeds/synth_languages.csv` contains 222 commonly-spoken (living) languages, with, for each, the ISO 693-2 and ISO 693-3 language codes, the approximate number of speakers, and a list of countries in which the language is predominantly spoken. Country names are consistent with those in the countries dataset at `seeds/synth_countries.csv`.
 
@@ -946,8 +950,36 @@ Using an AWS RDS small instance:
 | inventory     |       4 |     1M |     396.10s |
 
 
-## Todo
+## SQLite
+Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
+
+| Model         | Columns |   Rows | Runtime |
+| ------------- | ------- | ------ | ------- |
+| distributions |      15 |    10k |   0.16s |
+| distributions |      15 |     1M |   7.85s |
+| distributions |      15 |   100M |  15 min |
+
+| Model         | Columns |   Rows | Runtime |
+| ------------- | ------- | ------ | ------- |
+| customers     |       8 |    100 |   0.94s |
+| products      |       3 |     50 |   0.67s |
+| stores        |       5 |      2 |   0.26s |
+| orders        |       4 |   1000 |   0.07s |
+| inventory     |       4 |    100 |   4.91s |
+
+| Model         | Columns |   Rows | Runtime |
+| ------------- | ------- | ------ | ------- |
+| customers     |       8 |    10k |  29.02s |
+| products      |       3 |     5k |  13.59s |
+| stores        |       5 |    200 |   0.63s |
+| orders        |       4 |   100k |  157.2s |
+| inventory     |       4 |     1M |  30 min |
+
+
+
+
+# Todo
+- [ ] fix address so it selects a city, then uses the country (and geo_region) for that city, rather than a (different) random country (and geo_region)
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
 - [ ] update various column types to use new distribution macros
 - [ ] flesh out more seeds, data columns, and composite columns
-- [ ] SQLite support for random strings (needs CTE!)

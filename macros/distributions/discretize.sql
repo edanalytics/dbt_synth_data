@@ -65,6 +65,11 @@
 
 
 {% macro synth_distribution_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
+    {# SQLite doesn't support width_bucket(), unfortunately #}
+    {%- if target.type=='sqlite' -%}
+        {{ exceptions.raise_compiler_error("SQLite does not support `width_bucket()`, unfortunately, so you cannot use  `synth_distribution_discretize_width_bucket()` with it.") }}
+    {%- endif -%}
+
     {# Either `size` or `count` must be specified #}
     {%- if size is none and count is none -%}
         {{ exceptions.raise_compiler_error("`either `count` (number of bins) or `size` (of each bin) must be specified for bin discretization") }}
@@ -108,14 +113,14 @@
                 
                 when 0 then 
                     {% if labels=='lower_bound' -%}
-                    '-Infinity'::float
+                    '-Infinity'{% if target.type != 'sqlite' %}::float{% endif%}
                     {% elif labels=='upper_bound' -%}
                     round( {{from}}, {{label_precision}} )
                     {% elif labels=='bucket_average' -%}
                     round( {{from}}, {{label_precision}} )
                     {% elif labels=='bucket_range' -%}
                     concat(
-                        '-Infinity'::varchar,
+                        '-Infinity'{% if target.type != 'sqlite' %}::varchar{% endif%},
                         '{{bucket_range_separator}}',
                         round( {{from}}, {{label_precision}} )
                     )
@@ -142,14 +147,14 @@
                     {% if labels=='lower_bound' -%}
                     round( {{to}}, {{label_precision}} )
                     {% elif labels=='upper_bound' -%}
-                    'Infinity'::float
+                    'Infinity'{% if target.type != 'sqlite' %}::float{% endif%}
                     {% elif labels=='bucket_average' -%}
                     round( {{to}}, {{label_precision}} )
                     {% elif labels=='bucket_range' -%}
                     concat(
                         round( {{to}}, {{label_precision}} ),
                         '{{bucket_range_separator}}',
-                        'Infinity'::varchar
+                        'Infinity'{% if target.type != 'sqlite' %}::varchar{% endif%}
                     )
                     {%- endif %}
             

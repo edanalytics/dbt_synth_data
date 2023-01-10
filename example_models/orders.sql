@@ -12,7 +12,10 @@ with
     )
 ) }}
 {{ synth_column_integer(name='num_ordered', min=1, max=10) }}
-{{ synth_add_cleanup_hook("alter table " + this.database + "." + this.schema + ".products drop column popularity") }}
-{{ synth_table(rows=50000000) }}
+{%- if target.type!='sqlite' -%}
+{# SQLite doesn't support dropping columns :( #}
+{{ synth_add_cleanup_hook("alter table " + this.schema + ".products drop column popularity") }}
+{% endif %}
+{{ synth_table(rows=1000) }}
 
 select * from synth_table

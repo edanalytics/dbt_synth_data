@@ -48,6 +48,7 @@ with
         weights=[1,2,3]
     )
 ) }}
+{%- if target.type!='sqlite' -%}
 {{ synth_column_distribution(name="discretized_uniform",
     distribution=synth_distribution_discretize_width_bucket(
         distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),
@@ -60,6 +61,7 @@ with
         from=-2.2, to=2.2, strict_bounds=False, count=24, labels='bucket_range'
     )
 ) }}
+{% endif %}
 {{ synth_column_distribution(name="discretized_exponential",
     distribution=synth_distribution_discretize_floor(
         distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)

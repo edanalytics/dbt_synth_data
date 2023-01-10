@@ -8,7 +8,7 @@
         filter=filter
     ) }}
     {# Wrap name with INITCAP() to capitalize name: #}
-    {{ synth_column_expression(name=name, expression="INITCAP("+name+"__int)" ) }}
+    {{ synth_column_expression(name=name, expression=synth_initcap_word(name+"__int") ) }}
     {{ synth_remove('final_fields', name+'__int') }}
     {{ return("") }}
 {%- endmacro %}

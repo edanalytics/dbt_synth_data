@@ -6,6 +6,6 @@ with
 {{ synth_column_boolean(name="is_active", pct_true=0.96) }}
 {{ synth_column_address(name='physical_address', address_types=['house'], countries=['United States'], parts=['street_address', 'city', 'geo_region_abbr', 'postal_code']) }}
 {{ synth_column_phone_number(name='phone_number') }}
-{{ synth_table(rows=20000) }}
+{{ synth_table(rows=2) }}
 
 select * from synth_table

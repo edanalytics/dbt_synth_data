@@ -178,7 +178,7 @@
 
     {% if 'country' in parts %}
         {% if countries|length %}
-            {% set filter = "name_ascii in ('"+("','".join(countries))+"')" %}
+            {% set filter = "name in ('"+("','".join(countries))+"')" %}
         {% else %}
             {% set filter = "" %}
         {% endif %}

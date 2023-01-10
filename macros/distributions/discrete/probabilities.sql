@@ -15,7 +15,7 @@
     {%- endif -%}
 
     {%- if (1.0 - ns.values|sum)|abs > epsilon -%}
-        {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0, not " + ns.values|sum) }}
+        {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0, not " + ns.values|sum|string) }}
     {%- endif -%}
 
     {%- if ns.keys[0] is number -%}

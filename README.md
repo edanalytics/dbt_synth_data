@@ -890,36 +890,36 @@ Here we provide benchmarks in Snowflake and AWS RDS Postgres for synthetic data 
 ## Snowflake
 Using a single Xsmall warehouse:
 
-| Model         | Columns |   Rows | Runtime | Data size |
-| ------------- | ------- | ------ | ------- | --------- |
-| distributions |      15 |    10k |  11.48s |    646 KB |
-| distributions |      15 |     1M |  19.03s |   57.8 MB |
-| distributions |      15 |   100M |  64.61s |    5.7 GB |
-| distributions |      15 |    10B |  81 min |  614.7 GB |
+| Model | Columns | Rows | Runtime | Data size |
+| --- | --- | --- | --- | --- |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 11.48s | 646 KB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 19.03s | 57.8 MB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 64.61s | 5.7 GB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10B | 81 min | 614.7 GB |
 
-| Model         | Columns |   Rows | Runtime | Data size |
-| ------------- | ------- | ------ | ------- | --------- |
-| customers     |       8 |    100 |   4.32s |   32.5 KB |
-| products      |       3 |     50 |   1.28s |   16.0 KB |
-| stores        |       5 |      2 |   1.63s |    2.0 KB |
-| orders        |       4 |   1000 |   1.36s |   59.0 KB |
-| inventory     |       4 |    100 |   1.46s |   22.0 KB |
+| Model | Columns | Rows | Runtime | Data size |
+| --- | --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 4.32s | 32.5 KB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 1.28s | 16.0 KB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 1.63s | 2.0 KB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 1.36s | 59.0 KB |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 1.46s | 22.0 KB |
 
-| Model         | Columns |   Rows | Runtime | Data size |
-| ------------- | ------- | ------ | ------- | --------- |
-| customers     |       8 |    10k |   3.77s |  958.5 KB |
-| products      |       3 |     5k |   2.14s |  267.5 KB |
-| stores        |       5 |    200 |   1.71s |   32.0 KB |
-| orders        |       4 |   100k |   3.60s |    5.3 MB |
-| inventory     |       4 |     1M |  16.74s |    6.1 MB |
+| Model | Columns | Rows | Runtime | Data size |
+| --- | --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 3.77s | 958.5 KB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 2.14s | 267.5 KB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 1.71s | 32.0 KB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 3.60s | 5.3 MB |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 16.74s | 6.1 MB |
 
-| Model         | Columns |   Rows | Runtime | Data size |
-| ------------- | ------- | ------ | ------- | --------- |
-| customers     |       8 |     1M |  21.43s |   53.0 MB |
-| products      |       3 |    50k |  21.04s |    2.4 MB |
-| stores        |       5 |    20k |   1.85s |    1.3 MB |
-| orders        |       4 |    50M | 114 min |    1.0 GB |
-| inventory     |       4 |   100M | 325 min |    2.5 GB |
+| Model | Columns | Rows | Runtime | Data size |
+| --- | --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 1M | 21.43s | 53.0 MB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50k | 21.04s | 2.4 MB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 20k | 1.85s | 1.3 MB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 50M | 114 min | 1.0 GB |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100M | 325 min | 2.5 GB |
 
 (Note that **orders** and **inventory** are significantly slower at scale because they rely on **products** - and so many products are partitioned, slowing the query.)
 
@@ -927,53 +927,53 @@ Using a single Xsmall warehouse:
 ## Postgres
 Using an AWS RDS small instance:
 
-| Model         | Columns |   Rows | Runtime |
-| ------------- | ------- | ------ | ------- |
-| distributions |      15 |    10k |  19.71s |
-| distributions |      15 |     1M |  35.78s |
-| distributions |      15 |   100M |  17 min |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 19.71s |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 35.78s |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 17 min |
 
-| Model         | Columns |   Rows | Runtime (s) |
-| ------------- | ------- | ------ | ----------- |
-| customers     |       8 |    100 |      26.29s |
-| products      |       3 |     50 |      22.35s |
-| stores        |       5 |      2 |      26.45s |
-| orders        |       4 |   1000 |      22.58s |
-| inventory     |       4 |    100 |      22.12s |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 26.29s |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 22.35s |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 26.45s |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 22.58s |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 22.12s |
 
-| Model         | Columns |   Rows | Runtime (s) |
-| ------------- | ------- | ------ | ----------- |
-| customers     |       8 |    10k |      18.77s |
-| products      |       3 |     5k |      17.16s |
-| stores        |       5 |    200 |      19.82s |
-| orders        |       4 |   100k |     414.38s |
-| inventory     |       4 |     1M |     396.10s |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 18.77s |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 17.16s |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 19.82s |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 414.38s |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 396.10s |
 
 
 ## SQLite
 Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
 
-| Model         | Columns |   Rows | Runtime |
-| ------------- | ------- | ------ | ------- |
-| distributions |      15 |    10k |   0.16s |
-| distributions |      15 |     1M |   7.85s |
-| distributions |      15 |   100M |  15 min |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 0.16s |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 7.85s |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 15 min |
 
-| Model         | Columns |   Rows | Runtime |
-| ------------- | ------- | ------ | ------- |
-| customers     |       8 |    100 |   0.94s |
-| products      |       3 |     50 |   0.67s |
-| stores        |       5 |      2 |   0.26s |
-| orders        |       4 |   1000 |   0.07s |
-| inventory     |       4 |    100 |   4.91s |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 0.94s |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 0.67s |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 0.26s |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 0.07s |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 4.91s |
 
-| Model         | Columns |   Rows | Runtime |
-| ------------- | ------- | ------ | ------- |
-| customers     |       8 |    10k |  29.02s |
-| products      |       3 |     5k |  13.59s |
-| stores        |       5 |    200 |   0.63s |
-| orders        |       4 |   100k |  157.2s |
-| inventory     |       4 |     1M |  30 min |
+| Model | Columns | Rows | Runtime |
+| --- | --- | --- | --- |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 29.02s |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 13.59s |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 0.63s |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 157.2s |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 30 min |
 
 
 

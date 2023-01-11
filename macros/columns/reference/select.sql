@@ -76,8 +76,8 @@
                 {{value_col}},
                 {% endfor %}
                 {{weight_col}},
-                ( (1.0*sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc)) - 1.0*{{weight_col}}) / 1.0*sum({{weight_col}}) over () as from_val,
-                ( (1.0*sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc))                     ) / 1.0*sum({{weight_col}}) over () as to_val
+                ( sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc) - {{weight_col}}) / sum({{weight_col}}) over () as from_val,
+                ( sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc)                 ) / sum({{weight_col}}) over () as to_val
             from {{ref(model_name)}}
             {% if filter|trim|length %}
             where {{filter}}

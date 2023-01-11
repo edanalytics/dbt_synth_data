@@ -696,9 +696,9 @@ Generates a last name, selected from the `synth_lastnames` seed table.
 
 Generates a single word, selected from the `synth_words` seed table.
 ```python
-{{ synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"]) }}
+{{ synth_column_word(name='random_word', language_code="en", distribution="weighted", pos=["NOUN", "VERB"], filter="LENGTH(word)>3") }}
 ```
-The above generates a randomly-selected English noun or verb, weighted according to frequency.
+The above generates a randomly-selected English noun or verb, weighted according to frequency, of at least four characters.
 
 Rather than `language_code` you may specify `language` (such as `language="English"`), but a language *must* be specified with one of these parameters. See [Words (Datasets)](#words) for a list of supported languages and parts of speech.
 </details>
@@ -982,5 +982,4 @@ Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
 - [ ] fix SQLite bug where joins seem to blow up rows (row counts in resulting table are potentially much larger than you specified) - strange issue, because the same joins all seem to work fine on Snowflake and Postgres...
 - [ ] fix address so it selects a city, then uses the country (and geo_region) for that city, rather than a (different) random country (and geo_region)
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
-- [ ] update various column types to use new distribution macros
 - [ ] flesh out more seeds, data columns, and composite columns

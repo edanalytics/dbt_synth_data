@@ -2,7 +2,8 @@
     {% set final_field %}
         case {{expression}}
         {% for k,v in mapping.items() %}
-            when '{{k}}' then '{{v}}'
+            when {% if k is string %}'{% endif %}{{k}}{% if k is string %}'{% endif %}
+                then {% if v is string %}'{% endif %}{{v}}{% if v is string %}'{% endif %}
         {% endfor %}
         end as {{name}}
     {% endset %}

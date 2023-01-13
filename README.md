@@ -25,7 +25,7 @@ Robert Fehrmann (CTO at Snowflake) has a couple good blog posts about [generatin
 
 However, creating more realistic synthetic data requires more complex data [column types](#column-types), advanced random [distributions](#distributions), supporting [datasets](#datasets), and [references](#reference-column-types) to other models.
 
-`dbt_synth_data` provides many macros to facilitate building out realistic synthetic data. It builds up a series of CTEs and joins from a base of randomly-generated values - see [Architecture](#architecture) for details.
+`dbt_synth_data` provides many macros to facilitate building out realistic synthetic data. It builds up a series of CTEs and joins from a base of randomly-generated values - see [Architecture](#architecture) for details. `dbt_synth_data` is powerful, especially on Snowflake - it can create billions of rows and hundreds of GB of data. See [Performance](#performance) for details.
 
 ## Philosophy
 There are generally two approaches to creating synthetic or "fake" data:
@@ -43,6 +43,7 @@ Synthetic data generated with `dbt_synth_data` can be useful for testing user in
 The synthetic data created using `dbt_synth_data` should not be mistaken as being fully realistic, reflecting all correlations that may be present in the real world. Therefore **please do not use data generated using this package to train ML models!**
 
 
+
 # Installation
 1. add `dbt_synth_data` to your `packages.yml`
 1. run `dbt deps`
@@ -50,6 +51,7 @@ The synthetic data created using `dbt_synth_data` should not be mistaken as bein
 1. add `"dbt_packages/dbt_synth/macros"` to your `dbt_project.yml`'s `macro-paths`
 1. build your synthetic models as documented below
 1. `dbt run`
+
 
 
 # Architecture
@@ -97,26 +99,25 @@ synth_table as (
 # Simple example
 Consider the example model `orders.sql` below:
 ```sql
--- depends_on: {{ ref('products') }}
 with
 {{ synth_column_primary_key(name='order_id') }}
-{{ synth_column_foreign_key(name='product_id', table='products', column='product_id') }}
+{{ synth_column_foreign_key(name='product_id', model_name='products', column='product_id') }}
 {{ synth_column_distribution(name='status', 
     distribution=synth_distribution(class='discrete', type='probabilities',
         probabilities={"New":0.2, "Shipped":0.5, "Returned":0.2, "Lost":0.1}
     )
 ) }}
-{{ synth_column_integer(name='num_ordered', min=1, max=10) }}
+{{ synth_column_integer(name='quantity', min=1, max=10) }}
 {{ synth_table(rows = 5000) }}
 select * from synth_table
 ```
-The model begins with a [dependency hint to dbt](https://docs.getdbt.com/reference/dbt-jinja-functions/ref#forcing-dependencies) for another model `products`. Next, we define the columns we want in the table, including:
+The model begins by defining the columns we want in the table, including:
 * `order_id` is the primary key on the table - it wil contain a unique hash value per row
 * `product_id` is a foreign key to the `products` table - values in this column will be uniformly-distributed, valid primary keys of the `products` table
 * each order has a `status` with several possible values, whose prevalence/likelihoods are given by a discrete probability distribution
-* `num_ordered` is the count of how many of the product were ordered, a uniformly-distributed integer from 1-10
+* `quantity` is the count of how many of the product were ordered, a uniformly-distributed integer from 1-10
 
-Finally, we materialize the table with 5000 rows of synthetic data and select the result.
+Then a CTE called `synth_table` with 5000 rows of synthetic data is created and we select the results.
 
 Note that the user must provide the opening `with` for CTEs and a final `select * from synth_table` - this allows flexibility to add your own CTEs at the top or bottom of the model, as well as arbitrary post-processing of columns produced by `dbt_synth_data` - see [Advanced Usage](#advanced-usage) for more details.
 

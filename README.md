@@ -1,3 +1,6 @@
+<!-- Logo/image -->
+![dbt_synth_data](https://raw.githubusercontent.com/edanalytics/dbt_synth_data/assets/dalle-mini_small_laptop_on_a_white_background_showing_fake_data_in_a_spreadsheet.png)
+
 This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
 
 All the magic happens in `macros/*`.
@@ -13,6 +16,7 @@ All the magic happens in `macros/*`.
 * [Datasets](#datasets)
 * [Performance](#performance)
 * [Changelog](#changelog)
+* [Contributing](#contributing)
 * [License](#license)
 
 
@@ -975,6 +979,23 @@ Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
 | [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 157.2s |
 | [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 30 min |
 
+
+
+# Changelog
+Coming soon!
+
+
+
+# Contributing
+Bugfixes and new features (such as additional transformation operations) are gratefully accepted via pull requests here on GitHub.
+
+## Contributions
+* Cover image created with [DALL &bull; E mini](https://huggingface.co/spaces/dalle-mini/dalle-mini)
+
+
+
+# License
+Coming soon!
 
 
 

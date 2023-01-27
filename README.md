@@ -610,9 +610,9 @@ Generates values that are a primary key of another table.
 
 Generates values based on looking up values from one column in another table..
 ```python
-{{ synth_column_lookup(name='gender', model_name='synth_firstnames', value_cols='first_name', from_col='name', to_col='gender', ref=True) }}
+{{ synth_column_lookup(name='gender', model_name='synth_firstnames', value_cols='first_name', from_col='name', to_col='gender', do_ref=True) }}
 ```
-`ref` defaults to true, meaning that `model_name` will be wrapped in dbt's `{{ ref(model_name) }}`. However you can set `ref=False` to reference a local CTE instead.
+`do_ref` defaults to true, meaning that `model_name` will be wrapped in dbt's `{{ ref(model_name) }}`. However you can set `do_ref=False` to reference a local CTE instead.
 </details>
 
 <details>
@@ -627,12 +627,12 @@ Generates values by selecting them from another table, optionally weighted using
     distribution="weighted",
     weight_col="prevalence",
     filter="part_of_speech like '%ADJ%'",
-    ref=True
+    do_ref=True
 ) }}
 ```
 The above will generate randomly-chosen adjectives (based on the specified `filter`), weighted by prevalence.
 
-`ref` defaults to true, meaning that `model_name` will be wrapped in dbt's `{{ ref(model_name) }}`. However you can set `ref=False` to reference a local CTE instead.
+`do_ref` defaults to true, meaning that `model_name` will be wrapped in dbt's `{{ ref(model_name) }}`. However you can set `do_ref=False` to reference a local CTE instead.
 </details>
 
 

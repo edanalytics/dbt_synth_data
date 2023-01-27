@@ -1,19 +1,19 @@
-{% macro synth_column_select(name, model_name, value_cols=[], distribution="uniform", weight_col="", filter="") -%}
+{% macro synth_column_select(name, model_name, value_cols=[], distribution="uniform", weight_col="", filter="", ref=True) -%}
     {# Allow for `value_cols` to be a single (string) column name: #}
     {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
     
     {% if distribution=='uniform' %}
-        {{ synth_column_select_uniform(name, model_name, value_cols, filter) }}
+        {{ synth_column_select_uniform(name, model_name, value_cols, filter, ref) }}
     
     {% elif distribution=='weighted' %}
-        {{ synth_column_select_weighted(name, model_name, value_cols, weight_col, filter) }}
+        {{ synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, ref) }}
     
     {% else %}
         {{ exceptions.raise_compiler_error("Invalid `distribution` " ~ distribution ~ " for select column `" ~ name ~ "`: should be `uniform` (default) or `weighted`.") }}
     {% endif %}
 {%- endmacro %}
 
-{% macro synth_column_select_uniform(name, model_name, value_cols, filter) %}
+{% macro synth_column_select_uniform(name, model_name, value_cols, filter, ref) %}
     {% set cte %}
         {{name}}__cte as (
             select
@@ -22,7 +22,7 @@
                 {% endfor %}
                 1.0*( (row_number() over (order by {{value_cols[0]}} asc)) - 1 ) / count(*) over () as from_val,
                 1.0*( (row_number() over (order by {{value_cols[0]}} asc))     ) / count(*) over () as to_val
-            from {{ref(model_name)}}
+            from {% if ref %}{{ref(model_name)}}{% else %}{{model_name}}{% endif %}
             {% if filter|trim|length %}
             where {{filter}}
             {% endif %}
@@ -64,7 +64,7 @@
     {{ synth_store("final_fields", name, final_field) }}
 {% endmacro %}
 
-{% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter) %}
+{% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, ref) %}
     {% if not weight_col %}
         {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
     {% endif %}
@@ -78,7 +78,7 @@
                 {{weight_col}},
                 ( sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc) - {{weight_col}}) / sum({{weight_col}}) over () as from_val,
                 ( sum({{weight_col}}) over (order by {{weight_col}} desc, {{value_cols[0]}} asc)                 ) / sum({{weight_col}}) over () as to_val
-            from {{ref(model_name)}}
+            from {% if ref %}{{ref(model_name)}}{% else %}{{model_name}}{% endif %}
             {% if filter|trim|length %}
             where {{filter}}
             {% endif %}

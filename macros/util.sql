@@ -105,7 +105,7 @@
     ) a
     join (
         select *, row_number() over(order by 1) RowNum 
-        from {{cte_a}}
+        from {{cte_b}}
     ) b
     on a.RowNum = b.RowNum
 {%- endmacro %}

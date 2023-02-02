@@ -96,6 +96,19 @@
 
 
 
+{# horizontally concatenates two CTEs with the same number of rows #}
+{%- macro horizontal_union(cte_a, cte_b) -%}
+    select *
+    from (
+        select *, row_number() over(order by 1) RowNum 
+        from {{cte_a}}
+    ) a
+    join (
+        select *, row_number() over(order by 1) RowNum 
+        from {{cte_a}}
+    ) b
+    on a.RowNum = b.RowNum
+{%- endmacro %}
 
 {%- macro synth_zip(list_a, list_b) -%}
     {% set dct = {} %}

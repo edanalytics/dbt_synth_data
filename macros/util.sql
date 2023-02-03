@@ -98,16 +98,16 @@
 
 {# horizontally concatenates two CTEs with the same number of rows #}
 {%- macro horizontal_union(cte_a, cte_b) -%}
-    select {{ dbt_utils.star(from='a', except=["RowNum"]) }}, {{ dbt_utils.star(from='b', except=["RowNum"]) }}
+    select *
     from (
-        select *, row_number() over(order by 1) RowNum 
+        select *, row_number() over(order by 1) RowNumA
         from {{cte_a}}
     ) a
     join (
-        select *, row_number() over(order by 1) RowNum 
+        select *, row_number() over(order by 1) RowNumB
         from {{cte_b}}
     ) b
-    on a.RowNum = b.RowNum
+    on a.RowNumA = b.RowNumB
 {%- endmacro %}
 
 {%- macro synth_zip(list_a, list_b) -%}

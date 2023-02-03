@@ -98,7 +98,7 @@
 
 {# horizontally concatenates two CTEs with the same number of rows #}
 {%- macro horizontal_union(cte_a, cte_b) -%}
-    select {{ dbt_utils.star(from='a'), except=["RowNum"]) }}, {{ dbt_utils.star(from='b'), except=["RowNum"]) }}
+    select {{ dbt_utils.star(from='a', except=["RowNum"]) }}, {{ dbt_utils.star(from='b', except=["RowNum"]) }}
     from (
         select *, row_number() over(order by 1) RowNum 
         from {{cte_a}}

@@ -7,7 +7,7 @@
         {{table_name}}__{{name}}__lookup.{{to_col}} as {{name}}
     {% endset %}
     {% set join_clause %}
-        left join {% if do_ref %}{{ref(model_name)}}{% else %}{{model_name}}{% endif %} {{name}}__lookup on ___PREVIOUS_CTE___.{{value_col}}={{name}}__lookup.{{from_col}}
+        left join {% if do_ref %}{{ref(model_name)}}{% else %}{{model_name}}{% endif %} {{table_name}}__{{name}}__lookup on ___PREVIOUS_CTE___.{{value_col}}={{table_name}}__{{name}}__lookup.{{from_col}}
     {% endset %}
     {{ synth_store("joins", name+"__lookup", {"fields": join_fields, "clause": join_clause} ) }}
     

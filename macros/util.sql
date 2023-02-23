@@ -77,6 +77,11 @@
 
 
 
+{%- macro synth_set_table_name(name) -%}
+    {{ synth_store('synth_conf', 'table_name', name) }}
+    {{ return("") }}
+{%- endmacro %}
+
 {%- macro synth_store(collection, key, value) -%}
     {%- set data = target.get(collection) or {} -%}
     {{ data.update({key: value}) or "" }}

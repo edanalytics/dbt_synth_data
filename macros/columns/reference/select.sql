@@ -14,8 +14,9 @@
 {%- endmacro %}
 
 {% macro synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) %}
+    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
     {% set cte %}
-        {{name}}__cte as (
+        {{table_name}}__{{name}}__cte as (
             select
                 {% for value_col in value_cols %}
                 {{value_col}},
@@ -29,7 +30,7 @@
             order by from_val asc, to_val asc
         )
     {% endset %}
-    {{ synth_store("ctes", name+"__cte", cte) }}
+    {{ synth_store("ctes", table_name+"__"+name+"__cte", cte) }}
 
     {% set base_field %}
         {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
@@ -38,16 +39,16 @@
 
     {% set join_fields %}
         {% if value_cols|length==1 %}
-            {{name}}__cte.{{value_cols[0]}} as {{name}}
+            {{table_name}}__{{name}}__cte.{{value_cols[0]}} as {{name}}
         {% else %}
             {% for value_col in value_cols %}
-            {{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
+            {{table_name}}__{{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
             {% if not loop.last %},{% endif %}
             {% endfor%}
         {% endif %}
     {% endset %}
     {% set join_clause %}
-        left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
+        left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
     {% endset %}
     {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
@@ -65,12 +66,13 @@
 {% endmacro %}
 
 {% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, do_ref) %}
+    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
     {% if not weight_col %}
         {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
     {% endif %}
     
     {% set cte %}
-        {{name}}__cte as (
+        {{table_name}}__{{name}}__cte as (
             select
                 {% for value_col in value_cols %}
                 {{value_col}},
@@ -85,7 +87,7 @@
             order by from_val asc, to_val asc
         )
     {% endset %}
-    {{ synth_store("ctes", name+"__cte", cte) }}
+    {{ synth_store("ctes", table_name+"__"+name+"__cte", cte) }}
 
     {% set base_field %}
       {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
@@ -94,16 +96,16 @@
 
     {% set join_fields %}
         {% if value_cols|length==1 %}
-            {{name}}__cte.{{value_cols[0]}} as {{name}}
+            {{table_name}}__{{name}}__cte.{{value_cols[0]}} as {{name}}
         {% else %}
             {% for value_col in value_cols %}
-            {{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
+            {{table_name}}__{{name}}__cte.{{value_col}} as {{name}}__{{value_col}}
             {% if not loop.last %},{% endif %}
             {% endfor%}
         {% endif %}
     {% endset %}
     {% set join_clause %}
-        left join {{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
+        left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
     {% endset %}
     {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     

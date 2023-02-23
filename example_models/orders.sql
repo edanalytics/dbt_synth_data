@@ -16,6 +16,6 @@ with
 {# SQLite doesn't support dropping columns :( #}
 {{ synth_add_cleanup_hook("alter table " + this.schema + ".products drop column popularity") }}
 {% endif %}
-{{ synth_table(rows=1000) }}
+{{ synth_table(rows=50000000) }}
 
 select * from synth_table

@@ -2,8 +2,9 @@
     {# Allow for `value_cols` to be a single (string) column name: #}
     {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
     
+    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
     {% set join_fields %}
-        {{name}}__lookup.{{to_col}} as {{name}}
+        {{table_name}}__{{name}}__lookup.{{to_col}} as {{name}}
     {% endset %}
     {% set join_clause %}
         left join {% if do_ref %}{{ref(model_name)}}{% else %}{{model_name}}{% endif %} {{name}}__lookup on ___PREVIOUS_CTE___.{{value_col}}={{name}}__lookup.{{from_col}}

@@ -48,7 +48,7 @@
         {% endif %}
     {% endset %}
     {% set join_clause %}
-        left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{name}}__cte.from_val and {{name}}__cte.to_val
+        left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{table_name}}__{{name}}__cte.from_val and {{table_name}}__{{name}}__cte.to_val
     {% endset %}
     {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     

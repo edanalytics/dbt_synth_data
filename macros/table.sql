@@ -16,7 +16,7 @@
             base.__row_number,
             {% set base_fields = synth_retrieve('base_fields') %}
             {{ base_fields.values() | list | join(",") }}
-        from base
+        from {{table_name}}__base
     ),
     {% set joins = synth_retrieve('joins').values() | list %}
     {% for counter in range(1,joins|length+1) %}

@@ -2,7 +2,7 @@
     {# Allow for `value_cols` to be a single (string) column name: #}
     {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
     
-    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
+    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% set join_fields %}
         {{table_name}}__{{name}}__lookup.{{to_col}} as {{name}}
     {% endset %}

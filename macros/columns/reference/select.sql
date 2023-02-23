@@ -14,7 +14,7 @@
 {%- endmacro %}
 
 {% macro synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) %}
-    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
+    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% set cte %}
         {{table_name}}__{{name}}__cte as (
             select
@@ -66,7 +66,7 @@
 {% endmacro %}
 
 {% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, do_ref) %}
-    {% set table_name = synth_retrieve('synth_conf', 'table_name') or "synth_table" %}
+    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% if not weight_col %}
         {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
     {% endif %}

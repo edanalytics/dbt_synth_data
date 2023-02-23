@@ -1,11 +1,6 @@
 {% macro synth_table(rows=1000) -%}
     {# Load CTE name (to support multiple synth CTEs in one model) #}
-    {% set synth_conf = synth_retrieve('synth_conf') %}
-    {% if "table_name" in synth_conf.keys() %}
-    {% set name = synth_conf['table_name'] %}
-    {% else %}
-    {% set name = "synth_table" %}
-    {% endif %}
+    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     
     {% set ctes = synth_retrieve('ctes') %}
     {{ ctes.values() | list | join(",") }}

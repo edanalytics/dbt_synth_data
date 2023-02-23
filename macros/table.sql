@@ -13,7 +13,7 @@
     ),
     {{table_name}}__join0 as (
         select
-            base.__row_number,
+            {{table_name}}__base.__row_number,
             {% set base_fields = synth_retrieve('base_fields') %}
             {{ base_fields.values() | list | join(",") }}
         from {{table_name}}__base

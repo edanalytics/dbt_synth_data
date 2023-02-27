@@ -65,7 +65,7 @@
 {%- endmacro %}
 
 {% macro sqlite__synth_table_rownum() %}
-    row_number() over (order by 1)
+    row_number() over (order by NULL)
 {% endmacro %}
 
 {% macro postgres__synth_table_rownum() %}
@@ -73,5 +73,5 @@
 {% endmacro %}
 
 {% macro snowflake__synth_table_rownum() %}
-    seq8()
+    row_number() over (order by NULL)
 {% endmacro %}

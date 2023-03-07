@@ -10,6 +10,12 @@ with
 {{ synth_column_distribution(name="continuous_exponential",
     distribution=synth_distribution(class='continuous', type='exponential', lambda=0.1)
 ) }}
+{{ synth_column_distribution(name="laplace",
+    distribution=synth_distribution_continuous_laplace()
+) }}
+{{ synth_column_distribution(name="cauchy",
+    distribution=synth_distribution_continuous_cauchy(x0=0.0, gamma=0.5)
+) }}
 {{ synth_column_distribution(name="continuous_bimodal",
     distribution=synth_distribution_union(
         synth_distribution(class='continuous', type='normal', mean=5.0, stddev=1.0),

@@ -21,7 +21,7 @@
             {% endif -%}
         )
     {% endset %}
-    {{ synth_column_select(
+    {{ dbt_synth_data.synth_column_select(
         name=name,
         model_name="synth_words",
         value_cols="word",

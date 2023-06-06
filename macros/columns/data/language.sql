@@ -3,7 +3,7 @@
         {{ exceptions.raise_compiler_error("Language column `" ~ name ~ "` must specify `type` as `name`, `code2`, or `code3`.") }}
     {% endif %}
     
-    {{ synth_column_select(
+    {{ dbt_synth_data.synth_column_select(
         name=name,
         model_name="synth_languages",
         value_cols=type,

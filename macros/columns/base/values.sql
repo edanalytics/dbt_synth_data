@@ -21,15 +21,15 @@
             {% do probabilities.append( (1.0 - probabilities|sum)|round(3) ) %}
             {% endif %}
 
-            {{ synth_distribution_discrete_probabilities(probabilities=synth_zip(values, probabilities)) }}
+            {{ dbt_synth_data.synth_distribution_discrete_probabilities(probabilities=dbt_synth_data.synth_zip(values, probabilities)) }}
         {% endif %} as {{name}}
     {% endset %}
-    {{ synth_store('base_fields', name, base_field) }}
+    {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 
     {% set final_field %}
         {{name}}
     {% endset %}
-    {{ synth_store('final_fields', name, final_field) }}
+    {{ dbt_synth_data.synth_store('final_fields', name, final_field) }}
     
     {{ return("") }}
 {%- endmacro %}

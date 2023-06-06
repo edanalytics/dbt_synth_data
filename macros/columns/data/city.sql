@@ -1,5 +1,5 @@
 {% macro synth_column_city(name, distribution="weighted", weight_col="population", filter="") -%}
-    {{ synth_column_select(
+    {{ dbt_synth_data.synth_column_select(
         name=name,
         model_name="synth_cities",
         value_cols="name",

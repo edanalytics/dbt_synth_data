@@ -4,14 +4,14 @@
     {% endif %}
     
     {% set base_field %}
-        {{ synth_distribution_discretize_floor(
-            distribution=synth_distribution_continuous_uniform(min=min, max=max+1)
+        {{ dbt_synth_data.synth_distribution_discretize_floor(
+            distribution=dbt_synth_data.synth_distribution_continuous_uniform(min=min, max=max+1)
         ) }} as {{name}}
     {% endset %}
-    {{ synth_store('base_fields', name, base_field) }}
+    {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 
     {% set final_field %}
         {{name}}
     {% endset %}
-    {{ synth_store('final_fields', name, final_field) }}
+    {{ dbt_synth_data.synth_store('final_fields', name, final_field) }}
 {%- endmacro %}

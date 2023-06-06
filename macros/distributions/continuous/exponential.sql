@@ -3,6 +3,6 @@
     {{ exceptions.raise_compiler_error("`lambda` for an exponential distribution must be greater than zero") }}
     {%- endif -%}
 
-    -ln( abs ( {{ synth_distribution_continuous_uniform() }} ) ) * (1/{{lambda}})
+    -ln( abs ( {{ dbt_synth_data.synth_distribution_continuous_uniform() }} ) ) * (1/{{lambda}})
 {%- endmacro %}
 

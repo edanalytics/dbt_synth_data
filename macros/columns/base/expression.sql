@@ -2,10 +2,10 @@
     {% set join_fields %}
       {{expression}} as {{name}}
     {% endset %}
-    {{ synth_store("joins", name+"__expression", {"fields": join_fields, "clause": ""} ) }}
+    {{ dbt_synth_data.synth_store("joins", name+"__expression", {"fields": join_fields, "clause": ""} ) }}
     
     {% set final_field %}
       {{name}}
     {% endset %}
-    {{ synth_store("final_fields", name, final_field) }}
+    {{ dbt_synth_data.synth_store("final_fields", name, final_field) }}
 {%- endmacro %}

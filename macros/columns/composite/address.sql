@@ -93,24 +93,24 @@
             end
         {% endset %}
 
-        {{ synth_column_integer(name=name+"__address_type", min=1, max=address_types|length) }}
-        {{ synth_column_integer(name=name+"__number1", min=10, max=9999) }}
-        {{ synth_column_words(name=name+"__street_name", language_code='en', distribution="uniform", format_strings=[
+        {{ dbt_synth_data.synth_column_integer(name=name+"__address_type", min=1, max=address_types|length) }}
+        {{ dbt_synth_data.synth_column_integer(name=name+"__number1", min=10, max=9999) }}
+        {{ dbt_synth_data.synth_column_words(name=name+"__street_name", language_code='en', distribution="uniform", format_strings=[
             "{NOUN}",
             "{ADJ} {NOUN}"
         ]) }}
-        {{ synth_column_integer(name=name+"__street_type", min=1, max=street_types|length) }}
-        {{ synth_column_integer(name=name+"__unit_type", min=1, max=2) }}
-        {{ synth_column_integer(name=name+"__number2", min=1, max=999) }}
-        {{ synth_column_expression(name=name+'__street_address', expression=street_address_expression) }}
+        {{ dbt_synth_data.synth_column_integer(name=name+"__street_type", min=1, max=street_types|length) }}
+        {{ dbt_synth_data.synth_column_integer(name=name+"__unit_type", min=1, max=2) }}
+        {{ dbt_synth_data.synth_column_integer(name=name+"__number2", min=1, max=999) }}
+        {{ dbt_synth_data.synth_column_expression(name=name+'__street_address', expression=street_address_expression) }}
         
-        {{ synth_remove('final_fields', name+"__address_type") }}
-        {{ synth_remove('final_fields', name+"__number1") }}
-        {{ synth_remove('final_fields', name+"__street_name") }}
-        {{ synth_remove('final_fields', name+"__street_type") }}
-        {{ synth_remove('final_fields', name+"__unit_type") }}
-        {{ synth_remove('final_fields', name+"__number2") }}
-        {{ synth_remove('final_fields', name+"__street_address") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__address_type") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__number1") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__street_name") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__street_type") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__unit_type") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__number2") }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__street_address") }}
     {% endif %}
 
     {% if 'city' in parts %}
@@ -129,8 +129,8 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_city(name=name+'__city', distribution=distribution, weight_col="population", filter=filter) }}
-        {{ synth_remove('final_fields', name+"__city") }}
+        {{ dbt_synth_data.synth_column_city(name=name+'__city', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__city") }}
     {% endif %}
 
     {% if 'geo_region' in parts %}
@@ -149,8 +149,8 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_geo_region(name=name+'__geo_region', distribution=distribution, weight_col="population", filter=filter) }}
-        {{ synth_remove('final_fields', name+"__geo_region") }}
+        {{ dbt_synth_data.synth_column_geo_region(name=name+'__geo_region', distribution=distribution, weight_col="population", filter=filter) }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__geo_region") }}
     {% elif 'geo_region_abbr' in parts %}
         {% set filter_pieces = [] %}
         {% if countries|length %}
@@ -167,13 +167,13 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_geo_region_abbr(name=name+"__geo_region_abbr", distribution=distribution, weight_col="population", filter=filter) }}
-        {{ synth_remove('final_fields', name+"__geo_region_abbr") }}
+        {{ dbt_synth_data.synth_column_geo_region_abbr(name=name+"__geo_region_abbr", distribution=distribution, weight_col="population", filter=filter) }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__geo_region_abbr") }}
     {% endif %}
 
     {% if 'postal_code' in parts %}
-        {{ synth_column_integer(name=name+"__postal_code", min=postal_code_min, max=postal_code_max) }}
-        {{ synth_remove('final_fields', name+"__postal_code") }}
+        {{ dbt_synth_data.synth_column_integer(name=name+"__postal_code", min=postal_code_min, max=postal_code_max) }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__postal_code") }}
     {% endif %}
 
     {% if 'country' in parts %}
@@ -182,15 +182,15 @@
         {% else %}
             {% set filter = "" %}
         {% endif %}
-        {{ synth_column_country(name=name+"__country", distribution=distribution, weight_col="population", filter=filter) }}
-        {{ synth_remove('final_fields', name+"__country") }}
+        {{ dbt_synth_data.synth_column_country(name=name+"__country", distribution=distribution, weight_col="population", filter=filter) }}
+        {{ dbt_synth_data.synth_remove('final_fields', name+"__country") }}
     {% endif %}
 
     {% if parts|length > 0 %}
         {% set final_field %}
             {{address_expression}} as {{name}}
         {% endset %}
-        {{ synth_store('final_fields', name, final_field) }}
+        {{ dbt_synth_data.synth_store('final_fields', name, final_field) }}
     {% endif %}
     {{ return("") }}
 {%- endmacro %}

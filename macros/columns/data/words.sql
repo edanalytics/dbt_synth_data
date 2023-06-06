@@ -9,7 +9,7 @@
         {# tokenize each format_string #}
         {% set tokenized_format_strings = [] %}
         {% for format_string in format_strings %}
-            {% set tokens, expression = synth_column_words_tokenize_format_string(name, format_string) %}
+            {% set tokens, expression = dbt_synth_data.synth_column_words_tokenize_format_string(name, format_string) %}
             {{ tokenized_format_strings.append({
                 "format_string": format_string,
                 "tokens": tokens,
@@ -36,24 +36,24 @@
         {% endset %}
 
         {% for col_name,pos in token_set.items() %}
-        {{ synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }}
-        {{ synth_remove("final_fields", col_name) }}
+        {{ dbt_synth_data.synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }}
+        {{ dbt_synth_data.synth_remove("final_fields", col_name) }}
         {% endfor %}
         
         {% set base_field %}
-            {{ synth_distribution_discretize_floor(synth_distribution_continuous_uniform(min=1, max=format_strings|length+1)) }} as {{name}}__format_idx
+            {{ dbt_synth_data.synth_distribution_discretize_floor(dbt_synth_data.synth_distribution_continuous_uniform(min=1, max=format_strings|length+1)) }} as {{name}}__format_idx
         {% endset %}
-        {{ synth_store('base_fields', name+"__format_idx", base_field) }}
+        {{ dbt_synth_data.synth_store('base_fields', name+"__format_idx", base_field) }}
 
         {% set join_fields %}
             {{ words_expression }} as {{name}}
         {% endset %}
-        {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
+        {{ dbt_synth_data.synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
         
         {% set final_field %}
             {{name}}
         {% endset %}
-        {{ synth_store('final_fields', name, final_field) }}
+        {{ dbt_synth_data.synth_store('final_fields', name, final_field) }}
 
     {% elif n|int>0 %}
 
@@ -63,10 +63,10 @@
 
         {% set query %}
         {% for i in range(n) %}
-        {{ synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }}
-        {{ synth_remove("final_fields", name+'_word'+i|string) }}
+        {{ dbt_synth_data.synth_column_word(name=name+'_word'+i|string, language=language, language_code=language_code, distribution=distribution) }}
+        {{ dbt_synth_data.synth_remove("final_fields", name+'_word'+i|string) }}
         {% endfor %}
-        {{ synth_column_expression(name=name, expression=words_expression) }}
+        {{ dbt_synth_data.synth_column_expression(name=name, expression=words_expression) }}
         {% endset %}
 
     {% else %}

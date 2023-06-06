@@ -3,10 +3,10 @@
     {% if value_cols is string %}{% set value_cols = [value_cols] %}{% endif %}
     
     {% if distribution=='uniform' %}
-        {{ synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) }}
+        {{ dbt_synth_data.synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) }}
     
     {% elif distribution=='weighted' %}
-        {{ synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, do_ref) }}
+        {{ dbt_synth_data.synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, do_ref) }}
     
     {% else %}
         {{ exceptions.raise_compiler_error("Invalid `distribution` " ~ distribution ~ " for select column `" ~ name ~ "`: should be `uniform` (default) or `weighted`.") }}
@@ -14,7 +14,7 @@
 {%- endmacro %}
 
 {% macro synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) %}
-    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
+    {% set table_name = dbt_synth_data.synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% set cte %}
         {{table_name}}__{{name}}__cte as (
             select
@@ -30,12 +30,12 @@
             order by from_val asc, to_val asc
         )
     {% endset %}
-    {{ synth_store("ctes", name+"__cte", cte) }}
+    {{ dbt_synth_data.synth_store("ctes", name+"__cte", cte) }}
 
     {% set base_field %}
-        {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
+        {{ dbt_synth_data.synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
     {% endset %}
-    {{ synth_store("base_fields", name+"__rand", base_field) }}
+    {{ dbt_synth_data.synth_store("base_fields", name+"__rand", base_field) }}
 
     {% set join_fields %}
         {% if value_cols|length==1 %}
@@ -50,7 +50,7 @@
     {% set join_clause %}
         left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{table_name}}__{{name}}__cte.from_val and {{table_name}}__{{name}}__cte.to_val
     {% endset %}
-    {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
+    {{ dbt_synth_data.synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
     {% set final_field %}
         {% if value_cols|length==1 %}
@@ -62,11 +62,11 @@
             {% endfor %}
         {% endif %}
     {% endset %}
-    {{ synth_store("final_fields", name, final_field) }}
+    {{ dbt_synth_data.synth_store("final_fields", name, final_field) }}
 {% endmacro %}
 
 {% macro synth_column_select_weighted(name, model_name, value_cols, weight_col, filter, do_ref) %}
-    {% set table_name = synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
+    {% set table_name = dbt_synth_data.synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% if not weight_col %}
         {{ exceptions.raise_compiler_error("`weight_col` is required when `distribution` for select column `" ~ name ~ "` is `weighted`.") }}
     {% endif %}
@@ -87,12 +87,12 @@
             order by from_val asc, to_val asc
         )
     {% endset %}
-    {{ synth_store("ctes", name+"__cte", cte) }}
+    {{ dbt_synth_data.synth_store("ctes", name+"__cte", cte) }}
 
     {% set base_field %}
-      {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
+      {{ dbt_synth_data.synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__rand
     {% endset %}
-    {{ synth_store("base_fields", name+"__rand", base_field) }}
+    {{ dbt_synth_data.synth_store("base_fields", name+"__rand", base_field) }}
 
     {% set join_fields %}
         {% if value_cols|length==1 %}
@@ -107,7 +107,7 @@
     {% set join_clause %}
         left join {{table_name}}__{{name}}__cte on ___PREVIOUS_CTE___.{{name}}__rand between {{table_name}}__{{name}}__cte.from_val and {{table_name}}__{{name}}__cte.to_val
     {% endset %}
-    {{ synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
+    {{ dbt_synth_data.synth_store("joins", name+"__cte", {"fields": join_fields, "clause": join_clause} ) }}
     
     {% set final_field %}
         {% if value_cols|length==1 %}
@@ -119,5 +119,5 @@
             {% endfor %}
         {% endif %}
     {% endset %}
-    {{ synth_store("final_fields", name, final_field) }}
+    {{ dbt_synth_data.synth_store("final_fields", name, final_field) }}
 {% endmacro %}

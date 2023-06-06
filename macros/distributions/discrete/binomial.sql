@@ -7,11 +7,11 @@
     {{ exceptions.raise_compiler_error("`n` for a binomial distribution must be at least 1") }}
     
     {%- elif n==1 -%}
-    {{ dbt_synth.distribution_discrete_bernoulli(p=p) }}
+    {{ dbt_synth_data.distribution_discrete_bernoulli(p=p) }}
     
     {%- else -%}
-    mod( abs( {{ synth_distribution_discretize_round(
-        distribution=synth_distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5),
+    mod( abs( {{ dbt_synth_data.synth_distribution_discretize_round(
+        distribution=dbt_synth_data.synth_distribution_continuous_normal(mean=n*p, stddev=(n*p*(1-p))**0.5),
         precision=0
     ) }} ) , {{n+1}} )
 

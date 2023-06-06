@@ -7,7 +7,7 @@
 {%- endmacro %}
 
 {% macro sqlite__synth_distribution_continuous_uniform(min, max) %}
-    ({{synth_sqlite_random()}} * ({{max}}-{{min}}) + {{min}})
+    ({{ dbt_synth_data.synth_sqlite_random() }} * ({{max}}-{{min}}) + {{min}})
 {% endmacro %}
 
 {% macro postgres__synth_distribution_continuous_uniform(min, max) %}
@@ -15,5 +15,5 @@
 {% endmacro %}
 
 {% macro snowflake__synth_distribution_continuous_uniform(min, max) %}
-    UNIFORM({{min}}::float, {{max}}::float, RANDOM( {{ synth_get_randseed() }} ))
+    UNIFORM({{min}}::float, {{max}}::float, RANDOM( {{ dbt_synth_data.synth_get_randseed() }} ))
 {% endmacro %}

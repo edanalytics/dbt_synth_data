@@ -1,8 +1,8 @@
 {% macro synth_column_correlation(name, data, column=1) -%}
     {% set base_field %}
-        {{ synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__{{column}}__rand
+        {{ dbt_synth_data.synth_distribution_continuous_uniform(min=0, max=1) }} as {{name}}__{{column}}__rand
     {% endset %}
-    {{ synth_store("base_fields", name+"__"+column+"__rand", base_field) }}
+    {{ dbt_synth_data.synth_store("base_fields", name+"__"+column+"__rand", base_field) }}
 
     {%- set hypercube_shape = [] -%}
     {%- set ns = namespace(column_index=0) -%}
@@ -13,13 +13,13 @@
         {%- set ns2.counter = ns2.counter + 1 -%}
     {% endfor %}
     {%- set hypercube_dimension = data.columns|length -%}
-    {% set iterator = synth_hypercube_iterator(hypercube_shape) %}
+    {% set iterator = dbt_synth_data.synth_hypercube_iterator(hypercube_shape) %}
     {% set ns_from = namespace(threshhold=0.0) %}
     {% set ns_to = namespace(threshhold=0.0) %}
     {% set ns_field = namespace(field='CASE ') %} 
     {% for indices_string in iterator %}
         {%- set indices = indices_string.split('.') -%}
-        {%- set this_probability = synth_hypercube_value_at_indices(data.probabilities, indices) -%}
+        {%- set this_probability = dbt_synth_data.synth_hypercube_value_at_indices(data.probabilities, indices) -%}
         {%- if this_probability > 0 -%}
         {%- set value = data.columns[column][(indices[ns.column_index]|int)] %}
         {%- set ns_to.threshhold = ns_from.threshhold + this_probability -%}
@@ -43,7 +43,7 @@
         {% endif -%}
     {% endfor %}
     {% set ns_field.field = ns_field.field + ' END as ' + name %}
-    {{ synth_store("final_fields", name, ns_field.field) }}
+    {{ dbt_synth_data.synth_store("final_fields", name, ns_field.field) }}
 {%- endmacro %}
 
 {% macro synth_hypercube_iterator(shape, prefix="") %}
@@ -54,7 +54,7 @@
         {% endfor %}
     {% elif shape|length > 1 %}
         {% for idx in range(0, shape[0]) %}
-            {% set sub_list = synth_hypercube_iterator(shape[1:], idx|string + '.') %}
+            {% set sub_list = dbt_synth_data.synth_hypercube_iterator(shape[1:], idx|string + '.') %}
             {% for value in sub_list %}
                 {% do idx_list.append(prefix + value) %}
             {% endfor %}

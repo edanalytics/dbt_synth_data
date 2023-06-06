@@ -78,7 +78,7 @@
 
 
 {%- macro synth_set_table_name(name) -%}
-    {{ synth_store('synth_conf', 'table_name', name) }}
+    {{ dbt_synth_data.synth_store('synth_conf', 'table_name', name) }}
     {{ return("") }}
 {%- endmacro %}
 

@@ -7,7 +7,7 @@
     {% set final_field %}
         {{name}}
     {% endset %}
-    {{ synth_store('final_fields', name, final_field) }}
+    {{ dbt_synth_data.synth_store('final_fields', name, final_field) }}
 {%- endmacro %}
 
 {% macro default__synth_column_date_base(min, max, distribution) -%}
@@ -17,7 +17,7 @@
 {% macro sqlite__synth_column_date_base(min, max, distribution) %}
     date('{{min}}',
         '+' ||
-        ROUND({{synth_sqlite_random()}} * ({% if max|length > 0 %}JULIANDAY('{{max}}'){% else %}JULIANDAY(DATE()){% endif %} - JULIANDAY('{{min}}'))) ||
+        ROUND({{dbt_synth_data.synth_sqlite_random()}} * ({% if max|length > 0 %}JULIANDAY('{{max}}'){% else %}JULIANDAY(DATE()){% endif %} - JULIANDAY('{{min}}'))) ||
         ' days')
 {% endmacro %}
 
@@ -31,7 +31,7 @@
         UNIFORM(
             0,
             datediff(day, '{{min}}'::date, '{{max}}'::date),
-            RANDOM( {{ synth_get_randseed() }} )),
+            RANDOM( {{ dbt_synth_data.synth_get_randseed() }} )),
         '{{min}}'::date
     )
 {% endmacro%}

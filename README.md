@@ -11,6 +11,7 @@ All the magic happens in `macros/*`.
 * [Architecture](#architecture)
 * [Simple example](#simple-example)
 * [Distributions](#distributions)
+* [Configurable distributions](#configurable-distributions)
 * [Column types](#column-types)
 * [Advanced usage](#advanced-usage)
 * [Datasets](#datasets)
@@ -404,6 +405,37 @@ Up to 10 distributions may be averaged. (Compose the macro to average more.)
 **Above:** Histogram of a continuous average distribution composed of a normal and an exponential distribution (1M values).
 </details>
 
+
+## Making distributions configurable
+`dbt` doesn't allow macro calls in [project `vars`](https://docs.getdbt.com/docs/build/project-variables), but `dbt_synth_data` gets around this limitation and allows you to configure distributions in your `vars` and then parse and use them in your models. Consider the following example:
+
+```yaml
+...
+vars:
+  teacher_student_ratio:
+    synth_distribution_union():
+      d0:
+        synth_distribution_continuous_normal():
+          mean: 15
+          stddev: 5
+      d1:
+        synth_distribution_continuous_normal():
+          mean: 20
+          stddev: 5
+      weights: [1, 2]
+```
+You can use this distribution via `yaml_to_macro()` in `models/schools.sql` as follows:
+```sql
+with
+{{ synth_column_primary_key(name='school_id') }}
+{{ synth_column_integer(name="current_enrollment", min=100, max=2000) }}
+{{ synth_column_distribution(name='teacher_student_ratio', 
+    distribution=yaml_to_macro(var('teacher_student_ratio'))
+) }}
+{{ synth_column_integer(name='year_founded', min=1937, max=2022) }}
+{{ synth_table(rows = 500) }}
+select * from synth_table
+```
 
 
 # Column types

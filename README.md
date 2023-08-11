@@ -11,7 +11,6 @@ All the magic happens in `macros/*`.
 * [Architecture](#architecture)
 * [Simple example](#simple-example)
 * [Distributions](#distributions)
-* [Configurable distributions](#configurable-distributions)
 * [Column types](#column-types)
 * [Advanced usage](#advanced-usage)
 * [Datasets](#datasets)

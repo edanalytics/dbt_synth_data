@@ -140,6 +140,20 @@
         label_precision=params.get('label_precision', 4),
         bucket_range_separator=params.get('bucket_range_separator', ' - ')
     )) }}
+    {% elif name=='synth_expression'
+    %}{{ return(
+        params.get('expression', '')
+        .replace("$0", params.get('p0', ''))
+        .replace("$1", params.get('p1', ''))
+        .replace("$2", params.get('p2', ''))
+        .replace("$3", params.get('p3', ''))
+        .replace("$4", params.get('p4', ''))
+        .replace("$5", params.get('p5', ''))
+        .replace("$6", params.get('p6', ''))
+        .replace("$7", params.get('p7', ''))
+        .replace("$8", params.get('p8', ''))
+        .replace("$9", params.get('p9', ''))
+    ) }}
     {% else%}{{ exceptions.raise_compiler_error("Unknown macro name: " + name) }}
     {% endif %}
 {% endmacro %}

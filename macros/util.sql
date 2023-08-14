@@ -14,13 +14,17 @@
 #}
 {% macro synth_get_randseed() %}
     {%- if not target.get("rand_seed") -%}
-    {%- do target.update({"rand_seed": 10000}) -%}
+    {%- do synth_set_randseed(10000) -%}
     {%- set next_rand_seed = 10000 -%}
     {%- else -%}
     {%- set next_rand_seed = target.get("rand_seed")|int + 1 -%}
     {%- do target.update({"rand_seed": next_rand_seed}) -%}
     {%- endif -%}
     {{ return(next_rand_seed) }}
+{% endmacro%}
+
+{% macro synth_set_randseed(seed) %}
+    {%- do target.update({"rand_seed": seed}) -%}
 {% endmacro%}
 
 {% macro synth_sqlite_random() %}

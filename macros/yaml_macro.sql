@@ -89,7 +89,7 @@
     {% elif 
            (name=='synth_distribution' and params.get('class', '')=='discrete' and params.get('type', '')=='weights')
         or (name=='synth_distribution_discrete' and params.get('type', '')=='weights')
-        or (name=='weights')
+        or (name=='synth_distribution_discrete_weights')
     %}{{ return(dbt_synth_data.synth_distribution_discrete_weights(values=params.get('values', []), weights=params.get('weights', []))) }}
     {% elif name=='synth_distribution_average'
     %}{{ return(dbt_synth_data.synth_distribution_average(

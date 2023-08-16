@@ -423,13 +423,13 @@ vars:
           stddev: 5
       weights: [1, 2]
 ```
-You can use this distribution via `yaml_to_macro()` in `models/schools.sql` as follows:
+You can use this distribution via `synth_var()` in `models/schools.sql` as follows:
 ```sql
 with
 {{ synth_column_primary_key(name='school_id') }}
 {{ synth_column_integer(name="current_enrollment", min=100, max=2000) }}
 {{ synth_column_distribution(name='teacher_student_ratio', 
-    distribution=yaml_to_macro(var('teacher_student_ratio'))
+    distribution=synth_var('teacher_student_ratio'))
 ) }}
 {{ synth_column_integer(name='year_founded', min=1937, max=2022) }}
 {{ synth_table(rows = 500) }}

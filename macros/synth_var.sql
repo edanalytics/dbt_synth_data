@@ -1,6 +1,8 @@
 {% macro synth_var(data) %}
-    {% set data = var(data) %}
+    {{ return(synth_dynamic_var(var(data))) }}
+{% endmacro %}
 
+{% macro synth_dynamic_var(data) %}
     {#
         CASE A: var is a (potentially nested) mapping
             vars:
@@ -33,7 +35,7 @@
         {% set my_macro = first_key[0:-2] %}
         {% set my_params = {} %}
         {% for param, value in data[first_key]|items %}
-            {% do my_params.update({param: yaml_to_macro(value)}) %}
+            {% do my_params.update({param: synth_dynamic_var(value)}) %}
         {% endfor %}
         {{ return(synth_call_macro(my_macro, my_params)) }}
     {% elif data is string and data[-2:]=="()" %}

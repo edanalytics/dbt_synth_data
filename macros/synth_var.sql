@@ -1,4 +1,5 @@
-{% macro yaml_to_macro(data) %}
+{% macro synth_var(data) %}
+    {% set data = var(data) %}
 
     {#
         CASE A: var is a (potentially nested) mapping

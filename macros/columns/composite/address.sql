@@ -18,7 +18,7 @@
         {% endif %}
 
         {% if 'city' in parts %}
-            {% if parts.index('city') > 0 %} || ' ' || {% endif %}
+            {% if parts.index('city') > 0 %} || ', ' || {% endif %}
             {{name}}__city
         {% endif %}
 

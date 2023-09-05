@@ -436,6 +436,23 @@ with
 select * from synth_table
 ```
 
+Besides using `synth_distribution_union()` and `synth_distribution_average()`, you can also combine and compose distributions using `synth_expression()` like so:
+```yaml
+...
+vars:
+  teacher_student_ratio:
+    synth_expression:
+      expression: greatest( 5, 10 + $0 + ln($1) )
+      p0:
+        synth_distribution_continuous_normal():
+          mean: 5
+          stddev: 1.5
+      p1:
+        synth_distribution_continuous_normal():
+          mean: 10
+          stddev: 2
+```
+
 
 # Column types
 This package provides the following data types:

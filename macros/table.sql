@@ -13,8 +13,9 @@
     ),
     {{table_name}}__join0 as (
         select
-            {{table_name}}__base.__row_number,
+            {{table_name}}__base.__row_number
             {% set base_fields = dbt_synth_data.synth_retrieve('base_fields') %}
+            {% if base_fields.values() | length > 0 %},{% endif %}
             {{ base_fields.values() | list | join(",") }}
         from {{table_name}}__base
     ),

@@ -61,6 +61,6 @@ with
     parts=['street_address', 'city', 'geo_region', 'country', 'postal_code']) }}
 {{ synth_column_phone_number(name="column_phone") }}
 
-{{ synth_table(rows=1000) }}
+{{ synth_table(rows=10000000) }}
 
 select * from synth_table

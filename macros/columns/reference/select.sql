@@ -16,7 +16,7 @@
 {% macro synth_column_select_uniform(name, model_name, value_cols, filter, do_ref) %}
     {% set table_name = dbt_synth_data.synth_retrieve('synth_conf')['table_name'] or "synth_table" %}
     {% set cte %}
-        {{table_name}}__{{name}}__cte as (
+        {# {{table_name}}__{{name}}__cte as ( #}
             select
                 {% for value_col in value_cols %}
                 {{value_col}},
@@ -28,7 +28,7 @@
             where {{filter}}
             {% endif %}
             order by from_val asc, to_val asc
-        )
+        {# ) #}
     {% endset %}
     {{ dbt_synth_data.synth_store("ctes", name+"__cte", cte) }}
 
@@ -72,7 +72,7 @@
     {% endif %}
     
     {% set cte %}
-        {{table_name}}__{{name}}__cte as (
+        {# {{table_name}}__{{name}}__cte as ( #}
             select
                 {% for value_col in value_cols %}
                 {{value_col}},
@@ -85,7 +85,7 @@
             where {{filter}}
             {% endif %}
             order by from_val asc, to_val asc
-        )
+        {# ) #}
     {% endset %}
     {{ dbt_synth_data.synth_store("ctes", name+"__cte", cte) }}
 

@@ -11,17 +11,10 @@
 {%- endmacro %}
 
 {% macro default__synth_column_primary_key() -%}
-    {# NOT YET IMPLEMENTED #}
+    MD5( '{{this}}' || __row_number::varchar )
 {%- endmacro %}
 
 {% macro sqlite__synth_column_primary_key() %}
+    {# SQLite doesn't support MD5() out-of-the-box, so just use the row number #}
     __row_number
-{% endmacro %}
-
-{% macro postgres__synth_column_primary_key() %}
-    MD5( '{{this}}' || __row_number::varchar )
-{% endmacro %}
-
-{% macro snowflake__synth_column_primary_key() %}
-    MD5( '{{this}}' || __row_number::varchar )
 {% endmacro %}

@@ -42,6 +42,12 @@ Synthetic data generated with `dbt_synth_data` can be useful for testing user in
 ## Limitations
 The synthetic data created using `dbt_synth_data` should not be mistaken as being fully realistic, reflecting all correlations that may be present in the real world. Therefore **please do not use data generated using this package to train ML models!**
 
+## Supported backends
+This package currently supports the following backends:
+* `snowflake` (with `pip install dbt-snowflake`)
+* `postgres` (with `pip install dbt-postgres`)
+* `sqlite` (with `pip install dbt-sqlite`)
+* `duckdb` (with `pip install dbt-duckdb`)
 
 
 # Installation
@@ -56,9 +62,9 @@ The synthetic data created using `dbt_synth_data` should not be mistaken as bein
 
 # Architecture
 
-CTEs, joins, and fields defined by `synth_column_*()` are temporarily stored in `dbt`'s [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s. Finally, `synth_table()` stitches everything together into query of the general form
+CTEs, joins, and fields defined by `synth_column_*()` are temporarily stored in `dbt`'s [`target` object](https://docs.getdbt.com/reference/dbt-jinja-functions/target) during parse/run time, as this is one of few dbt objects that persist and are scoped across `macro`s. Finally, `synth_table()` stitches everything together into a query of the general form
 ```sql
--- [CTEs as required for selecting seed data or values from other models]
+-- [various CTEs as required for selecting seed data or values from other models]
 base as (
     select
         -- base CTE includes a row_number, which facilitates generating integer or date sequences, primary keys, and more
@@ -94,6 +100,7 @@ synth_table as (
     from joinN
 )
 ```
+**Note:** with SQLite, the behavior of `random()` within CTEs and joins is non-deterministic, due to how the query optimizer works - see [this link](https://stackoverflow.com/questions/64328853/sqlite-random-function-in-cte) for details. Therefore, on SQLite only, temporary tables are created (`CREATE TEMP TABLE ...`) instead of most of the CTEs mentioned above. Only the final `synth_table` CTE is created, so the `with` syntax shown below still works. Temporary tables are deleted when the `dbt run` completes.
 
 
 # Simple example
@@ -846,6 +853,8 @@ Generates a phone number in the format `(123) 456-7890`.
 
 
 # Advanced usage
+
+## Combining columns with expressions
 Occasionally you may want to build up a more complex column's values from several simpler ones. This is easily done with an expression column, for example
 ```sql
 {{ synth_column_primary_key(name="k_person") }}
@@ -858,6 +867,7 @@ Occasionally you may want to build up a more complex column's values from severa
 ```
 Note that you may want to "clean up" by supressing some of your intermediate columns, as shown with the `synth_remove()` calls in the example above.
 
+## Creating temporary columns
 You may also want to modify another table *only after this one is built*. This is also possible using cleanup hooks.
 
 For example, suppose you want to create `products` and `orders`, but you want some `products` to be exponentially more popular (more `orders` for) than others. This is possible by
@@ -889,6 +899,51 @@ For example, suppose you want to create `products` and `orders`, but you want so
     {{ synth_table(rows=5000) }}
     ```
     Note that the cleanup hook *must* go after any column definitions that rely on it, and before the `synth_table()` call.
+
+## Random seed
+With Snowflake only (not other backends), you can [specify a random seed](https://docs.snowflake.com/en/sql-reference/functions/random#arguments). This package uses the dbt var `{{ var("synth_randseed") }}` (which defaults to `10000`) and increments it each time `random()` is called. [Snowflake asserts](https://docs.snowflake.com/en/sql-reference/functions/random#usage-notes) that even with a fixed seed, "there is no guarantee that RANDOM will generate the same set of values each time"; however in our testing it generally does. This means that (1) repeated `dbt run`s with the same seed wil likely generate same/similar data and (2) if you want new/different data, you should consider changing the `synth_randseed` var.
+
+## Configurable distributions
+`dbt` allows configuration to be defined in the `vars` section of your `dbt_project.yml` but dynamic values are not supported (they must be numbers, strings, lists, or dictionaries, but not macro invocations). However it can be very useful to make various distributions in your synthetic data configurable. This is possibly by defining them in the `vars` section using a specific format and then referencing them using the `synth_var()` macro provided by this package.
+
+For example, in your `dbt_project.yml`:
+```yaml
+...
+vars:
+  my_complicated_custom_distribution:
+    synth_distribution_discretize_ceil():
+      distribution:
+        synth_expression():
+          # this ensures that the value is >= 1
+          expression: greatest(1, 1 + $0)
+          p0:
+            # average of an exponential and normal distribution
+            # result is a skewed distribution, peaking around 1000
+            synth_distribution_average():
+              d0:
+                synth_distribution_continuous_exponential():
+                  lambda: 0.0002
+              d1:
+                synth_distribution_continuous_normal():
+                  mean: 1100
+                  stddev: 400
+              weights: [1,2]
+```
+and then in your model:
+```sql
+with
+...
+{{ synth_column_distribution(name="my_column",
+    distribution=synth_var('my_complicated_custom_distribution')
+) }}
+{{ synth_table(rows=1000) }}
+```
+When defining `vars` this way:
+* reference a macro by name, with `()` at the end
+* you may only reference macros for available [distributions](#distributions) and [discretizations](#discretizing-continuous-distributions)
+* macro parameters must be passed by name
+* macro invocations may be nested arbitraily deep
+* values may be combined using `synth_expression()` with parameters `expression` and `p0` up to `p9` which `expression` references as `$0` up to `$9`
 
 
 # Datasets
@@ -942,96 +997,41 @@ The dataset is assembled primarily from Wikipedia, including [this list of offic
 
 
 # Performance
-Here we provide benchmarks in Snowflake and AWS RDS Postgres for synthetic data generation, using the models found in `example_models/*.sql`..
+Here we provide approximate benchmarks for synthetic data generation, using the models found in `example_models/*.sql`, for the various supported backends.
 
-## Snowflake
-Using a single Xsmall warehouse:
+| Model | Columns | Rows | Snowflake runtime, size | Postgres runtime, size | SQLite runtime, size | DuckDB runtime, size |
+| --- | --- | --- | --- | --- | --- | --- |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10k |   1.95s, 804KB |    0.77s,  ??? |    0.29s, 1.13MB |  0.20s, 1.76MB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |   1M |   7.15s,  73MB |    8.93s,  ??? |    8.70s,  115MB | 16.02s,  189MB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 | 100M |  66.19s, 7.2GB | 14.76min, 16GB | 16.63min, 11.2GB |              - |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10B | 95.5min, 765GB |              - |                - |              - |
 
-| Model | Columns | Rows | Runtime | Data size |
-| --- | --- | --- | --- | --- |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 11.48s | 646 KB |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 19.03s | 57.8 MB |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 64.61s | 5.7 GB |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10B | 81 min | 614.7 GB |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |  10k |   20.2s,  2.2MB | 5.6min, 4.6MB | 37.26s,  9.0MB | 0.82s, 6.51MB |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 | 100k |   69.0s, 21.2MB |    ???,   ??? | 6.8min, 44.2MB |  5.0s, 23.0MB |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |   1M | 10.2min,  109MB |    ???,   ??? |    ???,    ??? |             - |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |  10M |     ???,    ??? |    ???,   ??? |    ???,    ??? |             - |
 
-| Model | Columns | Rows | Runtime | Data size |
-| --- | --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 4.32s | 32.5 KB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 1.28s | 16.0 KB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 1.63s | 2.0 KB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 1.36s | 59.0 KB |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 1.46s | 22.0 KB |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |  100 | 7.07s, 36.5KB | 1.34s,  32KB | 0.67s, ?? | 0.20s, ?? |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |   50 | 4.01s, 16.0KB | 1.09s,  16KB | 0.43s, ?? | 0.11s, ?? |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |    2 | 4.96s,  4.0KB | 0.68s,  16KB | 0.45s, ?? | 0.11s, ?? |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 | 1000 | 5.26s, 59.5KB | 0.66s, 120KB | 0.14s, ?? | 0.09s, ?? |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 |  100 | 2.76s, 21.5KB | 0.58s,  24KB | 0.15s, ?? | 0.07s, ?? |
 
-| Model | Columns | Rows | Runtime | Data size |
-| --- | --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 3.77s | 958.5 KB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 2.14s | 267.5 KB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 1.71s | 32.0 KB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 3.60s | 5.3 MB |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 16.74s | 6.1 MB |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |  10k | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |   5k | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |  200 | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 | 100k | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 |   1M | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
 
-| Model | Columns | Rows | Runtime | Data size |
-| --- | --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 1M | 21.43s | 53.0 MB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50k | 21.04s | 2.4 MB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 20k | 1.85s | 1.3 MB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 50M | 114 min | 1.0 GB |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100M | 325 min | 2.5 GB |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |   1M | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |  50k | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |  20k | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 |  50M | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100M | ???, ?? | ???, ?? | ???, ?? | ???, ?? |
 
-(Note that **orders** and **inventory** are significantly slower at scale because they rely on **products** - and so many products are partitioned, slowing the query.)
+Snowflake runtimes are using a single Xsmall warehouse. Postgres runtimes are using an AWS RDS small instance. SQLite and DuckDB runtimes are using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD.
 
-
-## Postgres
-Using an AWS RDS small instance:
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 19.71s |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 35.78s |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 17 min |
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 26.29s |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 22.35s |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 26.45s |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 22.58s |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 22.12s |
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 18.77s |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 17.16s |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 19.82s |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 414.38s |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 396.10s |
-
-
-## SQLite
-Using a Lenovo laptop with Intel i-5 2.6GHz processor, 16GB RAM, and 500GB SSD:
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 10k | 0.16s |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 1M | 7.85s |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 15 | 100M | 15 min |
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 100 | 0.94s |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 50 | 0.67s |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 2 | 0.26s |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 1000 | 0.07s |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100 | 4.91s |
-
-| Model | Columns | Rows | Runtime |
-| --- | --- | --- | --- |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 | 10k | 29.02s |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql) | 3 | 5k | 13.59s |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql) | 5 | 200 | 0.63s |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql) | 4 | 100k | 157.2s |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 1M | 30 min |
-
+Missing values in the table above denote either failed runs (DuckDB kills a process that uses too much memory) or runs that took too long.
 
 
 # Changelog
@@ -1053,7 +1053,6 @@ Coming soon!
 
 
 # Todo
-- [ ] fix SQLite bug where joins seem to blow up rows (row counts in resulting table are potentially much larger than you specified) - strange issue, because the same joins all seem to work fine on Snowflake and Postgres...
 - [ ] fix address so it selects a city, then uses the country (and geo_region) for that city, rather than a (different) random country (and geo_region)
 - [ ] implement other [distributions](#distributions)... Poisson, Gamma, Power law/Pareto, Multinomial?
-- [ ] flesh out more seeds, data columns, and composite columns
+- [ ] flesh out more seeds (and corresponding data columns) and composite columns (email address, IP address, user agent strings, file_name, URL, etc.)

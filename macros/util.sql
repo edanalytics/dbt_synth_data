@@ -14,8 +14,8 @@
 #}
 {% macro synth_get_randseed() %}
     {%- if not target.get("rand_seed") -%}
-    {%- do synth_set_randseed(10000) -%}
-    {%- set next_rand_seed = 10000 -%}
+    {%- do synth_set_randseed(var('synth_randseed')) -%}
+    {%- set next_rand_seed = var('synth_randseed') -%}
     {%- else -%}
     {%- set next_rand_seed = target.get("rand_seed")|int + 1 -%}
     {%- do target.update({"rand_seed": next_rand_seed}) -%}
@@ -127,10 +127,10 @@
     {{ return(dct) }}
 {%- endmacro %}
 
-{%- macro synth_initcap_word(word) -%}
-    {% set expression = "INITCAP(" + word + ")" %}
-    {% if target.type =='sqlite' %}
-        {% set expression = "UPPER(SUBSTR(" + word + ", 1, 1)) || SUBSTR(" + word + ", 2)" %}
+{%- macro synth_initcap(string_expression) -%}
+    {% set initcap_expression = "INITCAP(" + string_expression + ")" %}
+    {% if target.type in ['sqlite', 'duckdb'] %}
+        {% set initcap_expression = "UPPER(SUBSTR(" + string_expression + ", 1, 1)) || LOWER(SUBSTR(" + string_expression + ", 2))" %}
     {% endif %}
-    {{ return(expression) }}
+    {{ return(initcap_expression) }}
 {%- endmacro %}

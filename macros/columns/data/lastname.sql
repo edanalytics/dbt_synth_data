@@ -8,7 +8,7 @@
         filter=filter
     ) }}
     {# Wrap name with INITCAP() to capitalize name: #}
-    {{ dbt_synth_data.synth_column_expression(name=name, expression=dbt_synth_data.synth_initcap_word(name+"__int") ) }}
+    {{ dbt_synth_data.synth_column_expression(name=name, expression=dbt_synth_data.synth_initcap(name+"__int") ) }}
     {{ dbt_synth_data.synth_remove('final_fields', name+'__int') }}
     {{ return("") }}
 {%- endmacro %}

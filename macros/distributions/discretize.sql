@@ -10,6 +10,10 @@
     cast(floor( {{distribution}} ) as int)
 {% endmacro %}
 
+{% macro duckdb__synth_distribution_discretize_floor(distribution) %}
+    cast(floor( {{distribution}} ) as int)
+{% endmacro %}
+
 {% macro postgres__synth_distribution_discretize_floor(distribution) %}
     floor( {{distribution}} )
 {% endmacro %}
@@ -29,6 +33,10 @@
 {%- endmacro %}
 
 {% macro sqlite__synth_distribution_discretize_ceil(distribution) %}
+    cast(ceil( {{distribution}} ) as int)
+{% endmacro %}
+
+{% macro duckdb__synth_distribution_discretize_ceil(distribution) %}
     cast(ceil( {{distribution}} ) as int)
 {% endmacro %}
 
@@ -54,6 +62,10 @@
     round( ( {{distribution}} ) , {{precision}})
 {% endmacro %}
 
+{% macro duckdb__synth_distribution_discretize_round(distribution, precision) %}
+    round( ( {{distribution}} ) , {{precision}})
+{% endmacro %}
+
 {% macro postgres__synth_distribution_discretize_round(distribution, precision) %}
     round( ( {{distribution}} )::numeric , {{precision}})
 {% endmacro %}
@@ -66,7 +78,7 @@
 
 {% macro synth_distribution_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
     {# SQLite doesn't support width_bucket(), unfortunately #}
-    {%- if target.type=='sqlite' -%}
+    {%- if target.type in ['sqlite', 'duckdb'] -%}
         {{ exceptions.raise_compiler_error("SQLite does not support `width_bucket()`, unfortunately, so you cannot use  `synth_distribution_discretize_width_bucket()` with it.") }}
     {%- endif -%}
 

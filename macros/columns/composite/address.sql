@@ -51,7 +51,7 @@
 
                     cast({{name}}__number1 as int)
                     || ' '
-                    || initcap({{name}}__street_name)
+                    || {{synth_initcap(name+"__street_name")}}
                     || ' '
                     || (case {{name}}__street_type
                         {% for i in range(street_types|length) %}
@@ -64,7 +64,7 @@
                 
                     cast({{name}}__number1 as int)
                     || ' '
-                    || initcap({{name}}__street_name)
+                    || {{synth_initcap(name+"__street_name")}}
                     || ' '
                     || (case {{name}}__street_type
                         {% for i in range(street_types|length) %}

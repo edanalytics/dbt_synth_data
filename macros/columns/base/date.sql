@@ -21,6 +21,10 @@
         ' days')
 {% endmacro %}
 
+{% macro duckdb__synth_column_date_base(min, max, distribution) %}
+    date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int
+{% endmacro %}
+
 {% macro postgres__synth_column_date_base(min, max, distribution) %}
     date '{{min}}' + ROUND(RANDOM() * ({% if max|length > 0 %}date '{{max}}'{% else %}CURRENT_DATE{% endif %} - date '{{min}}'))::int
 {% endmacro %}

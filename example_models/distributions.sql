@@ -54,7 +54,7 @@ with
         weights=[1,2,3]
     )
 ) }}
-{%- if target.type!='sqlite' -%}
+{%- if target.type not in ['sqlite', 'duckdb'] -%}
 {{ synth_column_distribution(name="discretized_uniform",
     distribution=synth_distribution_discretize_width_bucket(
         distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),
@@ -117,5 +117,10 @@ select * from synth_table
     from rand_data
     group by 1
     order by 1;
+    ```
+    or with DuckDB, you can do
+    ```sql
+    select histogram(discrete_weights), max(stats(discrete_weights))
+    from [database].[schema].distributions
     ```
 -#}

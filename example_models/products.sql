@@ -10,11 +10,11 @@ with
 {{ synth_column_distribution(name='popularity',
     distribution=synth_distribution(class='continuous', type='exponential', lambda=0.05)
 ) }}
-{{ synth_table(rows=50000) }}
+{{ synth_table(rows=50) }}
 
 select
     k_product,
-    {{synth_initcap_word('product_name')}} as product_name,
+    {{synth_initcap('product_name')}} as product_name,
     shipping_weight,
     popularity
 from synth_table

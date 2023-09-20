@@ -10,6 +10,10 @@
     ({{ dbt_synth_data.synth_sqlite_random() }} * ({{max}}-{{min}}) + {{min}})
 {% endmacro %}
 
+{% macro duckdb__synth_distribution_continuous_uniform(min, max) %}
+    (random() * ({{max}}-{{min}}) + {{min}})
+{% endmacro %}
+
 {% macro postgres__synth_distribution_continuous_uniform(min, max) %}
     (random() * ({{max}}-{{min}}) + {{min}})
 {% endmacro %}

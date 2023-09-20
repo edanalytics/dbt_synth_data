@@ -26,6 +26,12 @@
     ) }} as int), -1*{{pad_length}}, {{pad_length}})
 {% endmacro %}
 
+{% macro duckdb__synth_column_phone_number_chunk(min, max, pad_length) %}
+    LPAD( ({{ dbt_synth_data.synth_distribution_discretize_floor(
+        distribution=dbt_synth_data.synth_distribution_continuous_uniform(min=min, max=max)
+    ) }})::varchar, {{pad_length}}, '0' )
+{% endmacro %}
+
 {% macro postgres__synth_column_phone_number_chunk(min, max, pad_length) %}
     LPAD( ({{ dbt_synth_data.synth_distribution_discretize_floor(
         distribution=dbt_synth_data.synth_distribution_continuous_uniform(min=min, max=max)

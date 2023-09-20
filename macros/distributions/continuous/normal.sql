@@ -11,6 +11,11 @@
     ( ( 1.0*{{stddev}} * sqrt(-2*log({{ dbt_synth_data.synth_sqlite_random() }}))*sin(2*pi()*{{ dbt_synth_data.synth_sqlite_random() }}) ) + 1.0*{{mean}} )
 {% endmacro %}
 
+{% macro duckdb__synth_distribution_continuous_normal(mean, stddev) %}
+    {#- formula below is based on https://mathworld.wolfram.com/Box-MullerTransformation.html -#}
+    ( ( {{stddev}}::float * sqrt(-2*log(random()))*sin(2*pi()*random()) ) + {{mean}}::float )
+{% endmacro %}
+
 {% macro postgres__synth_distribution_continuous_normal(mean, stddev) %}
     {#- formula below is based on https://mathworld.wolfram.com/Box-MullerTransformation.html -#}
     ( ( {{stddev}}::float * sqrt(-2*log(random()))*sin(2*pi()*random()) ) + {{mean}}::float )

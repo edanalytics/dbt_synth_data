@@ -35,6 +35,8 @@ models:
   tenant_sharding:
     # Config indicated by + and applies to all files under models/example/
 
-seeds:
-  +schema: seed    
+# seeds:
+#   +schema: seed
 
+vars:
+  synth_randseed: 10000

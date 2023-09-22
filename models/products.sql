@@ -10,7 +10,7 @@ with
 {{ synth_column_distribution(name='popularity',
     distribution=synth_distribution(class='continuous', type='exponential', lambda=0.05)
 ) }}
-{{ synth_table(rows=50) }}
+{{ synth_table(rows=50000) }}
 
 select
     k_product,

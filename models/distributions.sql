@@ -89,7 +89,7 @@ with
         values=["cat", "dog", "parrot"], weights=[3, 6, 1]
     )
 ) }}
-{{ synth_table(rows=10000) }}
+{{ synth_table(rows=1000000) }}
 
 select * from synth_table
 

@@ -1001,36 +1001,33 @@ Here we provide approximate benchmarks for synthetic data generation, using the 
 
 | Model | Columns | Rows | Snowflake runtime, size | Postgres runtime, size | SQLite runtime, size | DuckDB runtime, size |
 | --- | --- | --- | --- | --- | --- | --- |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10k |   1.95s, 804KB |    0.77s, 1.7MB |    0.29s, 1.13MB |  0.20s, 1.76MB |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |   1M |   7.15s,  73MB |    8.93s, 166MB |    8.70s,  115MB | 16.02s,  189MB |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 | 100M |  66.19s, 7.2GB | 14.76min,  16GB | 16.63min, 11.2GB |              - |
-| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10B | 95.5min, 765GB |               - |                - |              - |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10k |    1.95s, 804KB |    0.77s, 1.7MB |   0.29s, 1.13MB |  0.20s, 1.76MB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |   1M |    7.15s,  73MB |    8.93s, 166MB |   8.70s,  115MB |  16.0s,  189MB |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 | 100M |   66.19s, 7.2GB | 14.76min,  16GB | 16.6min, 11.2GB |              - |
+| [distributions](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/distributions.sql) | 13-15 |  10B |  95.5min, 765GB |               - |               - |              - |
 |  |  |  |  |  |  |  |
-| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |  10k |   20.2s,  2.2MB |  6.5min, 4.6MB |  37.26s, 3.92MB |  0.82s,  2.25MB |
-| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 | 100k |   69.0s, 21.2MB | 64.9min,  46MB |  9.3min, 39.1MB | 12.44s, 18.24MB |
-| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |   1M | 10.2min,  109MB |              - | 77.3min,  392MB |               - |
-| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql) | 28 |  10M |     ???,    ??? |              - |               - |               - |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql)             |    28 |  10k |   20.2s,  2.2MB |   6.5min, 4.6MB |  37.26s, 3.92MB |  0.82s, 2.25MB |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql)             |    28 | 100k |   69.0s, 21.2MB |  64.9min,  46MB |  9.3min, 39.1MB | 12.44s, 18.2MB |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql)             |    28 |   1M | 10.2min,  109MB |               - | 77.3min,  392MB |              - |
+| [columns](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/columns.sql)             |    28 |  10M | 27.3min,  654MB |               - |               - |              - |
 |  |  |  |  |  |  |  |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |  100 | 7.07s, 36.5KB | 1.34s,  32KB | 0.67s,  10KB | 0.20s, 1.0MB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |   50 | 4.01s, 16.0KB | 1.09s,  16KB | 0.43s, 4.0KB | 0.11s, 750KB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |    2 | 4.96s,  4.0KB | 0.68s,  16KB | 0.45s, 4.0KB | 0.11s, 1.0MB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 | 1000 | 5.26s, 59.5KB | 0.66s, 120KB | 0.14s, ?? | 0.09s, ?? |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 |  100 | 2.76s, 21.5KB | 0.58s,  24KB | 0.15s, ?? | 0.07s, ?? |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql)         |     8 |  100 |   7.07s, 36.5KB |    1.34s,  32KB |   0.67s,   10KB |  0.20s,  1.0MB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)           |     3 |   50 |   4.01s, 16.0KB |    1.09s,  16KB |   0.43s,    4KB |  0.11s,  256KB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)               |     5 |    2 |   4.96s,  4.0KB |    0.68s,  16KB |   0.45s,    4KB |  0.11s,  256KB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)               |     4 | 1000 |   5.26s, 59.5KB |    0.66s, 120KB |   0.26s,   24KB |  0.14s,  256KB |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql)         |     4 |  100 |   2.76s, 21.5KB |    0.58s,  24KB |   0.20s,    4KB |  0.13s,  256KB |
 |  |  |  |  |  |  |  |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |  10k |  4.89s,  960KB |  58.11s, 1.7MB | 8.09s, 1.16MB | 0.43s, 2.0MB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |   5k |  2.57s,  275KB |  41.33s, 544KB | 3.63s,  248KB | 0.25s, 1.0MB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |  200 |  2.25s,   32KB |   1.84s,  40KB | 0.79s,   20KB | 0.18s, 1.25MB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 | 100k |  3.63s,  5.3MB | 36.2min,  10MB | ???, ?? | ???, ?? |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 |   1M | 18.75s, 60.3MB | 35.9min, 134MB | ???, ?? | ???, ?? |
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql)         |     8 |  10k |   4.89s,  960KB |   58.11s, 1.7MB |   8.09s, 1.16MB |  0.43s,  2.0MB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)           |     3 |   5k |   2.57s,  275KB |   41.33s, 544KB |   3.63s,  248KB |  0.25s,  1.0MB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)               |     5 |  200 |   2.25s,   32KB |    1.84s,  40KB |   0.79s,   20KB |  0.18s,  1.3MB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)               |     4 | 100k |   3.63s,  5.3MB |  36.2min,  10MB |  19.52s,  2.2MB |  0.76s,  2.3MB |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql)         |     4 |   1M |  18.75s, 60.3MB |  35.9min, 134MB |  3.6min, 18.7MB |  19.3s, 25.9MB |
 |  |  |  |  |  |  |  |
-| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql) | 8 |   1M | 58.75s, 57.6MB |  1.55hr, 163MB | 11.0min,  118MB | 67.09s, 68.5MB |
-| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)   | 3 |  50k | 11.51s,  2.4MB | 6.76min, 4.9MB |  33.54s, 2.49MB | 0.56s,  2.75MB |
-| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)       | 5 |  20k |  3.54s,  1.3MB | 1.86min, 2.5MB |  12.82s, 1.56MB | 0.28s,   2.0MB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)       | 4 |  50M | 2.24hr,  1.0GB |              - | ???, ?? | ???, ?? |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql) | 4 | 100M |  6.3hr,  2.5GB | - | ???, ?? | ???, ?? |
-with seeds and 2 stores and 50 products, sqlite size = ??; duckdb size = 2.76
-with seeds and 200 stores and 5k products, sqlite size = ??; duckdb size = ??
-with seeds and 20k stores and 50k products, sqlite size = ??; duckdb size = ??
+| [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql)         |    8 |    1M |  58.75s, 57.6MB |   1.55hr, 163MB | 11.0min,  118MB | 67.09s, 68.5MB |
+| [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)           |    3 |   50k |  11.51s,  2.4MB |  6.76min, 4.9MB |  33.54s, 2.49MB | 0.56s,  2.75MB |
+| [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)               |    5 |   20k |   3.54s,  1.3MB |  1.86min, 2.5MB |  12.82s, 1.56MB | 0.28s,   2.0MB |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)               |    4 |   50M |  2.24hr,  1.0GB |               - |         ???, ?? |              - |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql)         |    4 |  100M |   6.3hr,  2.5GB |               - |         ???, ?? |              - |
 
 Missing values in the table above denote either failed runs (DuckDB kills a process that uses too much memory) or runs that took too long (much more than a couple of hours).
 

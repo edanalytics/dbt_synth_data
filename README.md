@@ -1,7 +1,7 @@
 <!-- Logo/image -->
 ![dbt_synth_data](assets/dalle-mini_small_laptop_on_a_white_background_showing_fake_data_in_a_spreadsheet.png)
 
-This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
+This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), [DuckDB](https://duckdb.org/), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
 
 All the magic happens in `macros/*`.
 
@@ -1026,8 +1026,8 @@ Here we provide approximate benchmarks for synthetic data generation, using the 
 | [customers](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/customers.sql)         |    8 |    1M |  58.75s, 57.6MB |   1.55hr, 163MB | 11.0min,  118MB | 67.09s, 68.5MB |
 | [products](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/products.sql)           |    3 |   50k |  11.51s,  2.4MB |  6.76min, 4.9MB |  33.54s, 2.49MB | 0.56s,  2.75MB |
 | [stores](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/stores.sql)               |    5 |   20k |   3.54s,  1.3MB |  1.86min, 2.5MB |  12.82s, 1.56MB | 0.28s,   2.0MB |
-| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)               |    4 |   50M |  2.24hr,  1.0GB |               - |         ???, ?? |              - |
-| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql)         |    4 |  100M |   6.3hr,  2.5GB |               - |         ???, ?? |              - |
+| [orders](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/orders.sql)               |    4 |   50M |  2.24hr,  1.0GB |               - |               - |              - |
+| [inventory](https://github.com/edanalytics/dbt_synth_data/blob/main/example_models/inventory.sql)         |    4 |  100M |   6.3hr,  2.5GB |               - |               - |              - |
 
 Missing values in the table above denote either failed runs (DuckDB kills a process that uses too much memory) or runs that took too long (much more than a couple of hours).
 

@@ -1054,7 +1054,7 @@ Bugfixes and new features (such as additional transformation operations) are gra
 
 
 # License
-Coming soon!
+See [License](LICENSE).
 
 
 

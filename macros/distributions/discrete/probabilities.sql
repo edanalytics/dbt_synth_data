@@ -1,4 +1,4 @@
-{% macro synth_distribution_discrete_probabilities(probabilities) %}
+{% macro synth_distribution_discrete_probabilities(probabilities, type="string") %}
     {# Set up some variables: #}
     {%- set epsilon = 0.00001 -%}{# "close enough" to zero #}
     {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
@@ -18,9 +18,9 @@
         {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0, not " + ns.values|sum|string) }}
     {%- endif -%}
 
-    {%- if ns.keys[0] is number -%}
+    {%- if ns.keys[0] is number or type!="string" -%}
         {% set wrap = "" %}
-    {% elif ns.keys[0] is string %}
+    {% elif ns.keys[0] is string or type=="string" %}
         {% set wrap = "'" %}
     {% else %}
         {{ exceptions.raise_compiler_error("`probabilities` keys must be strings or numbers") }}

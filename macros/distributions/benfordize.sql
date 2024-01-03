@@ -4,32 +4,32 @@
     {{ return(adapter.dispatch('synth_distribution_benfordize')(distribution, type, probabilities)) }}
 {% endmacro %}
 
-{% macro default__synth_distribution_discretize_floor(distribution, type, probabilities) -%}
+{% macro default__synth_distribution_benfordize(distribution, type, probabilities) -%}
     {# NOT YET IMPLEMENTED #}
 {%- endmacro %}
 
-{% macro sqlite__synth_distribution_discretize_floor(distribution, type, probabilities) %}
+{% macro sqlite__synth_distribution_benfordize(distribution, type, probabilities) %}
     concat(
         {{synth_distribution_discrete_probabilities(probabilities=probabilities)}},
         substr(printf('%.12e', {{distribution}}), 2)
     )::{{type}}
 {% endmacro %}
 
-{% macro duckdb__synth_distribution_discretize_floor(distribution, type, probabilities) %}
+{% macro duckdb__synth_distribution_benfordize(distribution, type, probabilities) %}
     concat(
         {{synth_distribution_discrete_probabilities(probabilities=probabilities)}},
         substring(format('{:E}', {{distribution}}), 2)
     )::{{type}}
 {% endmacro %}
 
-{% macro postgres__synth_distribution_discretize_floor(distribution, type, probabilities) %}
+{% macro postgres__synth_distribution_benfordize(distribution, type, probabilities) %}
     concat(
         {{synth_distribution_discrete_probabilities(probabilities=probabilities)}},
         substring(to_char({{distribution}}, '9.9999999999999999999EEEE') from 2)
     )::{{type}}
 {% endmacro %}
 
-{% macro snowflake__synth_distribution_discretize_floor(distribution, type, probabilities) %}
+{% macro snowflake__synth_distribution_benfordize(distribution, type, probabilities) %}
     concat(
         {{synth_distribution_discrete_probabilities(probabilities=probabilities)}},
         substring(to_varchar({{distribution}}, 'TME')::varchar, 2)

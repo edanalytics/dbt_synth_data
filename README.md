@@ -226,10 +226,17 @@ Generates discrete values according to a user-defined probability set.
 * a list (array) such as `[0.05, 0.8, 0.15]`, in which case the (zero-based) indices are the integer values generated
 * or a dictionary (key-value) structure such as `{ "1":0.05, "3":0.8, "7":0.15 }` with integer keys (specified as strings in order to be valud JSON), in which case the keys are the integers generated
 
-You may actually specify string or float keys in your `probabilities` dict to generate those values instead of integers, however you must specify the additional parameter `keys_type="varchar"` (or similar) so the the value types are correct. For example:
+You may actually specify `string`, `number`, or `boolean` keys in your `probabilities` dict to generate those values instead of integers, however you must specify the additional parameter `keys_type="number"` (or similar) so the the value types are correct. For example:
 ```python
-    synth_distributions_discrete_probabilities(probabilities={"cat":0.3, "dog":0.5, "parrot":0.2}, keys_type="varchar")
+    synth_distributions_discrete_probabilities(probabilities={"97":0.3, "85":0.5, "64":0.2}, keys_type="number")
 ```
+The default `keys_type` is `string`.
+
+No matter what `keys_type` you choose, you may optionally cast the values to a different type in your database engine with `cast_to`, for example:
+```python
+    synth_distributions_discrete_probabilities(probabilities={"2024-12-31":0.5, "2025-01-01":0.5}, cast_to="date")
+```
+(This will compile to something like `case .. when ... then CAST ("2024-12-31" AS date) when ... then CAST ("2025-01-01" AS date) ... end)`.)
 
 `probabilities` must sum to `1.0`.
 

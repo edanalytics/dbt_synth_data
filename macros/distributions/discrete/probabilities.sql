@@ -1,4 +1,4 @@
-{% macro synth_distribution_discrete_probabilities(probabilities, type="string") %}
+{% macro synth_distribution_discrete_probabilities(probabilities, keys_type="string", cast_to=None) %}
     {# Set up some variables: #}
     {%- set epsilon = 0.00001 -%}{# "close enough" to zero #}
     {%- set ns = namespace(max_prob_digits=1, keys=[], values=[], curr_idx=0, curr_threshold=0.0) -%}
@@ -8,6 +8,7 @@
         {%- set ns.keys = probabilities.keys()|list -%}
         {%- set ns.values = probabilities.values()|list -%}
     {%- elif probabilities is iterable -%}{#- list -#}
+        {% set keys_type = "number" %}
         {%- set ns.keys = range(probabilities|length) -%}
         {%- set ns.values = probabilities -%}
     {%- else -%}
@@ -18,12 +19,12 @@
         {{ exceptions.raise_compiler_error("`probabilities` must sum to 1.0, not " + ns.values|sum|string) }}
     {%- endif -%}
 
-    {%- if ns.keys[0] is number or type!="string" -%}
+    {%- if keys_type in ["number", "boolean"] -%}
         {% set wrap = "" %}
-    {% elif ns.keys[0] is string or type=="string" %}
+    {% elif keys_type=="string" %}
         {% set wrap = "'" %}
     {% else %}
-        {{ exceptions.raise_compiler_error("`probabilities` keys must be strings or numbers") }}
+        {{ exceptions.raise_compiler_error("`keys_type` must be `string`, `number`, or `boolean`") }}
     {% endif %}
 
     {%- set ns.curr_threshold = ns.values[0] -%}
@@ -57,7 +58,9 @@
                     )
                 ) }}
             ],
-            {{wrap}}{{value_list[value_list|length - 1]}}{{wrap}}
+            {% if cast_to %}CAST({% endif %}
+                {{wrap}}{{value_list[value_list|length - 1]}}{{wrap}}
+            {% if cast_to %} AS {{cast_to}} ){% endif %}
         )
     {% else %}
         {# Case statement on uniformly-distributed range: #}
@@ -67,7 +70,10 @@
                 {%- set ns.curr_idx = ns.curr_idx + 1 -%}
                 {%- set ns.curr_threshold = ns.curr_threshold + ns.values[ns.curr_idx] -%}
             {%- endif -%}
-            when {{i}} then {{wrap}}{{ns.keys[ns.curr_idx]}}{{wrap}}
+            when {{i}} then
+                {% if cast_to %}CAST({% endif %}
+                    {{wrap}}{{ns.keys[ns.curr_idx]}}{{wrap}}
+                {% if cast_to %} AS {{cast_to}} ){% endif %}
             {% endfor %}
         end
     {% endif %}

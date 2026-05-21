@@ -1,5 +1,5 @@
 {% macro synth_distribution_discretize_floor(distribution) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_floor')(distribution)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_floor', 'dbt_synth_data')(distribution)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_floor(distribution) -%}
@@ -25,7 +25,7 @@
 
 
 {% macro synth_distribution_discretize_ceil(distribution) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_ceil')(distribution)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_ceil', 'dbt_synth_data')(distribution)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_ceil(distribution) -%}
@@ -51,7 +51,7 @@
 
 
 {% macro synth_distribution_discretize_round(distribution, precision=0) %}
-    {{ return(adapter.dispatch('synth_distribution_discretize_round')(distribution, precision)) }}
+    {{ return(adapter.dispatch('synth_distribution_discretize_round', 'dbt_synth_data')(distribution, precision)) }}
 {% endmacro %}
 
 {% macro default__synth_distribution_discretize_round(distribution, precision) -%}

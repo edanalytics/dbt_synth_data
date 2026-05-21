@@ -1,5 +1,5 @@
 {% macro synth_distribution_continuous_normal(mean=0, stddev=1) -%}
-    {{ return(adapter.dispatch('synth_distribution_continuous_normal')(mean, stddev)) }}
+    {{ return(adapter.dispatch('synth_distribution_continuous_normal', 'dbt_synth_data')(mean, stddev)) }}
 {%- endmacro %}
 
 {% macro default__synth_distribution_continuous_normal(mean, stddev) -%}

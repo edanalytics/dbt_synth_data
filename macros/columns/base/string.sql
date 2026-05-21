@@ -1,5 +1,5 @@
 {% macro synth_column_string(name, min_length=1, max_length=32) -%}
-    {{ return(adapter.dispatch('synth_column_string_base')(name, min_length, max_length)) }}
+    {{ return(adapter.dispatch('synth_column_string_base', 'dbt_synth_data')(name, min_length, max_length)) }}
 {%- endmacro %}
 
 {% macro default__synth_column_string_base(name, min_length, max_length) -%}

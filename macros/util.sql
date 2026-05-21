@@ -14,7 +14,7 @@
 #}
 {% macro synth_get_randseed() %}
     {%- if not target.get("rand_seed") -%}
-    {%- do synth_set_randseed(var('synth_randseed')) -%}
+    {%- do dbt_synth_data.synth_set_randseed(var('synth_randseed')) -%}
     {%- set next_rand_seed = var('synth_randseed') -%}
     {%- else -%}
     {%- set next_rand_seed = target.get("rand_seed")|int + 1 -%}

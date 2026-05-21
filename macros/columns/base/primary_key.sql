@@ -1,6 +1,6 @@
 {% macro synth_column_primary_key(name) -%}
     {% set base_field %}
-        {{ adapter.dispatch('synth_column_primary_key')() }} as {{name}}
+        {{ adapter.dispatch('synth_column_primary_key', 'dbt_synth_data')() }} as {{name}}
     {% endset %}
     {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 

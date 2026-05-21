@@ -1,5 +1,5 @@
 {% macro synth_table(rows=1000) -%}
-    {{ return(adapter.dispatch('synth_table')(rows)) }}
+    {{ return(adapter.dispatch('synth_table', 'dbt_synth_data')(rows)) }}
 {% endmacro %}
 
 {% macro default__synth_table(rows=1000) -%}
@@ -17,8 +17,8 @@
     
     {{table_name}}__base as (
         select
-            {{ adapter.dispatch('synth_table_rownum')() }} as __row_number
-        from {{ adapter.dispatch('synth_table_generator')(rows) }}
+            {{ adapter.dispatch('synth_table_rownum', 'dbt_synth_data')() }} as __row_number
+        from {{ adapter.dispatch('synth_table_generator', 'dbt_synth_data')(rows) }}
     ),
     {{table_name}}__join0 as (
         select
@@ -81,8 +81,8 @@
     {% set query %}
     create temp table {{table_name}}__base as
         select
-            {{ adapter.dispatch('synth_table_rownum')() }} as __row_number
-        from {{ adapter.dispatch('synth_table_generator')(rows) }}
+            {{ adapter.dispatch('synth_table_rownum', 'dbt_synth_data')() }} as __row_number
+        from {{ adapter.dispatch('synth_table_generator', 'dbt_synth_data')(rows) }}
     ;
     {% endset %}
     {% do run_query(query) %}

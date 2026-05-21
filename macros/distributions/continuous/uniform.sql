@@ -1,5 +1,5 @@
 {% macro synth_distribution_continuous_uniform(min=0, max=1) -%}
-    {{ return(adapter.dispatch('synth_distribution_continuous_uniform')(min, max)) }}
+    {{ return(adapter.dispatch('synth_distribution_continuous_uniform', 'dbt_synth_data')(min, max)) }}
 {%- endmacro %}
 
 {% macro default__synth_distribution_continuous_uniform(min, max) -%}

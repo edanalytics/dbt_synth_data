@@ -1,6 +1,6 @@
 {% macro synth_column_geopoint(name) -%}
     {% set base_field %}
-        {{ adapter.dispatch('synth_column_geopoint_base')() }} AS {{name}}
+        {{ adapter.dispatch('synth_column_geopoint_base', 'dbt_synth_data')() }} AS {{name}}
     {% endset %}
     {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 

@@ -1,6 +1,6 @@
 {% macro synth_column_date_sequence(name, start_date='', step=1) -%}
     {% set base_field %}
-        {{ adapter.dispatch('synth_column_date_sequence_base')(start_date, step) }} AS {{name}}
+        {{ adapter.dispatch('synth_column_date_sequence_base', 'dbt_synth_data')(start_date, step) }} AS {{name}}
     {% endset %}
     {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 

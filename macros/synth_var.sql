@@ -1,5 +1,5 @@
 {% macro synth_var(data) %}
-    {{ return(synth_dynamic_var(var(data))) }}
+    {{ return(dbt_synth_data.synth_dynamic_var(var(data))) }}
 {% endmacro %}
 
 {% macro synth_dynamic_var(data) %}
@@ -35,13 +35,13 @@
         {% set my_macro = first_key[0:-2] %}
         {% set my_params = {} %}
         {% for param, value in data[first_key]|items %}
-            {% do my_params.update({param: synth_dynamic_var(value)}) %}
+            {% do my_params.update({param: dbt_synth_data.synth_dynamic_var(value)}) %}
         {% endfor %}
-        {{ return(synth_call_macro(my_macro, my_params)) }}
+        {{ return(dbt_synth_data.synth_call_macro(my_macro, my_params)) }}
     {% elif data is string and data[-2:]=="()" %}
         {# CASE B #}
         {% set my_macro = data[0:-2] %}
-        {{ synth_call_macro(my_macro, {})() }}
+        {{ dbt_synth_data.synth_call_macro(my_macro, {})() }}
     {% else %}
         {# CASE C #}
         {{ return(data) }}

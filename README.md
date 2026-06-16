@@ -353,6 +353,20 @@ For all but the last option, you may optionally specify a `label_precision`, whi
 </details>
 
 
+## Benford's Law
+Real-world numeric distributions (such as bank account balances) often follow [Benford's law](https://en.wikipedia.org/wiki/Benford%27s_law), where the leading digit follows a specific non-uniform distribution. To facilitate synthesis of such data, `dbt_synth_data` provides a convenience macro to "`benfordize()`" any distribution:
+
+```sql
+    {{synth_column_distribution(name="account_balance",
+        distribution=synth_distribution_benfordize(
+            distribution=synth_distribution_continuous_uniform(min=0, max=200000)
+        )
+    )}}
+```
+
+The macro works by casting values from the `distribution` to a text-minimal scientific notation string (`1.2345E2`), replacing the leading digit with one from the Benford distribution (`probabilities={"1":0.301, "2":0.176, "3":0.125, "4":0.097, "5":0.079, "6":0.067, "7":0.058, "8":0.051, "9":0.046}` by default), and casting back to a number (`type="double"` by default). Note that this casting may result in loss of precision.
+
+
 ## Constructing Complex Distributions
 This package provides the following mechanisms for composing several distributions:
 

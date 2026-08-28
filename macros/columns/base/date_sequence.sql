@@ -45,3 +45,11 @@
     dateadd(day, {{step}}*(__row_number-1), '{{start_date}}')
     {% endif %}
 {% endmacro%}
+
+{% macro bigquery__synth_column_date_sequence_base(start_date, step) %}
+    {% if start_date|length ==0 %}
+    DATE_ADD(CURRENT_DATE(), INTERVAL {{step}}*(__row_number-1) DAY)
+    {% else %}
+    DATE_ADD(DATE '{{start_date}}', INTERVAL {{step}}*(__row_number-1) DAY)
+    {% endif %}
+{% endmacro %}

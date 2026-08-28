@@ -21,3 +21,7 @@
 {% macro snowflake__synth_distribution_continuous_uniform(min, max) %}
     UNIFORM({{min}}::float, {{max}}::float, RANDOM( {{ dbt_synth_data.synth_get_randseed() }} ))
 {% endmacro %}
+
+{% macro bigquery__synth_distribution_continuous_uniform(min, max) %}
+    (RAND() * ({{max}}-{{min}}) + {{min}})
+{% endmacro %}

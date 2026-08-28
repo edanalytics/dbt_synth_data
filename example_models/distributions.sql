@@ -54,7 +54,7 @@ with
         weights=[1,2,3]
     )
 ) }}
-{%- if target.type not in ['sqlite', 'duckdb'] -%}
+{%- if target.type not in ['sqlite', 'duckdb', 'bigquery'] -%}
 {{ synth_column_distribution(name="discretized_uniform",
     distribution=synth_distribution_discretize_width_bucket(
         distribution=synth_distribution(class='continuous', type='uniform', min=0, max=10),

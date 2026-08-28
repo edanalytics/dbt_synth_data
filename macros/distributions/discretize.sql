@@ -22,6 +22,10 @@
     floor( {{distribution}} )
 {% endmacro%}
 
+{% macro bigquery__synth_distribution_discretize_floor(distribution) %}
+    cast(floor( {{distribution}} ) as int64)
+{% endmacro %}
+
 
 
 {% macro synth_distribution_discretize_ceil(distribution) %}
@@ -47,6 +51,10 @@
 {% macro snowflake__synth_distribution_discretize_ceil(distribution) %}
     ceil( {{distribution}} )
 {% endmacro%}
+
+{% macro bigquery__synth_distribution_discretize_ceil(distribution) %}
+    cast(ceil( {{distribution}} ) as int64)
+{% endmacro %}
 
 
 
@@ -74,12 +82,35 @@
     round( ( {{distribution}} )::numeric , {{precision}})
 {% endmacro%}
 
+{% macro bigquery__synth_distribution_discretize_round(distribution, precision) %}
+    round( ( {{distribution}} ), {{precision}} )
+{% endmacro %}
+
+
+
+{# Rounds to a whole number for integer SQL contexts (e.g. MOD()). Distinct from
+   `discretize_round`, which keeps its result's native type (FLOAT64/NUMERIC) so it
+   can still round to `precision > 0` decimal places. Only BigQuery's MOD() rejects
+   the FLOAT64 that round() returns, so only that adapter needs an explicit cast. #}
+{% macro synth_distribution_discretize_round_int(distribution) %}
+    {{ return(adapter.dispatch('synth_distribution_discretize_round_int', 'dbt_synth_data')(distribution)) }}
+{% endmacro %}
+
+{% macro default__synth_distribution_discretize_round_int(distribution) -%}
+    {{ dbt_synth_data.synth_distribution_discretize_round(distribution=distribution, precision=0) }}
+{%- endmacro %}
+
+{% macro bigquery__synth_distribution_discretize_round_int(distribution) -%}
+    {# BigQuery round() returns FLOAT64; cast to INT64 for integer contexts like MOD() #}
+    CAST( {{ dbt_synth_data.synth_distribution_discretize_round(distribution=distribution, precision=0) }} AS INT64)
+{%- endmacro %}
+
 
 
 {% macro synth_distribution_discretize_width_bucket(distribution, from=0.0, to=1.0, strict_bounds=True, count=None, size=None, labels=None, label_precision=4, bucket_range_separator=' - ') %}
-    {# SQLite doesn't support width_bucket(), unfortunately #}
-    {%- if target.type in ['sqlite', 'duckdb'] -%}
-        {{ exceptions.raise_compiler_error("SQLite does not support `width_bucket()`, unfortunately, so you cannot use  `synth_distribution_discretize_width_bucket()` with it.") }}
+    {# SQLite, DuckDB, and BigQuery don't support width_bucket(), unfortunately #}
+    {%- if target.type in ['sqlite', 'duckdb', 'bigquery'] -%}
+        {{ exceptions.raise_compiler_error(target.type ~ " does not support `width_bucket()`, unfortunately, so you cannot use `synth_distribution_discretize_width_bucket()` with it.") }}
     {%- endif -%}
 
     {# Either `size` or `count` must be specified #}

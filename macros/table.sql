@@ -148,6 +148,11 @@
     table(generator( rowcount => {{rows}} ))
 {% endmacro %}
 
+{% macro bigquery__synth_table_generator(rows) %}
+    {# BigQuery has no generate_series(); UNNEST an array of 1..N and use the value as the row number #}
+    UNNEST(GENERATE_ARRAY(1, {{rows}})) AS __rn
+{% endmacro %}
+
 
 
 {% macro default__synth_table_rownum() -%}
@@ -156,4 +161,8 @@
 
 {% macro postgres__synth_table_rownum() %}
     s.idx
+{% endmacro %}
+
+{% macro bigquery__synth_table_rownum() %}
+    __rn
 {% endmacro %}

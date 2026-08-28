@@ -1,7 +1,7 @@
 <!-- Logo/image -->
 ![dbt_synth_data](assets/dalle-mini_small_laptop_on_a_white_background_showing_fake_data_in_a_spreadsheet.png)
 
-This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), [DuckDB](https://duckdb.org/), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
+This is a [`dbt`](https://www.getdbt.com/) package for creating synthetic data. Currently it supports [Snowflake](https://www.snowflake.com/en/), [Postgres](https://www.postgresql.org/), [DuckDB](https://duckdb.org/), [BigQuery](https://cloud.google.com/bigquery), and [SQLite](https://www.sqlite.org/index.html) (with the [`stats` extension](https://docs.getdbt.com/reference/warehouse-setups/sqlite-setup#sqlite-extensions)). Other backends may be added eventually.
 
 All the magic happens in `macros/*`.
 
@@ -48,6 +48,7 @@ This package currently supports the following backends:
 * `postgres` (with `pip install dbt-postgres`)
 * `sqlite` (with `pip install dbt-sqlite`)
 * `duckdb` (with `pip install dbt-duckdb`)
+* `bigquery` (with `pip install dbt-bigquery`)
 
 
 # Installation
@@ -57,6 +58,7 @@ This package currently supports the following backends:
 1. add `"dbt_packages/dbt_synth/macros"` to your `dbt_project.yml`'s `macro-paths`
 1. build your synthetic models as documented below
 1. `dbt run`
+
 
 
 
@@ -313,7 +315,7 @@ Converts values from [continuous distributions](#continuous-distributions) to di
 <details>
 <summary><code>discretize_width_bucket</code></summary>
 
-**Note** that SQLite doesn't support `width_bucket()`; you will get an error if you try to use this function on SQLite.
+**Note** that SQLite, DuckDB, and BigQuery don't support `width_bucket()`; you will get an error if you try to use this function on those backends.
 
 Converts values from [continuous distributions](#continuous-distributions) to discrete values by bucketing them. Buckets are specified by `from` and `to` bounds and either `count` (the number of buckets) or `size` (the target bucket size).
 

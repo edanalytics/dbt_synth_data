@@ -16,7 +16,7 @@
     {% set iterator = dbt_synth_data.synth_hypercube_iterator(hypercube_shape) %}
     {% set ns_from = namespace(threshhold=0.0) %}
     {% set ns_to = namespace(threshhold=0.0) %}
-    {% set ns_field = namespace(field='CASE ') %} 
+    {% set ns_field = namespace(field='CASE ') %}
     {% for indices_string in iterator %}
         {%- set indices = indices_string.split('.') -%}
         {%- set this_probability = dbt_synth_data.synth_hypercube_value_at_indices(data.probabilities, indices) -%}
@@ -65,7 +65,7 @@
 
 {% macro synth_hypercube_value_at_indices(hypercube, indices) %}
     {% if indices|length > 1 %}
-        {{ return(synth_hypercube_value_at_indices(hypercube[indices[0]|int], indices[1:])) }}
+        {{ return(dbt_synth_data.synth_hypercube_value_at_indices(hypercube[indices[0]|int], indices[1:])) }}
     {% else %}
         {{ return(hypercube[indices[0]|int]) }}
     {% endif %}

@@ -48,34 +48,38 @@
     which will first run the update hooks and then run the cleanup hooks.
 #}
 {%- macro synth_add_update_hook(query) -%}
-    {%- set updatehooks = target.get("updatehooks") or [] -%}
-    {{ updatehooks.append(query) or "" }}
-    {%- do target.update({"updatehooks": updatehooks}) -%}
+    {%- set hook_key = this.identifier ~ '__updatehooks' -%}
+    {%- set updatehooks = target.get(hook_key) or [] -%}
+    {%- do updatehooks.append(query) -%}
+    {%- do target.update({hook_key: updatehooks}) -%}
 {%- endmacro %}
 
 {%- macro synth_add_cleanup_hook(query) -%}
-    {%- set cleanuphooks = target.get("cleanuphooks") or [] -%}
-    {{ cleanuphooks.append(query) or "" }}
-    {%- do target.update({"cleanuphooks": cleanuphooks}) -%}
+    {%- set hook_key = this.identifier ~ '__cleanuphooks' -%}
+    {%- set cleanuphooks = target.get(hook_key) or [] -%}
+    {%- do cleanuphooks.append(query) -%}
+    {%- do target.update({hook_key: cleanuphooks}) -%}
 {%- endmacro %}
 
 {%- macro synth_get_post_hooks() -%}
+    {% set hook_key_u = this.identifier ~ '__updatehooks' %}
+    {% set hook_key_c = this.identifier ~ '__cleanuphooks' %}
     {% set posthooks %}
-    
-    {% if target.get("updatehooks") %}
-    {% for updatehook in target.get("updatehooks") | unique %}
+
+    {% if target.get(hook_key_u) %}
+    {% for updatehook in target.get(hook_key_u) | unique %}
         {{ updatehook }};
     {% endfor %}
     {% endif %}
 
-    {% if target.get("cleanuphooks") %}
-    {% for cleanuphook in target.get("cleanuphooks") | unique %}
+    {% if target.get(hook_key_c) %}
+    {% for cleanuphook in target.get(hook_key_c) | unique %}
         {{ cleanuphook }};
     {% endfor %}
     {% endif %}
-    
+
     {% endset %}
-    
+
     {{ return(posthooks) }}
 {%- endmacro %}
 
@@ -87,20 +91,22 @@
 {%- endmacro %}
 
 {%- macro synth_store(collection, key, value) -%}
-    {%- set data = target.get(collection) or {} -%}
-    {{ data.update({key: value}) or "" }}
-    {%- do target.update({collection: data}) -%}
+    {%- set ns_collection = this.identifier ~ '__' ~ collection -%}
+    {%- set data = target.get(ns_collection) or {} -%}
+    {%- do data.update({key: value}) -%}
+    {%- do target.update({ns_collection: data}) -%}
 {%- endmacro %}
 
 {%- macro synth_remove(collection, key) -%}
-    {%- set data = target.get(collection) or {} -%}
-    {{ data.pop(key) or "" }}
-    {%- do target.update({collection: data}) -%}
-    {{ return("") }}
+    {%- set ns_collection = this.identifier ~ '__' ~ collection -%}
+    {%- set data = target.get(ns_collection) or {} -%}
+    {%- do data.pop(key) -%}
+    {%- do target.update({ns_collection: data}) -%}
 {%- endmacro %}
 
 {%- macro synth_retrieve(collection) -%}
-    {{ return( target.get(collection) or {} ) }}
+    {%- set ns_collection = this.identifier ~ '__' ~ collection -%}
+    {{ return( target.get(ns_collection) or {} ) }}
 {%- endmacro %}
 
 

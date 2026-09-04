@@ -24,3 +24,9 @@
 {% macro snowflake__synth_distribution_continuous_normal(mean, stddev) %}
     NORMAL({{mean}}::float, {{stddev}}::float, RANDOM( {{ dbt_synth_data.synth_get_randseed() }} ))
 {% endmacro %}
+
+{% macro bigquery__synth_distribution_continuous_normal(mean, stddev) %}
+    {#- formula below is based on https://mathworld.wolfram.com/Box-MullerTransformation.html -#}
+    {#- BigQuery: LN() is natural log (LOG() is base-10), there is no pi() so use ACOS(-1) -#}
+    ( ( CAST({{stddev}} AS FLOAT64) * sqrt(-2*LN(RAND()))*sin(2*ACOS(-1)*RAND()) ) + CAST({{mean}} AS FLOAT64) )
+{% endmacro %}

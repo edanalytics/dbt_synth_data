@@ -10,11 +10,11 @@
         {% set tokenized_format_strings = [] %}
         {% for format_string in format_strings %}
             {% set tokens, expression = dbt_synth_data.synth_column_words_tokenize_format_string(name, format_string) %}
-            {{ tokenized_format_strings.append({
+            {%- do tokenized_format_strings.append({
                 "format_string": format_string,
                 "tokens": tokens,
                 "expression": expression
-            }) or "" }}
+            }) -%}
         {% endfor %}
 
         {# get minimal set of word parts to generate #}
@@ -22,11 +22,11 @@
         {% for obj in tokenized_format_strings %}
             {% for col_name,pos in obj["tokens"].items() %}
                 {% if col_name not in token_set.keys() %}
-                    {{ token_set.update({col_name: pos}) or ""}}
+                    {%- do token_set.update({col_name: pos}) -%}
                 {% endif %}
             {% endfor %}
         {% endfor %}
-        
+
         {% set words_expression %}
         (CASE
         {% for i in range(tokenized_format_strings|length) %}
@@ -39,7 +39,7 @@
         {{ dbt_synth_data.synth_column_word(name=col_name, language=language, language_code=language_code, pos=[pos], distribution=distribution) }}
         {{ dbt_synth_data.synth_remove("final_fields", col_name) }}
         {% endfor %}
-        
+
         {% set base_field %}
             {{ dbt_synth_data.synth_distribution_discretize_floor(dbt_synth_data.synth_distribution_continuous_uniform(min=1, max=format_strings|length+1)) }} as {{name}}__format_idx
         {% endset %}
@@ -49,7 +49,7 @@
             {{ words_expression }} as {{name}}
         {% endset %}
         {{ dbt_synth_data.synth_store("joins", name+"__cte", {"fields": join_fields, "clause": ""} ) }}
-        
+
         {% set final_field %}
             {{name}}
         {% endset %}
@@ -84,13 +84,13 @@
     {% for piece in pieces1 %}
         {% if '}' in piece %}
             {% set subpieces = piece.split('}') %}
-            {{ pieces.append('{' + subpieces[0] + '}') or "" }}
-            {{ poss.append(subpieces[0]) or "" }}
+            {%- do pieces.append('{' + subpieces[0] + '}') -%}
+            {%- do poss.append(subpieces[0]) -%}
             {% if subpieces[1]|length>0 %}
-                {{ pieces.append(subpieces[1]) or "" }}
+                {%- do pieces.append(subpieces[1]) -%}
             {% endif %}
         {% elif piece|length>0 %}
-            {{ pieces.append(piece) or "" }}
+            {%- do pieces.append(piece) -%}
         {% endif %}
     {% endfor %}
 
@@ -99,10 +99,10 @@
     {% for pos in poss %}
         {% if pos in type_counts %}
         {% do type_counts.update({pos: type_counts[pos] + 1}) %}
-        {{ tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
+        {%- do tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) -%}
         {% else %}
         {% do type_counts.update({pos: 1}) %}
-        {{ tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) or "" }}
+        {%- do tokens.update({ name + "__" + pos|replace(" ", "_") + type_counts[pos]|string : pos }) -%}
         {% endif %}
     {% endfor %}
 
@@ -116,6 +116,6 @@
     {% if expression["value"][-6:]==" || ''" %}
     {% do expression.update({ "value": expression["value"][:-6] }) %}
     {% endif %}
-    
+
     {{ return( (tokens, expression["value"]) )}}
 {% endmacro %}

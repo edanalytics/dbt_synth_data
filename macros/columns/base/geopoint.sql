@@ -27,3 +27,11 @@
         UNIFORM(-90.0, 90.0, RANDOM( {{ dbt_synth_data.synth_get_randseed() }} ))
     )
 {% endmacro%}
+
+{% macro bigquery__synth_column_geopoint_base() %}
+    {# BigQuery's equivalent of ST_MAKEPOINT is ST_GEOGPOINT(longitude, latitude) #}
+    ST_GEOGPOINT(
+        RAND()*360.0 - 180.0,
+        RAND()*180.0 - 90.0
+    )
+{% endmacro %}

@@ -2,7 +2,7 @@
     {% set base_field %}
         {{ adapter.dispatch('synth_column_date_base', 'dbt_synth_data')(min, max, distribution) }} AS {{name}}
     {% endset %}
-    {{ synth_store('base_fields', name, base_field) }}
+    {{ dbt_synth_data.synth_store('base_fields', name, base_field) }}
 
     {% set final_field %}
         {{name}}
@@ -39,3 +39,16 @@
         '{{min}}'::date
     )
 {% endmacro%}
+
+{% macro bigquery__synth_column_date_base(min, max, distribution) %}
+    DATE_ADD(
+        DATE '{{min}}',
+        INTERVAL CAST(FLOOR(
+            RAND() * DATE_DIFF(
+                {% if max|length > 0 %}DATE '{{max}}'{% else %}CURRENT_DATE(){% endif %},
+                DATE '{{min}}',
+                DAY
+            )
+        ) AS INT64) DAY
+    )
+{% endmacro %}

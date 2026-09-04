@@ -18,3 +18,8 @@
     {# SQLite doesn't support MD5() out-of-the-box, so just use the row number #}
     __row_number
 {% endmacro %}
+
+{% macro bigquery__synth_column_primary_key() %}
+    {# BigQuery has no `::` cast and MD5() returns BYTES, so cast explicitly and TO_HEX the digest #}
+    TO_HEX(MD5(CONCAT('{{this}}', CAST(__row_number AS STRING))))
+{% endmacro %}

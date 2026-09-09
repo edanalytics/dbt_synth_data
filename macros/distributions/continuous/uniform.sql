@@ -7,15 +7,15 @@
 {%- endmacro %}
 
 {% macro sqlite__synth_distribution_continuous_uniform(min, max) %}
-    ({{ dbt_synth_data.synth_sqlite_random() }} * ({{max}}-{{min}}) + {{min}})
+    ({{ dbt_synth_data.synth_sqlite_random() }} * (({{max}})-({{min}})) + ({{min}}))
 {% endmacro %}
 
 {% macro duckdb__synth_distribution_continuous_uniform(min, max) %}
-    (random() * ({{max}}-{{min}}) + {{min}})
+    (random() * (({{max}})-({{min}})) + ({{min}}))
 {% endmacro %}
 
 {% macro postgres__synth_distribution_continuous_uniform(min, max) %}
-    (random() * ({{max}}-{{min}}) + {{min}})
+    (random() * (({{max}})-({{min}})) + ({{min}}))
 {% endmacro %}
 
 {% macro snowflake__synth_distribution_continuous_uniform(min, max) %}
@@ -23,5 +23,5 @@
 {% endmacro %}
 
 {% macro bigquery__synth_distribution_continuous_uniform(min, max) %}
-    (RAND() * ({{max}}-{{min}}) + {{min}})
+    (RAND() * (({{max}})-({{min}})) + ({{min}}))
 {% endmacro %}

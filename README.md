@@ -519,6 +519,20 @@ For non-uniformly-distributed values, specify a distribution rounded to the desi
 </details>
 
 <details>
+<summary><code>numeric typed</code></summary>
+
+Generates numeric values, explicitly cast to a target SQL type. (`numeric` has no cast
+argument, so its expression otherwise lands as the adapter's native float type, e.g.
+`FLOAT64` on BigQuery, even for a `NUMERIC`/`DECIMAL` target column.)
+```python
+{{ synth_column_numeric_typed(name="price", min=1.99, max=999.99, precision=2, data_type='NUMERIC(38, 9)') }}
+```
+`data_type` defaults to `NUMERIC(38, 9)`. The precision and scale are spelled out because a
+bare `NUMERIC` means different things per adapter (`DECIMAL(18, 3)` on DuckDB, `NUMBER(38, 0)`
+on Snowflake), which would round your values off without saying so.
+</details>
+
+<details>
 <summary><code>string</code></summary>
 
 Generates random strings.
@@ -586,6 +600,28 @@ Generates values from a list of possible values, with optional probability weigh
 If `probabilities` are omitted, every value is equally likely.
 
 (Uses `synth_distribution_discrete_probabilities()` under the hood.)
+</details>
+
+<details>
+<summary><code>group values</code></summary>
+
+Generates values from a list of possible values, keyed off an arbitrary `group_expr`
+instead of the row number - every row sharing the same `group_expr` value draws the
+same result. Useful for making a column constant within a group of rows (e.g. every
+line of one transaction), rather than independently random per row.
+```python
+{{ synth_column_group_values(name="currency_code", group_expr="transaction_id",
+    values=['USD', 'CAD', 'EUR'],
+    probabilities=[0.8, 0.15, 0.05]
+) }}
+```
+If `probabilities` are omitted, every value is equally likely.
+
+`group_expr` decides which rows share a value; `draw_key` decides which sequence of values
+they draw from. It defaults to `name`, so two group-level columns keyed off the same
+`group_expr` already draw independently of each other. Pass an explicit `draw_key` if you
+want two columns to draw together, or if you need a column's values to stay the same across
+a rename. Supported on BigQuery, DuckDB, SQLite, Postgres, and Snowflake.
 </details>
 
 <details>
